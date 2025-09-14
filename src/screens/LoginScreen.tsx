@@ -28,9 +28,10 @@ const { width, height } = Dimensions.get('window');
 
 interface LoginScreenProps {
   onLoginSuccess?: (loginData: any) => void;
+  onNavigateToSignup?: () => void;
 }
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onNavigateToSignup }) => {
   const [credentials, setCredentials] = useState<TraineeLoginRequest>({
     nationalId: '',
     password: '',
@@ -298,6 +299,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   onPress={handleLogin}
                   loading={isLoading}
                   variant="primary"
+                  size="large"
+                />
+
+                {/* Signup Button */}
+                <CustomButton
+                  title="إنشاء حساب جديد"
+                  onPress={onNavigateToSignup}
+                  variant="outline"
                   size="large"
                 />
 

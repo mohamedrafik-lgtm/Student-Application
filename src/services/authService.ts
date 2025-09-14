@@ -3,11 +3,23 @@
 // 2. Dependency Inversion: Depends on abstractions (interfaces) not concretions
 // 3. Open/Closed: Can be extended with new auth methods without modification
 
-import { 
-  TraineeLoginRequest, 
-  TraineeLoginResponse, 
+import {
+  TraineeLoginRequest,
+  TraineeLoginResponse,
   TraineeLoginError,
-  TraineeProfileResponse
+  TraineeProfileResponse,
+  VerifyTraineeDto,
+  VerifyTraineeResponse,
+  VerifyPhoneDto,
+  VerifyPhoneResponse,
+  CreatePasswordDto,
+  CreatePasswordResponse,
+  RequestPasswordResetDto,
+  RequestPasswordResetResponse,
+  VerifyResetCodeDto,
+  VerifyResetCodeResponse,
+  ResetPasswordDto,
+  ResetPasswordResponse
 } from '../types/auth';
 import { API_CONFIG } from './apiConfig';
 
@@ -115,6 +127,78 @@ export class AuthService {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
+    });
+  }
+
+  // التحقق من بيانات المتدرب
+  static async verifyTrainee(data: VerifyTraineeDto): Promise<VerifyTraineeResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.VERIFY_TRAINEE}`;
+    return this.makeRequest<VerifyTraineeResponse>(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+  }
+
+  // التحقق من رقم الهاتف
+  static async verifyPhone(data: VerifyPhoneDto): Promise<VerifyPhoneResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.VERIFY_PHONE}`;
+    return this.makeRequest<VerifyPhoneResponse>(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+  }
+
+  // إنشاء كلمة مرور جديدة
+  static async createPassword(data: CreatePasswordDto): Promise<CreatePasswordResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CREATE_PASSWORD}`;
+    return this.makeRequest<CreatePasswordResponse>(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+  }
+
+  // طلب إعادة تعيين كلمة المرور
+  static async requestPasswordReset(data: RequestPasswordResetDto): Promise<RequestPasswordResetResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.REQUEST_PASSWORD_RESET}`;
+    return this.makeRequest<RequestPasswordResetResponse>(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+  }
+
+  // التحقق من كود إعادة التعيين
+  static async verifyResetCode(data: VerifyResetCodeDto): Promise<VerifyResetCodeResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.VERIFY_RESET_CODE}`;
+    return this.makeRequest<VerifyResetCodeResponse>(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+  }
+
+  // إعادة تعيين كلمة المرور
+  static async resetPassword(data: ResetPasswordDto): Promise<ResetPasswordResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.RESET_PASSWORD}`;
+    return this.makeRequest<ResetPasswordResponse>(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
     });
   }
 }

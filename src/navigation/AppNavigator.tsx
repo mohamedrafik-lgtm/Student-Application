@@ -10,6 +10,7 @@ import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import DocumentsScreen from '../screens/DocumentsScreen';
 import PaymentsScreen from '../screens/PaymentsScreen';
+import SignupScreen from '../screens/SignupScreen';
 import { Colors } from '../styles/colors';
 
 interface UserInfo {
@@ -19,7 +20,7 @@ interface UserInfo {
   accessToken: string;
 }
 
-type Screen = 'login' | 'home' | 'profile' | 'documents' | 'payments';
+type Screen = 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -92,6 +93,18 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('profile');
   };
 
+  const handleNavigateToSignup = () => {
+    setCurrentScreen('signup');
+  };
+
+  const handleBackToLogin = () => {
+    setCurrentScreen('login');
+  };
+
+  const handleSignupSuccess = () => {
+    setCurrentScreen('login');
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -139,9 +152,19 @@ const AppNavigator: React.FC = () => {
     );
   }
 
+  if (currentScreen === 'signup') {
+    return (
+      <SignupScreen
+        onBack={handleBackToLogin}
+        onSignupSuccess={handleSignupSuccess}
+      />
+    );
+  }
+
   return (
     <LoginScreen
       onLoginSuccess={handleLoginSuccess}
+      onNavigateToSignup={handleNavigateToSignup}
     />
   );
 };

@@ -310,3 +310,112 @@ export interface TraineeProfileResponse extends TraineeAuth {}
 
 // نوع للاستخدام في الفرونت إند
 export type TraineeProfile = TraineeProfileResponse;
+
+// DTO للتحقق من بيانات المتدرب
+export interface VerifyTraineeDto {
+  nationalId: string;  // الرقم القومي
+  birthDate: string;   // تاريخ الميلاد (YYYY-MM-DD)
+}
+
+// استجابة التحقق من بيانات المتدرب
+export interface VerifyTraineeResponse {
+  traineeId: number;   // معرف المتدرب
+  nationalId: string;  // الرقم القومي
+  name: string;        // اسم المتدرب (بالعربية)
+  hasAccount: boolean; // هل يوجد حساب مسجل مسبقاً
+  phoneHint?: string;  // آخر رقمين من رقم الهاتف (للأمان)
+}
+
+// DTO للتحقق من رقم الهاتف
+export interface VerifyPhoneDto {
+  nationalId: string;  // الرقم القومي
+  phone: string;       // رقم الهاتف
+}
+
+// استجابة التحقق من رقم الهاتف - حالة النجاح
+export interface VerifyPhoneResponse {
+  success: boolean;    // true في حالة النجاح
+  message: string;     // رسالة التأكيد
+}
+
+// استجابة حالة الخطأ
+export interface VerifyPhoneErrorResponse {
+  statusCode: number;  // كود الخطأ (404 أو 400)
+  message: string;     // رسالة الخطأ
+  error: string;       // نوع الخطأ
+}
+
+// DTO لإنشاء كلمة مرور جديدة
+export interface CreatePasswordDto {
+  nationalId: string;  // الرقم القومي
+  birthDate: string;   // تاريخ الميلاد (YYYY-MM-DD)
+  password: string;    // كلمة المرور الجديدة (6 أحرف على الأقل، تحتوي على حروف وأرقام)
+}
+
+// استجابة إنشاء كلمة المرور - حالة النجاح
+export interface CreatePasswordResponse {
+  success: boolean;    // true في حالة النجاح
+  message: string;     // رسالة التأكيد
+}
+
+// استجابة حالة الخطأ
+export interface CreatePasswordErrorResponse {
+  statusCode: number;      // كود الخطأ (404 أو 400)
+  message: string | string[]; // رسالة الخطأ (قد تكون مصفوفة في حالة أخطاء التحقق)
+  error: string;           // نوع الخطأ
+}
+
+// DTO لطلب إعادة تعيين كلمة المرور
+export interface RequestPasswordResetDto {
+  nationalId: string;  // الرقم القومي
+}
+
+// استجابة طلب إعادة تعيين كلمة المرور
+export interface RequestPasswordResetResponse {
+  message: string;     // رسالة تأكيد إرسال الكود
+  phoneHint: string;   // تلميح رقم الهاتف المرسل إليه الكود
+}
+
+// DTO للتحقق من كود إعادة التعيين
+export interface VerifyResetCodeDto {
+  nationalId: string;  // الرقم القومي
+  resetCode: string;   // كود إعادة التعيين (6 أرقام)
+}
+
+// استجابة التحقق من كود إعادة التعيين
+export interface VerifyResetCodeResponse {
+  verified: boolean;   // هل الكود صحيح
+  message: string;     // رسالة التأكيد
+  token?: string;      // توكن مؤقت لإعادة تعيين كلمة المرور
+}
+
+// DTO لإعادة تعيين كلمة المرور
+export interface ResetPasswordDto {
+  nationalId: string;  // الرقم القومي
+  resetCode: string;   // كود إعادة التعيين
+  newPassword: string; // كلمة المرور الجديدة
+}
+
+// استجابة إعادة تعيين كلمة المرور
+export interface ResetPasswordResponse {
+  message: string;     // رسالة تأكيد تغيير كلمة المرور
+}
+
+// DTO لتسجيل الدخول
+export interface TraineeLoginDto {
+  nationalId: string;  // الرقم القومي
+  password: string;    // كلمة المرور
+}
+
+// نوع عام للاستجابات مع رسائل النجاح
+export interface ApiSuccessResponse {
+  message: string;
+  data?: any;
+}
+
+// نوع عام للاستجابات مع الأخطاء
+export interface ApiErrorResponse {
+  statusCode: number;
+  message: string;
+  error?: string;
+}
