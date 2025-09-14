@@ -26,7 +26,11 @@ import { AuthService } from '../services/authService';
 
 const { width, height } = Dimensions.get('window');
 
-const LoginScreen: React.FC = () => {
+interface LoginScreenProps {
+  onLoginSuccess?: (loginData: any) => void;
+}
+
+const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [credentials, setCredentials] = useState<TraineeLoginRequest>({
     nationalId: '',
     password: '',
@@ -115,42 +119,70 @@ const LoginScreen: React.FC = () => {
   const handleLogin = async () => {
     if (!validateForm()) return;
 
+    console.log('🔐 Starting login process...');
+    console.log('📝 Credentials:', { 
+      nationalId: credentials.nationalId, 
+      passwordLength: credentials.password.length 
+    });
+
     setIsLoading(true);
     try {
       const response = await AuthService.login(credentials);
+      console.log('✅ Login successful:', response);
       
-      // Success - show user info
-      Alert.alert(
-        'نجح تسجيل الدخول',
-        `مرحباً ${response.trainee.nameAr}\nتم تسجيل الدخول بنجاح`,
-        [
-          {
-            text: 'موافق',
-            onPress: () => {
-              // TODO: Navigate to main app or save auth state
-              console.log('Access Token:', response.access_token);
-              console.log('Trainee Info:', response.trainee);
+      // Success - navigate to home screen
+      if (onLoginSuccess) {
+        onLoginSuccess(response);
+      } else {
+        // Fallback for testing
+        Alert.alert(
+          'نجح تسجيل الدخول',
+          `مرحباً ${response.trainee.nameAr}\nتم تسجيل الدخول بنجاح`,
+          [
+            {
+              text: 'موافق',
+              onPress: () => {
+                console.log('Access Token:', response.access_token);
+                console.log('Trainee Info:', response.trainee);
+              }
             }
-          }
-        ]
-      );
+          ]
+        );
+      }
     } catch (error) {
+      console.error('❌ Login failed:', error);
       const apiError = error as TraineeLoginError;
       
       // Handle different types of errors
       let errorMessage = 'حدث خطأ أثناء تسجيل الدخول';
+      let errorTitle = 'خطأ في تسجيل الدخول';
       
       if (apiError.statusCode === 401) {
         errorMessage = 'الرقم القومي أو كلمة المرور غير صحيحة';
+        errorTitle = 'بيانات خاطئة';
       } else if (apiError.statusCode === 0) {
         errorMessage = apiError.message; // Network error message
+        errorTitle = 'خطأ في الاتصال';
+      } else if (apiError.statusCode === 500) {
+        errorMessage = 'خطأ في الخادم. حاول مرة أخرى لاحقاً';
+        errorTitle = 'خطأ في الخادم';
+      } else if (apiError.statusCode === 404) {
+        errorMessage = 'عنوان الخادم غير صحيح. تحقق من الإعدادات';
+        errorTitle = 'عنوان غير صحيح';
       } else if (apiError.message) {
         errorMessage = apiError.message;
       }
       
-      Alert.alert('خطأ في تسجيل الدخول', errorMessage);
+      console.log('🚨 Error details:', {
+        statusCode: apiError.statusCode,
+        message: apiError.message,
+        error: apiError.error
+      });
+      
+      Alert.alert(errorTitle, errorMessage);
     } finally {
       setIsLoading(false);
+      console.log('🏁 Login process finished');
     }
   };
 
@@ -375,7 +407,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
     // Glass morphism effect
-    backdropFilter: 'blur(20px)',
   },
   welcomeSection: {
     alignItems: 'center',
@@ -483,7 +514,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    backdropFilter: 'blur(10px)',
   },
   backButtonText: {
     fontSize: 15,

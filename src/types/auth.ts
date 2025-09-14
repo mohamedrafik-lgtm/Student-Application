@@ -17,6 +17,12 @@ export interface TraineeLoginError {
   error?: string;
 }
 
+export interface TraineeProfileError {
+  statusCode: number;
+  message: string;
+  error?: string;
+}
+
 // 2. Auth State Management
 export interface AuthState {
   isAuthenticated: boolean;
@@ -82,15 +88,131 @@ export enum Year {
   FOURTH = 'FOURTH'      // السنة الرابعة
 }
 
+// إضافة الـ enums المفقودة
+export enum FeeType {
+  REGISTRATION = 'REGISTRATION',
+  TUITION = 'TUITION',
+  EXAM = 'EXAM',
+  MATERIALS = 'MATERIALS',
+  CERTIFICATE = 'CERTIFICATE',
+  OTHER = 'OTHER'
+}
+
+export enum PaymentStatus {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+  REFUNDED = 'REFUNDED'
+}
+
+export enum DocumentType {
+  NATIONAL_ID = 'NATIONAL_ID',
+  BIRTH_CERTIFICATE = 'BIRTH_CERTIFICATE',
+  QUALIFICATION_CERTIFICATE = 'QUALIFICATION_CERTIFICATE',
+  MILITARY_SERVICE = 'MILITARY_SERVICE',
+  MEDICAL_CERTIFICATE = 'MEDICAL_CERTIFICATE',
+  PHOTOS = 'PHOTOS',
+  OTHER = 'OTHER'
+}
+
+export enum AttendanceStatus {
+  PRESENT = 'PRESENT',
+  ABSENT = 'ABSENT',
+  LATE = 'LATE',
+  EXCUSED = 'EXCUSED'
+}
+
+export enum SessionType {
+  THEORY = 'THEORY',
+  PRACTICAL = 'PRACTICAL',
+  EXAM = 'EXAM',
+  WORKSHOP = 'WORKSHOP'
+}
+
 // 4. Training Program Interface
 export interface TrainingProgram {
   id: number;
   nameAr: string;
   nameEn: string;
-  price: number;
-  description?: string;
+  duration: string;
+  description: string;
+  requirements: string;
+  cost: number;
+  programType: ProgramType;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+// المحتوى التعليمي
+export interface TrainingContent {
+  id: number;
+  title: string;
+  description: string;
+  type: SessionType;
+  duration: number;
+  createdAt: string;
+}
+
+// الجلسة التدريبية
+export interface Session {
+  id: number;
+  date: string;
+  duration: number;
+  location: string;
+  notes?: string;
+  contentId: number;
+  content: TrainingContent;
+}
+
+// سجل الحضور
+export interface AttendanceRecord {
+  id: number;
+  status: AttendanceStatus;
+  attendedAt: string;
+  notes?: string;
+  traineeId: number;
+  sessionId: number;
+  createdAt: string;
+  updatedAt: string;
+  session: Session;
+}
+
+// رسوم المتدربين
+export interface TraineeFee {
+  id: number;
+  name: string;
+  amount: number;
+  type: FeeType;
+  academicYear: string;
+}
+
+// مدفوعات المتدربين
+export interface TraineePayment {
+  id: number;
+  amount: number;
+  status: PaymentStatus;
+  paidAmount: number;
+  paidAt?: string;
+  notes?: string;
+  createdAt: string;
+  fee: TraineeFee;
+}
+
+// وثائق المتدرب
+export interface TraineeDocument {
+  id: string;
+  documentType: DocumentType;
+  fileName: string;
+  filePath: string;
+  cloudinaryId?: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedAt: string;
+  notes?: string;
+  isVerified: boolean;
+  verifiedAt?: string;
+  createdAt: string;
 }
 
 // 5. Main Trainee Interface
@@ -163,4 +285,28 @@ export interface Trainee {
   notes?: string;                    // ملاحظات
   createdAt: string;                 // تاريخ الإنشاء
   updatedAt: string;                 // تاريخ آخر تحديث
+  
+  // البيانات المترابطة
+  attendanceRecords: AttendanceRecord[];
+  traineePayments: TraineePayment[];
+  documents: TraineeDocument[];
 }
+
+// بيانات المصادقة للمتدرب
+export interface TraineeAuth {
+  id: string;
+  nationalId: string;
+  birthDate: string;
+  isActive: boolean;
+  lastLoginAt?: string;
+  traineeId: number;
+  createdAt: string;
+  updatedAt: string;
+  trainee: Trainee;
+}
+
+// الاستجابة الكاملة لـ profile endpoint
+export interface TraineeProfileResponse extends TraineeAuth {}
+
+// نوع للاستخدام في الفرونت إند
+export type TraineeProfile = TraineeProfileResponse;

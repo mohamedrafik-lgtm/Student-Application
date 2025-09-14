@@ -6,7 +6,8 @@
 import { 
   TraineeLoginRequest, 
   TraineeLoginResponse, 
-  TraineeLoginError 
+  TraineeLoginError,
+  TraineeProfileResponse
 } from '../types/auth';
 import { API_CONFIG } from './apiConfig';
 
@@ -16,32 +17,60 @@ export class AuthService {
     options: RequestInit
   ): Promise<T> {
     try {
+      console.log('🚀 Making API request to:', url);
+      console.log('📤 Request data:', options.body);
+
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
+
       const response = await fetch(url, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           ...options.headers,
         },
-        timeout: API_CONFIG.TIMEOUT,
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
+
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response headers:', response.headers);
+
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.log('📥 Response text:', text);
+        throw {
+          statusCode: response.status,
+          message: `استجابة غير صحيحة من الخادم: ${text}`,
+          error: 'INVALID_RESPONSE',
+        } as TraineeLoginError;
+      }
+
       const data = await response.json();
+      console.log('📥 Response data:', data);
 
       if (!response.ok) {
         throw {
           statusCode: response.status,
-          message: data.message || 'حدث خطأ في الخادم',
-          error: data.error,
+          message: data.message || data.error || 'حدث خطأ في الخادم',
+          error: data.error || 'SERVER_ERROR',
         } as TraineeLoginError;
       }
 
       return data;
     } catch (error) {
+      console.error('❌ API Error:', error);
+
       // Handle network errors
       if (error instanceof TypeError && error.message === 'Network request failed') {
         throw {
           statusCode: 0,
-          message: 'تعذر الاتصال بالخادم. تحقق من اتصال الإنترنت.',
+          message: 'تعذر الاتصال بالخادم. تحقق من اتصال الإنترنت وعنوان الخادم.',
           error: 'NETWORK_ERROR',
         } as TraineeLoginError;
       }
@@ -52,6 +81,15 @@ export class AuthService {
           statusCode: 408,
           message: 'انتهت مهلة الاتصال. حاول مرة أخرى.',
           error: 'TIMEOUT_ERROR',
+        } as TraineeLoginError;
+      }
+
+      // Handle JSON parsing errors
+      if (error instanceof SyntaxError) {
+        throw {
+          statusCode: 0,
+          message: 'خطأ في تحليل استجابة الخادم. تحقق من إعدادات الخادم.',
+          error: 'JSON_PARSE_ERROR',
         } as TraineeLoginError;
       }
 
@@ -66,6 +104,17 @@ export class AuthService {
     return this.makeRequest<TraineeLoginResponse>(url, {
       method: 'POST',
       body: JSON.stringify(credentials),
+    });
+  }
+
+  static async getProfile(accessToken: string): Promise<TraineeProfileResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TRAINEE_PROFILE}`;
+    
+    return this.makeRequest<TraineeProfileResponse>(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
     });
   }
 }
