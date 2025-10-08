@@ -419,3 +419,185 @@ export interface ApiErrorResponse {
   message: string;
   error?: string;
 }
+
+// ===== الجداول الدراسية =====
+
+// أيام الأسبوع
+export enum DayOfWeek {
+  SUNDAY = 'SUNDAY',     // الأحد
+  MONDAY = 'MONDAY',     // الاثنين
+  TUESDAY = 'TUESDAY',   // الثلاثاء
+  WEDNESDAY = 'WEDNESDAY', // الأربعاء
+  THURSDAY = 'THURSDAY', // الخميس
+  FRIDAY = 'FRIDAY',     // الجمعة
+  SATURDAY = 'SATURDAY'  // السبت
+}
+
+// نوع الجلسة
+export enum SessionType {
+  THEORY = 'THEORY',       // نظري
+  PRACTICAL = 'PRACTICAL'  // عملي
+}
+
+// المدرب
+export interface Instructor {
+  id: number;
+  name: string;
+}
+
+// المحتوى التعليمي
+export interface Content {
+  id: number;
+  code: string;
+  name: string;
+  instructor: Instructor;
+}
+
+// الفصل الدراسي
+export interface Classroom {
+  id: number;
+  name: string;
+}
+
+// قاعة التوزيع
+export interface DistributionRoom {
+  id: string;
+  roomName: string;
+  roomNumber: string;
+}
+
+// جلسة دراسية واحدة
+export interface ScheduleSession {
+  id: number;
+  contentId: number;
+  classroomId: number;
+  distributionRoomId: string | null;
+  dayOfWeek: DayOfWeek;
+  startTime: string;        // بصيغة "HH:mm" مثل "09:00"
+  endTime: string;          // بصيغة "HH:mm" مثل "11:00"
+  type: SessionType;
+  location: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  content: Content;
+  classroom: Classroom;
+  distributionRoom: DistributionRoom | null;
+  _count: {
+    sessions: number;       // عدد الجلسات المولدة من هذه الفترة
+  };
+}
+
+// الجدول الأسبوعي الكامل
+export interface WeeklySchedule {
+  SUNDAY: ScheduleSession[];
+  MONDAY: ScheduleSession[];
+  TUESDAY: ScheduleSession[];
+  WEDNESDAY: ScheduleSession[];
+  THURSDAY: ScheduleSession[];
+  FRIDAY: ScheduleSession[];
+  SATURDAY: ScheduleSession[];
+}
+
+// استجابة API للجدول الأسبوعي
+export interface WeeklyScheduleResponse extends WeeklySchedule {}
+
+// جلسة واحدة من الفترة الدراسية
+export interface Session {
+  id: number;
+  scheduleSlotId: number;
+  date: Date;
+  isCancelled: boolean;
+  cancellationReason: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// استجابة API لفترة واحدة من الجدول الدراسي
+export interface ScheduleSlotResponse {
+  id: number;
+  contentId: number;
+  classroomId: number;
+  distributionRoomId: string | null;
+  dayOfWeek: DayOfWeek;
+  startTime: string;        // Format: "HH:mm" (e.g., "09:00")
+  endTime: string;          // Format: "HH:mm" (e.g., "11:00")
+  type: SessionType;
+  location: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  
+  // Training Content Information
+  content: {
+    id: number;
+    code: string;
+    name: string;
+    instructor: {
+      id: number;
+      name: string;
+    };
+  };
+  
+  // Classroom Information
+  classroom: {
+    id: number;
+    name: string;
+    startDate: Date;
+    endDate: Date;
+  };
+  
+  // All sessions generated from this slot
+  sessions: Session[];
+}
+
+// خطأ في تحميل الجدول
+export interface ScheduleError {
+  statusCode: number;
+  message: string;
+  error?: string;
+}
+
+// حالة تحميل الجدول
+export interface ScheduleState {
+  isLoading: boolean;
+  error?: string;
+  data?: WeeklySchedule;
+  lastUpdated?: Date;
+}
+
+// ===== إدارة الفروع =====
+
+// أنواع الفروع المتاحة
+export enum BranchType {
+  MANSOURA = 'MANSOURA',  // المنصورة
+  ZAGAZIG = 'ZAGAZIG'     // الزقازيق
+}
+
+// معلومات الفرع
+export interface BranchInfo {
+  id: BranchType;
+  name: string;
+  nameAr: string;
+  apiUrl: string;
+  city: string;
+  cityAr: string;
+  icon: string;
+  color: string;
+  description: string;
+  descriptionAr: string;
+}
+
+// حالة اختيار الفرع
+export interface BranchSelectionState {
+  selectedBranch: BranchType | null;
+  isLoading: boolean;
+  error?: string;
+  lastSelected?: Date;
+}
+
+// استجابة API للتحقق من الفرع
+export interface BranchValidationResponse {
+  isValid: boolean;
+  branch: BranchType;
+  message: string;
+  serverTime?: Date;
+}

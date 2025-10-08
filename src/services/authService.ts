@@ -19,7 +19,10 @@ import {
   VerifyResetCodeDto,
   VerifyResetCodeResponse,
   ResetPasswordDto,
-  ResetPasswordResponse
+  ResetPasswordResponse,
+  WeeklyScheduleResponse,
+  ScheduleSlotResponse,
+  ScheduleError
 } from '../types/auth';
 import { API_CONFIG } from './apiConfig';
 
@@ -29,6 +32,11 @@ export class AuthService {
     options: RequestInit
   ): Promise<T> {
     try {
+      // التحقق من أن BASE_URL محدد
+      if (!API_CONFIG.BASE_URL) {
+        throw new Error('لم يتم تحديد فرع. يرجى اختيار فرع أولاً');
+      }
+
       console.log('🚀 Making API request to:', url);
       console.log('📤 Request data:', options.body);
 
@@ -199,6 +207,32 @@ export class AuthService {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
+    });
+  }
+
+  // ===== الجداول الدراسية =====
+
+  // الحصول على الجدول الأسبوعي للفصل الدراسي
+  static async getWeeklySchedule(classroomId: number, accessToken: string): Promise<WeeklyScheduleResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WEEKLY_SCHEDULE}/${classroomId}/weekly`;
+    
+    return this.makeRequest<WeeklyScheduleResponse>(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+  }
+
+  // الحصول على فترة واحدة من الجدول الدراسي مع جميع التفاصيل
+  static async getScheduleSlot(slotId: number, accessToken: string): Promise<ScheduleSlotResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SCHEDULE_SLOT}/${slotId}`;
+    
+    return this.makeRequest<ScheduleSlotResponse>(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
     });
   }
 }

@@ -30,13 +30,15 @@ interface ProfileScreenProps {
   onBack: () => void;
   onNavigateToDocuments?: () => void;
   onNavigateToPayments?: () => void;
+  onNavigateToSchedule?: () => void;
 }
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ 
   accessToken, 
   onBack,
   onNavigateToDocuments,
-  onNavigateToPayments
+  onNavigateToPayments,
+  onNavigateToSchedule
 }) => {
   const [profile, setProfile] = useState<TraineeProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -121,6 +123,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       onNavigateToPayments();
     } else {
       Alert.alert('المدفوعات', 'سيتم إضافة هذه الميزة قريباً');
+    }
+  };
+
+  const handleViewSchedule = () => {
+    if (onNavigateToSchedule) {
+      onNavigateToSchedule();
+    } else {
+      Alert.alert('الجدول الدراسي', 'سيتم إضافة هذه الميزة قريباً');
     }
   };
 
@@ -353,6 +363,18 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               <Text style={styles.quickActionSubtext}>سجل المدفوعات</Text>
               <View style={styles.quickActionBadge}>
                 <Text style={styles.quickActionBadgeText}>{trainee.traineePayments?.length || 0}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.quickActionCard} onPress={handleViewSchedule}>
+              <View style={styles.quickActionCardGradient} />
+              <View style={[styles.quickActionIcon, { backgroundColor: '#3B82F6' }]}>
+                <Text style={styles.quickActionEmoji}>📅</Text>
+              </View>
+              <Text style={styles.quickActionText}>الجدول الدراسي</Text>
+              <Text style={styles.quickActionSubtext}>المواعيد والجلسات</Text>
+              <View style={styles.quickActionBadge}>
+                <Text style={styles.quickActionBadgeText}>📚</Text>
               </View>
             </TouchableOpacity>
 

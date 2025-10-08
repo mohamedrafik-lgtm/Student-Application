@@ -30,12 +30,14 @@ interface HomeScreenProps {
   };
   onLogout?: () => void;
   onNavigateToProfile?: () => void;
+  onNavigateToSchedule?: () => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ 
   userInfo, 
   onLogout,
-  onNavigateToProfile
+  onNavigateToProfile,
+  onNavigateToSchedule
 }) => {
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -95,7 +97,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   };
 
   const handleSchedule = () => {
-    Alert.alert('الجدول', 'سيتم إضافة هذه الميزة قريباً');
+    if (onNavigateToSchedule) {
+      onNavigateToSchedule();
+    } else {
+      Alert.alert('الجدول الدراسي', 'سيتم إضافة هذه الميزة قريباً');
+    }
   };
 
   const handleGrades = () => {

@@ -21,17 +21,26 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Logo from '../components/Logo';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
-import { TraineeLoginRequest, TraineeLoginError } from '../types/auth';
+import { TraineeLoginRequest, TraineeLoginError, BranchType } from '../types/auth';
 import { AuthService } from '../services/authService';
+import { BranchService } from '../services/branchService';
+import { Colors } from '../styles/colors';
 
 const { width, height } = Dimensions.get('window');
 
 interface LoginScreenProps {
   onLoginSuccess?: (loginData: any) => void;
   onNavigateToSignup?: () => void;
+  onChangeBranch?: () => void;
+  selectedBranch?: BranchType | null;
 }
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onNavigateToSignup }) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({ 
+  onLoginSuccess, 
+  onNavigateToSignup,
+  onChangeBranch,
+  selectedBranch
+}) => {
   const [credentials, setCredentials] = useState<TraineeLoginRequest>({
     nationalId: '',
     password: '',
@@ -241,6 +250,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onNavigateToS
               ]
             }
           ]}>
+            {/* Header with Back Button */}
+            <View style={styles.headerSection}>
+              <TouchableOpacity 
+                style={styles.backToBranchButton}
+                onPress={onChangeBranch || (() => {})}
+                activeOpacity={0.7}
+              >
+                <View style={styles.backToBranchIcon}>
+                  <Text style={styles.backToBranchIconText}>🏛️</Text>
+                </View>
+                <Text style={styles.backToBranchText}>العودة لاختيار الفرع</Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Welcome Section */}
             <View style={styles.welcomeSection}>
               <Text style={styles.welcomeTitle}>مرحباً بك</Text>
@@ -248,6 +271,56 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onNavigateToS
               <Text style={styles.loginInstruction}>
                 أدخل بياناتك للوصول إلى حسابك
               </Text>
+              
+              {/* Branch Information */}
+              {selectedBranch && (
+                <View style={styles.branchInfoSection}>
+                  <View style={styles.branchInfoCard}>
+                    <View style={styles.branchInfoHeader}>
+                      <Text style={styles.branchInfoTitle}>الفرع المختار</Text>
+                      <TouchableOpacity 
+                        style={styles.changeBranchButton}
+                        onPress={onChangeBranch || (() => {})}
+                      >
+                        <Text style={styles.changeBranchText}>تغيير الفرع</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View style={styles.branchDetails}>
+                      <Text style={styles.branchIcon}>
+                        {BranchService.getBranchInfo(selectedBranch).icon}
+                      </Text>
+                      <View style={styles.branchTextContainer}>
+                        <Text style={styles.branchName}>
+                          {BranchService.getBranchInfo(selectedBranch).nameAr}
+                        </Text>
+                        <Text style={styles.branchCity}>
+                          {BranchService.getBranchInfo(selectedBranch).cityAr}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {/* Branch Selection Button */}
+            <View style={styles.branchSelectionSection}>
+              <TouchableOpacity 
+                style={styles.branchSelectionButton}
+                onPress={onChangeBranch || (() => {})}
+                activeOpacity={0.7}
+              >
+                <View style={styles.branchSelectionIcon}>
+                  <Text style={styles.branchSelectionIconText}>🏛️</Text>
+                </View>
+                <View style={styles.branchSelectionTextContainer}>
+                  <Text style={styles.branchSelectionTitle}>تغيير الفرع</Text>
+                  <Text style={styles.branchSelectionSubtitle}>العودة لاختيار الفرع</Text>
+                </View>
+                <View style={styles.branchSelectionArrow}>
+                  <Text style={styles.branchSelectionArrowText}>→</Text>
+                </View>
+              </TouchableOpacity>
             </View>
 
             {/* Form Section */}
@@ -362,7 +435,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onNavigateToS
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#F8FAFC',
   },
   backgroundContainer: {
     position: 'absolute',
@@ -377,7 +450,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#F8FAFC',
   },
   backgroundPattern: {
     position: 'absolute',
@@ -385,8 +458,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
-    // Subtle pattern overlay
+    backgroundColor: 'transparent',
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -395,61 +467,62 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
     minHeight: height,
   },
   logoSection: {
     alignItems: 'center',
-    marginBottom: 40,
-    paddingTop: 20,
+    marginBottom: 50,
+    paddingTop: 30,
+    paddingBottom: 20,
   },
   loginCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
     padding: 32,
-    marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.25,
-    shadowRadius: 30,
-    elevation: 25,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    // Glass morphism effect
+    marginHorizontal: 20,
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 25,
+    elevation: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(99, 102, 241, 0.15)',
+    // Modern clean white card with purple shadow
   },
   welcomeSection: {
     alignItems: 'center',
     marginBottom: 32,
   },
   welcomeTitle: {
-    fontSize: 28,
-    fontWeight: '800',
+    fontSize: 36,
+    fontWeight: '900',
     color: '#1E293B',
     textAlign: 'center',
-    marginBottom: 8,
-    letterSpacing: -0.5,
-    lineHeight: 36,
+    marginBottom: 12,
+    letterSpacing: -1,
+    lineHeight: 44,
     paddingHorizontal: 20,
   },
   welcomeSubtitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#6366F1',
     textAlign: 'center',
-    marginBottom: 12,
-    lineHeight: 24,
+    marginBottom: 16,
+    lineHeight: 30,
     paddingHorizontal: 20,
   },
   loginInstruction: {
-    fontSize: 15,
+    fontSize: 16,
     color: '#64748B',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
     paddingHorizontal: 20,
     flexWrap: 'wrap',
   },
   formSection: {
-    gap: 20,
+    gap: 24,
   },
   inputGroup: {
     gap: 8,
@@ -468,20 +541,19 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   buttonGroup: {
-    gap: 16,
-    marginTop: 8,
+    gap: 20,
+    marginTop: 12,
   },
   forgotButton: {
     alignItems: 'center',
     padding: 12,
   },
   forgotPasswordText: {
-    fontSize: 15,
+    fontSize: 16,
     color: '#6366F1',
     fontWeight: '600',
-    textDecorationLine: 'underline',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   divider: {
     flexDirection: 'row',
@@ -512,21 +584,176 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16, 185, 129, 0.2)',
     flexWrap: 'wrap',
   },
+  // Branch Information Styles
+  branchInfoSection: {
+    marginTop: 20,
+  },
+  branchInfoCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.15)',
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  branchInfoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  branchInfoTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  changeBranchButton: {
+    backgroundColor: '#6366F1',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  changeBranchText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  branchDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  branchIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  branchTextContainer: {
+    flex: 1,
+  },
+  branchName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 2,
+  },
+  branchCity: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  // Back to Branch Selection Button Styles
+  headerSection: {
+    marginBottom: 20,
+    alignItems: 'flex-start',
+    paddingHorizontal: 4,
+    width: '100%',
+  },
+  backToBranchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+    alignSelf: 'flex-start',
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+    minWidth: 200,
+  },
+  backToBranchIcon: {
+    marginRight: 12,
+  },
+  backToBranchIconText: {
+    fontSize: 18,
+  },
+  backToBranchText: {
+    fontSize: 17,
+    color: Colors.primary,
+    fontWeight: '800',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  // Branch Selection Button Styles
+  branchSelectionSection: {
+    marginBottom: 24,
+  },
+  branchSelectionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  branchSelectionIcon: {
+    marginRight: 16,
+  },
+  branchSelectionIconText: {
+    fontSize: 24,
+  },
+  branchSelectionTextContainer: {
+    flex: 1,
+  },
+  branchSelectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  branchSelectionSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  branchSelectionArrow: {
+    marginLeft: 12,
+  },
+  branchSelectionArrowText: {
+    fontSize: 18,
+    color: Colors.primary,
+    fontWeight: '700',
+  },
   backButtonContainer: {
     alignItems: 'center',
     marginTop: 30,
   },
   backButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: '#F8FAFC',
     paddingVertical: 14,
     paddingHorizontal: 28,
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
   },
   backButtonText: {
     fontSize: 15,
-    color: '#FFFFFF',
+    color: '#6366F1',
     fontWeight: '600',
     textAlign: 'center',
     lineHeight: 20,
