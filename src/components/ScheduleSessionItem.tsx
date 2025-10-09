@@ -11,19 +11,21 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { ScheduleSession, SessionType, DayOfWeek } from '../types/auth';
+import { ScheduleSession, SessionType, DayOfWeek, ScheduleSlot } from '../types/auth';
 import { Colors } from '../styles/colors';
 
 interface ScheduleSessionItemProps {
   session: ScheduleSession;
   onPress?: (session: ScheduleSession) => void;
   compact?: boolean;
+  originalSlot?: ScheduleSlot; // البيانات الأصلية لإضافة معلومات الإلغاء
 }
 
 const ScheduleSessionItem: React.FC<ScheduleSessionItemProps> = ({
   session,
   onPress,
   compact = false,
+  originalSlot,
 }) => {
   const getSessionTypeColor = (type: SessionType): string => {
     switch (type) {
@@ -146,6 +148,20 @@ const ScheduleSessionItem: React.FC<ScheduleSessionItemProps> = ({
         <Text style={styles.compactInstructor} numberOfLines={1}>
           {session.content.instructor.name}
         </Text>
+        
+        {/* عرض معلومات الإلغاء */}
+        {originalSlot?.isCancelledThisWeek && (
+          <View style={styles.cancelledBadge}>
+            <Text style={styles.cancelledText}>
+              ❌ ملغية هذا الأسبوع
+            </Text>
+            {originalSlot.cancellationReason && (
+              <Text style={styles.cancellationReason} numberOfLines={1}>
+                {originalSlot.cancellationReason}
+              </Text>
+            )}
+          </View>
+        )}
       </TouchableOpacity>
     );
   }
@@ -212,6 +228,20 @@ const ScheduleSessionItem: React.FC<ScheduleSessionItemProps> = ({
           <Text style={styles.sessionsCountText}>
             📊 {session._count.sessions} جلسة مولدة
           </Text>
+        </View>
+      )}
+      
+      {/* عرض معلومات الإلغاء */}
+      {originalSlot?.isCancelledThisWeek && (
+        <View style={styles.cancelledContainer}>
+          <Text style={styles.cancelledTitle}>
+            ❌ محاضرة ملغية هذا الأسبوع
+          </Text>
+          {originalSlot.cancellationReason && (
+            <Text style={styles.cancellationReason}>
+              السبب: {originalSlot.cancellationReason}
+            </Text>
+          )}
         </View>
       )}
     </TouchableOpacity>
@@ -370,6 +400,40 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.info,
     fontWeight: '600',
+  },
+  cancelledBadge: {
+    backgroundColor: Colors.errorSoft,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+  cancelledText: {
+    fontSize: 11,
+    color: Colors.error,
+    fontWeight: '600',
+  },
+  cancellationReason: {
+    fontSize: 10,
+    color: Colors.error,
+    fontWeight: '400',
+    marginTop: 2,
+  },
+  cancelledContainer: {
+    backgroundColor: Colors.errorSoft,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.error,
+  },
+  cancelledTitle: {
+    fontSize: 14,
+    color: Colors.error,
+    fontWeight: '600',
+    marginBottom: 4,
   },
 });
 

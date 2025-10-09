@@ -31,13 +31,15 @@ interface HomeScreenProps {
   onLogout?: () => void;
   onNavigateToProfile?: () => void;
   onNavigateToSchedule?: () => void;
+  onNavigateToExams?: () => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ 
   userInfo, 
   onLogout,
   onNavigateToProfile,
-  onNavigateToSchedule
+  onNavigateToSchedule,
+  onNavigateToExams
 }) => {
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -106,6 +108,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
   const handleGrades = () => {
     Alert.alert('الدرجات', 'سيتم إضافة هذه الميزة قريباً');
+  };
+
+  const handleExams = () => {
+    if (onNavigateToExams) {
+      onNavigateToExams();
+    } else {
+      Alert.alert('الاختبارات الإلكترونية', 'سيتم إضافة هذه الميزة قريباً');
+    }
   };
 
   const handleNotifications = () => {
@@ -184,6 +194,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 <Text style={styles.quickActionEmoji}>📊</Text>
               </View>
               <Text style={styles.quickActionText}>الدرجات</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.quickActionCard} onPress={handleExams}>
+              <View style={[styles.quickActionIcon, { backgroundColor: Colors.successSoft }]}>
+                <Text style={styles.quickActionEmoji}>📝</Text>
+              </View>
+              <Text style={styles.quickActionText}>الاختبارات</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>

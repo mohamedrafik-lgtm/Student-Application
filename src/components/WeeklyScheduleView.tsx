@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import { WeeklySchedule, ScheduleSession, DayOfWeek } from '../types/auth';
+import { WeeklySchedule, ScheduleSession, DayOfWeek, ScheduleSlot } from '../types/auth';
 import { Colors } from '../styles/colors';
 import DailySchedule from './DailySchedule';
 
@@ -23,12 +23,14 @@ interface WeeklyScheduleViewProps {
   schedule: WeeklySchedule;
   onSessionPress?: (session: ScheduleSession) => void;
   compact?: boolean;
+  originalSlots?: { [key in DayOfWeek]: ScheduleSlot[] }; // البيانات الأصلية لإضافة معلومات الإلغاء
 }
 
 const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
   schedule,
   onSessionPress,
   compact = false,
+  originalSlots,
 }) => {
   const [selectedDay, setSelectedDay] = useState<DayOfWeek | null>(null);
 
@@ -168,6 +170,7 @@ const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
               sessions={schedule[selectedDay]}
               onSessionPress={onSessionPress}
               compact={true}
+              originalSlots={originalSlots?.[selectedDay] || []}
             />
           </View>
         )}
@@ -219,6 +222,7 @@ const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
             sessions={schedule[day]}
             onSessionPress={onSessionPress}
             compact={false}
+            originalSlots={originalSlots?.[day] || []}
           />
         ))}
       </View>

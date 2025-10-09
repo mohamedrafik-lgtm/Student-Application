@@ -22,6 +22,7 @@ import {
   ResetPasswordResponse,
   WeeklyScheduleResponse,
   ScheduleSlotResponse,
+  MyScheduleResponse,
   ScheduleError
 } from '../types/auth';
 import { API_CONFIG } from './apiConfig';
@@ -39,6 +40,7 @@ export class AuthService {
 
       console.log('🚀 Making API request to:', url);
       console.log('📤 Request data:', options.body);
+      console.log('🔧 Request headers:', options.headers);
 
       // Create AbortController for timeout
       const controller = new AbortController();
@@ -73,6 +75,19 @@ export class AuthService {
 
       const data = await response.json();
       console.log('📥 Response data:', data);
+      
+      // Additional debugging for schedule endpoint
+      if (url.includes('/my-schedule')) {
+        console.log('📅 Schedule Response Debug:', {
+          url,
+          status: response.status,
+          success: data.success,
+          hasClassroom: !!data.classroom,
+          hasSchedule: !!data.schedule,
+          scheduleStructure: data.schedule ? Object.keys(data.schedule) : 'No schedule',
+          totalSlots: data.schedule ? (Object.values(data.schedule) as any[]).reduce((total: number, daySlots: any[]) => total + daySlots.length, 0) : 0
+        });
+      }
 
       if (!response.ok) {
         throw {
@@ -212,21 +227,17 @@ export class AuthService {
 
   // ===== الجداول الدراسية =====
 
-  // الحصول على الجدول الأسبوعي للفصل الدراسي
-  static async getWeeklySchedule(classroomId: number, accessToken: string): Promise<WeeklyScheduleResponse> {
-    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WEEKLY_SCHEDULE}/${classroomId}/weekly`;
-    
-    return this.makeRequest<WeeklyScheduleResponse>(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-  }
-
   // الحصول على فترة واحدة من الجدول الدراسي مع جميع التفاصيل
   static async getScheduleSlot(slotId: number, accessToken: string): Promise<ScheduleSlotResponse> {
     const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SCHEDULE_SLOT}/${slotId}`;
+    
+    console.log('🔍 Schedule Slot API Request:', {
+      url,
+      slotId,
+      baseUrl: API_CONFIG.BASE_URL,
+      endpoint: API_CONFIG.ENDPOINTS.SCHEDULE_SLOT,
+      hasToken: !!accessToken
+    });
     
     return this.makeRequest<ScheduleSlotResponse>(url, {
       method: 'GET',
@@ -234,6 +245,41 @@ export class AuthService {
         'Authorization': `Bearer ${accessToken}`,
       },
     });
+  }
+
+  /**
+   * الحصول على الجدول الدراسي للمتدرب الحالي
+   */
+  async getMySchedule(accessToken: string): Promise<MyScheduleResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MY_SCHEDULE}`;
+    
+    console.log('🔍 My Schedule API Request:', {
+      url,
+      baseUrl: API_CONFIG.BASE_URL,
+      endpoint: API_CONFIG.ENDPOINTS.MY_SCHEDULE,
+      hasToken: !!accessToken,
+      tokenPreview: accessToken ? `${accessToken.substring(0, 20)}...` : 'No token'
+    });
+    
+    console.log('🚀 About to call AuthService.makeRequest with URL:', url);
+    
+    const response = await AuthService.makeRequest<MyScheduleResponse>(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+    
+    console.log('📡 My Schedule API Response:', {
+      success: response.success,
+      hasClassroom: !!response.classroom,
+      classroomId: response.classroom?.id,
+      classroomName: response.classroom?.name,
+      scheduleDays: Object.keys(response.schedule),
+      totalSlots: Object.values(response.schedule).reduce((total, daySlots) => total + daySlots.length, 0)
+    });
+    
+    return response;
   }
 }
 

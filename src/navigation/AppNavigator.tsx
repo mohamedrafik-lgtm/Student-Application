@@ -12,6 +12,7 @@ import DocumentsScreen from '../screens/DocumentsScreen';
 import PaymentsScreen from '../screens/PaymentsScreen';
 import SignupScreen from '../screens/SignupScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
+import ExamsScreen from '../screens/ExamsScreen';
 import BranchSelectionScreen from '../screens/BranchSelectionScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
@@ -22,9 +23,10 @@ interface UserInfo {
   nameEn: string;
   nationalId: string;
   accessToken: string;
+  classroomId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -82,6 +84,7 @@ const AppNavigator: React.FC = () => {
       nameEn: loginData.trainee.nameEn,
       nationalId: loginData.trainee.nationalId,
       accessToken: loginData.access_token,
+      classroomId: loginData.trainee.classroomId || loginData.trainee.classLevel || 1,
     };
     
     setUserInfo(userData);
@@ -131,6 +134,14 @@ const AppNavigator: React.FC = () => {
 
   const handleBackToProfileFromSchedule = () => {
     setCurrentScreen('profile');
+  };
+
+  const handleNavigateToExams = () => {
+    setCurrentScreen('exams');
+  };
+
+  const handleBackToHomeFromExams = () => {
+    setCurrentScreen('home');
   };
 
   const handleBranchSelected = (branch: BranchType) => {
@@ -185,10 +196,20 @@ const AppNavigator: React.FC = () => {
   }
 
   if (isAuthenticated && userInfo) {
+    if (currentScreen === 'exams') {
+      return (
+        <ExamsScreen
+          accessToken={userInfo.accessToken}
+          onBack={handleBackToHomeFromExams}
+        />
+      );
+    }
+    
     if (currentScreen === 'schedule') {
       return (
         <ScheduleScreen
           accessToken={userInfo.accessToken}
+          classroomId={userInfo.classroomId}
           onBack={handleBackToProfileFromSchedule}
         />
       );
@@ -230,6 +251,7 @@ const AppNavigator: React.FC = () => {
         onLogout={handleLogout}
         onNavigateToProfile={handleNavigateToProfile}
         onNavigateToSchedule={handleNavigateToSchedule}
+        onNavigateToExams={handleNavigateToExams}
       />
     );
   }

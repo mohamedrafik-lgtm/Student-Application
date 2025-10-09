@@ -239,6 +239,7 @@ export interface Trainee {
   program: TrainingProgram;          // بيانات البرنامج
   traineeStatus: TraineeStatus;      // حالة المتدرب
   classLevel: Year;                  // الفرقة الدراسية
+  classroomId?: number;              // معرف الفصل الدراسي
   academicYear?: string;             // العام الدراسي
   
   // بيانات الاتصال والعنوان
@@ -496,6 +497,51 @@ export interface WeeklySchedule {
   THURSDAY: ScheduleSession[];
   FRIDAY: ScheduleSession[];
   SATURDAY: ScheduleSession[];
+}
+
+// Response structure للجدول الدراسي الجديد
+export interface MyScheduleResponse {
+  success: boolean;
+  classroom: {
+    id: number;
+    name: string;
+  };
+  schedule: {
+    SUNDAY: ScheduleSlot[];
+    MONDAY: ScheduleSlot[];
+    TUESDAY: ScheduleSlot[];
+    WEDNESDAY: ScheduleSlot[];
+    THURSDAY: ScheduleSlot[];
+    FRIDAY: ScheduleSlot[];
+    SATURDAY: ScheduleSlot[];
+  };
+}
+
+// معلومات الفترة الدراسية الجديدة
+export interface ScheduleSlot {
+  id: number;                    // معرف الفترة الدراسية
+  content: {
+    id: number;
+    code: string;               // كود المادة
+    name: string;               // اسم المادة
+    instructor: {
+      id: number;
+      name: string;            // اسم المدرب
+    };
+  };
+  startTime: string;            // وقت البداية (HH:mm)
+  endTime: string;              // وقت النهاية (HH:mm)
+  type: SessionType;           // نوع الجلسة (THEORY أو PRACTICAL)
+  location: string | null;      // المكان/القاعة
+  distributionRoom: {
+    id: string;
+    roomName: string;          // اسم القاعة
+    roomNumber: string;        // رقم القاعة
+  } | null;
+  
+  // معلومات الإلغاء للأسبوع الحالي فقط
+  isCancelledThisWeek: boolean; // هل المحاضرة ملغية هذا الأسبوع
+  cancellationReason: string | null; // سبب الإلغاء
 }
 
 // استجابة API للجدول الأسبوعي

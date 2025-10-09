@@ -12,7 +12,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { ScheduleSession, DayOfWeek } from '../types/auth';
+import { ScheduleSession, DayOfWeek, ScheduleSlot } from '../types/auth';
 import { Colors } from '../styles/colors';
 import ScheduleSessionItem from './ScheduleSessionItem';
 
@@ -23,6 +23,7 @@ interface DailyScheduleProps {
   sessions: ScheduleSession[];
   onSessionPress?: (session: ScheduleSession) => void;
   compact?: boolean;
+  originalSlots?: ScheduleSlot[]; // البيانات الأصلية لإضافة معلومات الإلغاء
 }
 
 const DailySchedule: React.FC<DailyScheduleProps> = ({
@@ -30,6 +31,7 @@ const DailySchedule: React.FC<DailyScheduleProps> = ({
   sessions,
   onSessionPress,
   compact = false,
+  originalSlots = [],
 }) => {
   const getDayOfWeekText = (day: DayOfWeek): string => {
     switch (day) {
@@ -129,14 +131,18 @@ const DailySchedule: React.FC<DailyScheduleProps> = ({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.compactSessionsContainer}
           >
-            {sortedSessions.map((session) => (
-              <ScheduleSessionItem
-                key={session.id}
-                session={session}
-                onPress={onSessionPress}
-                compact={true}
-              />
-            ))}
+            {sortedSessions.map((session) => {
+              const originalSlot = originalSlots.find(slot => slot.id === session.id);
+              return (
+                <ScheduleSessionItem
+                  key={session.id}
+                  session={session}
+                  onPress={onSessionPress}
+                  compact={true}
+                  originalSlot={originalSlot}
+                />
+              );
+            })}
           </ScrollView>
         )}
       </View>
@@ -188,14 +194,18 @@ const DailySchedule: React.FC<DailyScheduleProps> = ({
         </View>
       ) : (
         <View style={styles.sessionsContainer}>
-          {sortedSessions.map((session) => (
-            <ScheduleSessionItem
-              key={session.id}
-              session={session}
-              onPress={onSessionPress}
-              compact={false}
-            />
-          ))}
+          {sortedSessions.map((session) => {
+            const originalSlot = originalSlots.find(slot => slot.id === session.id);
+            return (
+              <ScheduleSessionItem
+                key={session.id}
+                session={session}
+                onPress={onSessionPress}
+                compact={false}
+                originalSlot={originalSlot}
+              />
+            );
+          })}
         </View>
       )}
     </View>

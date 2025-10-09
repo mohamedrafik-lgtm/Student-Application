@@ -57,8 +57,13 @@ export const API_CONFIG = {
     REQUEST_PASSWORD_RESET: '/api/trainee-auth/request-password-reset',
     VERIFY_RESET_CODE: '/api/trainee-auth/verify-reset-code',
     RESET_PASSWORD: '/api/trainee-auth/reset-password',
-    WEEKLY_SCHEDULE: '/api/schedule/classroom',
     SCHEDULE_SLOT: '/api/schedule/slots',
+    MY_SCHEDULE: '/api/trainee-auth/my-schedule',
+    AVAILABLE_QUIZZES: '/api/quizzes/trainee/available',
+    QUIZ_DETAIL: '/api/quizzes', // + /{quizId}
+    START_QUIZ: '/api/quizzes', // + /{quizId}/start
+    SUBMIT_QUIZ: '/api/quizzes', // + /{quizId}/submit
+    QUIZ_RESULT: '/api/quizzes', // + /{quizId}/result
   },
   
   // Request timeout in milliseconds

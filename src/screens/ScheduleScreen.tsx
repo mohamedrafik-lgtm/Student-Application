@@ -17,12 +17,16 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthService } from '../services/authService';
+import { AuthService, authService } from '../services/authService';
+import { API_CONFIG } from '../services/apiConfig';
+import { ScheduleDebugger } from '../utils/scheduleDebugger';
 import { 
   WeeklySchedule, 
   ScheduleSession, 
   ScheduleError,
-  DayOfWeek 
+  DayOfWeek,
+  MyScheduleResponse,
+  ScheduleSlot
 } from '../types/auth';
 import { Colors } from '../styles/colors';
 import CustomButton from '../components/CustomButton';
@@ -44,6 +48,7 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
   onBack 
 }) => {
   const [schedule, setSchedule] = useState<WeeklySchedule | null>(null);
+  const [myScheduleData, setMyScheduleData] = useState<MyScheduleResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'weekly' | 'daily'>('weekly');
@@ -63,6 +68,12 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
 
   useEffect(() => {
     if (schedule) {
+      console.log('🎬 Schedule state updated:', {
+        hasSchedule: !!schedule,
+        scheduleKeys: Object.keys(schedule),
+        totalSessions: Object.values(schedule).reduce((total, daySessions) => total + daySessions.length, 0)
+      });
+      
       // Start entrance animations
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -90,21 +101,89 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
       setIsLoading(true);
       setError(null);
       
-      // إذا لم يتم تمرير معرف الفصل، نحتاج للحصول عليه من البروفايل أولاً
-      let classroomIdToUse = currentClassroomId;
+      console.log('🔍 Loading my schedule...');
+      console.log('🌐 API URL:', `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MY_SCHEDULE}`);
+      console.log('🔑 Access Token:', accessToken ? 'Present' : 'Missing');
       
-      if (!classroomIdToUse) {
-        console.log('🔍 Getting classroom ID from profile...');
-        const profile = await AuthService.getProfile(accessToken);
-        classroomIdToUse = profile.trainee.classLevel ? 1 : 1; // افتراضي أو من البيانات
-        setCurrentClassroomId(classroomIdToUse);
+      const scheduleData = await authService.getMySchedule(accessToken);
+      
+      console.log('✅ My schedule loaded successfully!');
+      console.log('📊 Raw Schedule Data:', JSON.stringify(scheduleData, null, 2));
+      console.log('📊 Schedule structure:', {
+        success: scheduleData.success,
+        classroom: scheduleData.classroom,
+        scheduleKeys: Object.keys(scheduleData.schedule),
+        scheduleLengths: Object.keys(scheduleData.schedule).map(day => ({
+          day,
+          length: scheduleData.schedule[day as keyof typeof scheduleData.schedule].length
+        }))
+      });
+      
+      // حفظ البيانات الأصلية
+      setMyScheduleData(scheduleData);
+      
+      // التحقق من وجود بيانات
+      const totalSlots = Object.values(scheduleData.schedule).reduce((total, daySlots) => total + daySlots.length, 0);
+      console.log('📈 Total slots in API response:', totalSlots);
+      
+      if (totalSlots === 0) {
+        console.warn('⚠️ No schedule slots found in API response!');
+        setError('لا توجد جلسات دراسية مجدولة');
+        return;
       }
-
-      console.log('🔍 Loading schedule for classroom:', classroomIdToUse);
-      const scheduleData = await AuthService.getWeeklySchedule(classroomIdToUse, accessToken);
-      console.log('✅ Schedule loaded successfully:', scheduleData);
       
-      setSchedule(scheduleData);
+      // تحويل البيانات مع التحقق من كل يوم
+      const convertedSchedule: WeeklySchedule = {
+        SUNDAY: (scheduleData.schedule.SUNDAY || []).map((slot: ScheduleSlot) => {
+          console.log('🔄 Converting SUNDAY slot:', slot.id, slot.content?.name);
+          return convertScheduleSlot(slot, DayOfWeek.SUNDAY);
+        }),
+        MONDAY: (scheduleData.schedule.MONDAY || []).map((slot: ScheduleSlot) => {
+          console.log('🔄 Converting MONDAY slot:', slot.id, slot.content?.name);
+          return convertScheduleSlot(slot, DayOfWeek.MONDAY);
+        }),
+        TUESDAY: (scheduleData.schedule.TUESDAY || []).map((slot: ScheduleSlot) => {
+          console.log('🔄 Converting TUESDAY slot:', slot.id, slot.content?.name);
+          return convertScheduleSlot(slot, DayOfWeek.TUESDAY);
+        }),
+        WEDNESDAY: (scheduleData.schedule.WEDNESDAY || []).map((slot: ScheduleSlot) => {
+          console.log('🔄 Converting WEDNESDAY slot:', slot.id, slot.content?.name);
+          return convertScheduleSlot(slot, DayOfWeek.WEDNESDAY);
+        }),
+        THURSDAY: (scheduleData.schedule.THURSDAY || []).map((slot: ScheduleSlot) => {
+          console.log('🔄 Converting THURSDAY slot:', slot.id, slot.content?.name);
+          return convertScheduleSlot(slot, DayOfWeek.THURSDAY);
+        }),
+        FRIDAY: (scheduleData.schedule.FRIDAY || []).map((slot: ScheduleSlot) => {
+          console.log('🔄 Converting FRIDAY slot:', slot.id, slot.content?.name);
+          return convertScheduleSlot(slot, DayOfWeek.FRIDAY);
+        }),
+        SATURDAY: (scheduleData.schedule.SATURDAY || []).map((slot: ScheduleSlot) => {
+          console.log('🔄 Converting SATURDAY slot:', slot.id, slot.content?.name);
+          return convertScheduleSlot(slot, DayOfWeek.SATURDAY);
+        }),
+      };
+      
+      const convertedTotal = Object.values(convertedSchedule).reduce((total, daySessions) => total + daySessions.length, 0);
+      
+      console.log('🔄 Converted schedule summary:', {
+        totalDays: Object.keys(convertedSchedule).length,
+        totalSessions: convertedTotal,
+        dayBreakdown: Object.keys(convertedSchedule).map(day => ({
+          day,
+          sessions: convertedSchedule[day as keyof WeeklySchedule].length,
+          firstSession: convertedSchedule[day as keyof WeeklySchedule][0]?.content?.name || 'N/A'
+        }))
+      });
+      
+      if (convertedTotal === 0) {
+        console.warn('⚠️ No sessions after conversion!');
+      }
+      
+      console.log('💾 Setting schedule state with', convertedTotal, 'sessions');
+      setSchedule(convertedSchedule);
+      setCurrentClassroomId(scheduleData.classroom.id);
+      
     } catch (error) {
       console.error('❌ Failed to load schedule:', error);
       const apiError = error as ScheduleError;
@@ -113,7 +192,7 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
       if (apiError.statusCode === 401) {
         errorMessage = 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى';
       } else if (apiError.statusCode === 404) {
-        errorMessage = 'لم يتم العثور على جدول دراسي للفصل المحدد';
+        errorMessage = 'لم يتم العثور على جدول دراسي';
       } else if (apiError.statusCode === 0) {
         errorMessage = apiError.message;
       } else if (apiError.message) {
@@ -126,9 +205,120 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
     }
   };
 
+  // دالة لتحويل ScheduleSlot إلى ScheduleSession للتوافق مع الكود الموجود
+  const convertScheduleSlot = (slot: ScheduleSlot, dayOfWeek: DayOfWeek): ScheduleSession => {
+    console.log('🔧 Converting slot:', {
+      id: slot.id,
+      day: dayOfWeek,
+      contentName: slot.content?.name,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      type: slot.type,
+      hasContent: !!slot.content,
+      hasInstructor: !!slot.content?.instructor
+    });
+    
+    const converted: ScheduleSession = {
+      id: slot.id,
+      contentId: slot.content.id,
+      classroomId: myScheduleData?.classroom.id || 0,
+      distributionRoomId: slot.distributionRoom?.id || null,
+      dayOfWeek: dayOfWeek,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      type: slot.type,
+      location: slot.location,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      content: {
+        id: slot.content.id,
+        code: slot.content.code,
+        name: slot.content.name,
+        instructor: {
+          id: slot.content.instructor.id,
+          name: slot.content.instructor.name,
+        },
+      },
+      classroom: {
+        id: myScheduleData?.classroom.id || 0,
+        name: myScheduleData?.classroom.name || '',
+      },
+      distributionRoom: slot.distributionRoom ? {
+        id: slot.distributionRoom.id,
+        roomName: slot.distributionRoom.roomName,
+        roomNumber: slot.distributionRoom.roomNumber,
+      } : null,
+      _count: {
+        sessions: 1,
+      },
+    };
+    
+    console.log('✅ Converted session:', {
+      id: converted.id,
+      contentName: converted.content.name,
+      instructorName: converted.content.instructor.name,
+      time: `${converted.startTime} - ${converted.endTime}`
+    });
+    
+    return converted;
+  };
+
   const handleSessionPress = (session: ScheduleSession) => {
+    // البحث عن البيانات الأصلية من myScheduleData لإضافة معلومات الإلغاء
+    const originalSlot = findOriginalSlot(session.id);
+    
+    if (originalSlot && originalSlot.isCancelledThisWeek) {
+      Alert.alert(
+        'محاضرة ملغية',
+        `هذه المحاضرة ملغية هذا الأسبوع${originalSlot.cancellationReason ? `\nالسبب: ${originalSlot.cancellationReason}` : ''}`,
+        [{ text: 'موافق' }]
+      );
+      return;
+    }
+    
     setSelectedSlotId(session.id);
     setShowSlotDetails(true);
+  };
+
+  // دالة للبحث عن البيانات الأصلية للفترة الدراسية
+  const findOriginalSlot = (slotId: number): ScheduleSlot | null => {
+    if (!myScheduleData) return null;
+    
+    const allSlots = [
+      ...myScheduleData.schedule.SUNDAY,
+      ...myScheduleData.schedule.MONDAY,
+      ...myScheduleData.schedule.TUESDAY,
+      ...myScheduleData.schedule.WEDNESDAY,
+      ...myScheduleData.schedule.THURSDAY,
+      ...myScheduleData.schedule.FRIDAY,
+      ...myScheduleData.schedule.SATURDAY,
+    ];
+    
+    return allSlots.find(slot => slot.id === slotId) || null;
+  };
+
+  // دالة للحصول على البيانات الأصلية ليوم معين
+  const getOriginalSlotsForDay = (day: DayOfWeek): ScheduleSlot[] => {
+    if (!myScheduleData) return [];
+    
+    switch (day) {
+      case DayOfWeek.SUNDAY:
+        return myScheduleData.schedule.SUNDAY;
+      case DayOfWeek.MONDAY:
+        return myScheduleData.schedule.MONDAY;
+      case DayOfWeek.TUESDAY:
+        return myScheduleData.schedule.TUESDAY;
+      case DayOfWeek.WEDNESDAY:
+        return myScheduleData.schedule.WEDNESDAY;
+      case DayOfWeek.THURSDAY:
+        return myScheduleData.schedule.THURSDAY;
+      case DayOfWeek.FRIDAY:
+        return myScheduleData.schedule.FRIDAY;
+      case DayOfWeek.SATURDAY:
+        return myScheduleData.schedule.SATURDAY;
+      default:
+        return [];
+    }
   };
 
   const handleBackFromSlotDetails = () => {
@@ -140,19 +330,42 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
     loadSchedule();
   };
 
+  const handleDebugTest = async () => {
+    try {
+      Alert.alert('اختبار النظام', 'جاري تشغيل اختبار شامل للنظام...');
+      
+      const testResult = await ScheduleDebugger.runFullTest(accessToken);
+      
+      Alert.alert(
+        'نتائج الاختبار',
+        `${testResult.summary}\n\n` +
+        `الاتصال: ${testResult.connection.success ? '✅ نجح' : '❌ فشل'}\n` +
+        `الجدول: ${testResult.schedule?.success ? '✅ نجح' : '❌ فشل'}\n\n` +
+        `تفاصيل:\n${JSON.stringify(testResult, null, 2)}`,
+        [
+          { text: 'موافق', style: 'default' },
+          { text: 'إعادة المحاولة', onPress: handleRefresh }
+        ]
+      );
+    } catch (error) {
+      console.error('❌ Debug test failed:', error);
+      Alert.alert('خطأ في الاختبار', 'فشل في تشغيل اختبار النظام');
+    }
+  };
+
   const handleViewModeChange = (mode: 'weekly' | 'daily') => {
     setViewMode(mode);
     if (mode === 'daily' && !selectedDay) {
       // تحديد اليوم الحالي كافتراضي
       const today = new Date().getDay();
       const dayMap: { [key: number]: DayOfWeek } = {
-        0: 'SUNDAY',
-        1: 'MONDAY',
-        2: 'TUESDAY',
-        3: 'WEDNESDAY',
-        4: 'THURSDAY',
-        5: 'FRIDAY',
-        6: 'SATURDAY',
+        0: DayOfWeek.SUNDAY,
+        1: DayOfWeek.MONDAY,
+        2: DayOfWeek.TUESDAY,
+        3: DayOfWeek.WEDNESDAY,
+        4: DayOfWeek.THURSDAY,
+        5: DayOfWeek.FRIDAY,
+        6: DayOfWeek.SATURDAY,
       };
       setSelectedDay(dayMap[today]);
     }
@@ -160,19 +373,19 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
 
   const getDayOfWeekText = (day: DayOfWeek): string => {
     switch (day) {
-      case 'SUNDAY':
+      case DayOfWeek.SUNDAY:
         return 'الأحد';
-      case 'MONDAY':
+      case DayOfWeek.MONDAY:
         return 'الاثنين';
-      case 'TUESDAY':
+      case DayOfWeek.TUESDAY:
         return 'الثلاثاء';
-      case 'WEDNESDAY':
+      case DayOfWeek.WEDNESDAY:
         return 'الأربعاء';
-      case 'THURSDAY':
+      case DayOfWeek.THURSDAY:
         return 'الخميس';
-      case 'FRIDAY':
+      case DayOfWeek.FRIDAY:
         return 'الجمعة';
-      case 'SATURDAY':
+      case DayOfWeek.SATURDAY:
         return 'السبت';
       default:
         return day;
@@ -227,14 +440,28 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
           <Text style={styles.errorTitle}>لا توجد بيانات</Text>
           <Text style={styles.errorMessage}>لم يتم العثور على جدول دراسي</Text>
           <CustomButton
+            title="إعادة المحاولة"
+            onPress={loadSchedule}
+            variant="primary"
+            size="large"
+          />
+          <CustomButton
             title="العودة"
             onPress={onBack}
-            variant="primary"
+            variant="outline"
             size="large"
           />
         </View>
       </SafeAreaView>
     );
+  }
+
+  // التحقق من وجود جلسات في الجدول
+  const totalSessionsInSchedule = schedule ? Object.values(schedule).reduce((total, daySessions) => total + daySessions.length, 0) : 0;
+  console.log('📊 Total sessions in schedule state:', totalSessionsInSchedule);
+  
+  if (totalSessionsInSchedule === 0 && !isLoading && !error) {
+    console.warn('⚠️ Schedule is set but has no sessions!');
   }
 
   // إذا كان المستخدم يريد عرض تفاصيل فترة معينة
@@ -281,15 +508,25 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
             </TouchableOpacity>
             
             <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerTitle}>الجدول الدراسي</Text>
+              <Text style={styles.headerTitle}>
+                الجدول الدراسي {myScheduleData?.classroom.name ? `- ${myScheduleData.classroom.name}` : ''}
+              </Text>
               <View style={styles.headerUnderline} />
             </View>
             
-            <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
-              <View style={styles.refreshButtonIcon}>
-                <Text style={styles.refreshButtonText}>🔄</Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.headerButtons}>
+              <TouchableOpacity style={styles.debugButton} onPress={handleDebugTest}>
+                <View style={styles.debugButtonIcon}>
+                  <Text style={styles.debugButtonText}>🔍</Text>
+                </View>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
+                <View style={styles.refreshButtonIcon}>
+                  <Text style={styles.refreshButtonText}>🔄</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Schedule Stats */}
@@ -371,6 +608,7 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
               schedule={schedule}
               onSessionPress={handleSessionPress}
               compact={false}
+              originalSlots={myScheduleData?.schedule}
             />
           ) : (
             <View style={styles.dailyViewContainer}>
@@ -412,6 +650,7 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
                   sessions={schedule[selectedDay]}
                   onSessionPress={handleSessionPress}
                   compact={false}
+                  originalSlots={getOriginalSlotsForDay(selectedDay)}
                 />
               )}
             </View>
@@ -559,6 +798,28 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: 2,
     marginTop: 8,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  debugButton: {
+    backgroundColor: Colors.info,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    shadowColor: Colors.info,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  debugButtonIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  debugButtonText: {
+    fontSize: 16,
   },
   refreshButton: {
     backgroundColor: Colors.accent,
