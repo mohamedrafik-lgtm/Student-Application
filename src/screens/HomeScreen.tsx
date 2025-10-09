@@ -32,6 +32,7 @@ interface HomeScreenProps {
   onNavigateToProfile?: () => void;
   onNavigateToSchedule?: () => void;
   onNavigateToExams?: () => void;
+  onNavigateToGrades?: () => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ 
@@ -39,7 +40,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onLogout,
   onNavigateToProfile,
   onNavigateToSchedule,
-  onNavigateToExams
+  onNavigateToExams,
+  onNavigateToGrades
 }) => {
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -94,10 +96,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     }
   };
 
-  const handleCourses = () => {
-    Alert.alert('الكورسات', 'سيتم إضافة هذه الميزة قريباً');
-  };
-
   const handleSchedule = () => {
     if (onNavigateToSchedule) {
       onNavigateToSchedule();
@@ -107,7 +105,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   };
 
   const handleGrades = () => {
-    Alert.alert('الدرجات', 'سيتم إضافة هذه الميزة قريباً');
+    console.log('🔍 handleGrades called');
+    console.log('🔍 onNavigateToGrades:', !!onNavigateToGrades);
+    
+    if (onNavigateToGrades) {
+      console.log('✅ Calling onNavigateToGrades');
+      onNavigateToGrades();
+    } else {
+      console.log('❌ onNavigateToGrades is not available');
+      Alert.alert('الدرجات', 'سيتم إضافة هذه الميزة قريباً');
+    }
   };
 
   const handleExams = () => {
@@ -173,13 +180,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 <Text style={styles.quickActionEmoji}>👤</Text>
               </View>
               <Text style={styles.quickActionText}>الملف الشخصي</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.quickActionCard} onPress={handleCourses}>
-              <View style={[styles.quickActionIcon, { backgroundColor: Colors.secondarySoft }]}>
-                <Text style={styles.quickActionEmoji}>📚</Text>
-              </View>
-              <Text style={styles.quickActionText}>الكورسات</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.quickActionCard} onPress={handleSchedule}>

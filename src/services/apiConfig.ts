@@ -59,6 +59,7 @@ export const API_CONFIG = {
     RESET_PASSWORD: '/api/trainee-auth/reset-password',
     SCHEDULE_SLOT: '/api/schedule/slots',
     MY_SCHEDULE: '/api/trainee-auth/my-schedule',
+    MY_GRADES: '/api/trainee-auth/my-grades',
     AVAILABLE_QUIZZES: '/api/quizzes/trainee/available',
     QUIZ_DETAIL: '/api/quizzes', // + /{quizId}
     START_QUIZ: '/api/quizzes', // + /{quizId}/start

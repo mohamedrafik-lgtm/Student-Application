@@ -13,6 +13,7 @@ import PaymentsScreen from '../screens/PaymentsScreen';
 import SignupScreen from '../screens/SignupScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
 import ExamsScreen from '../screens/ExamsScreen';
+import GradesScreen from '../screens/GradesScreen';
 import BranchSelectionScreen from '../screens/BranchSelectionScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
@@ -26,7 +27,7 @@ interface UserInfo {
   classroomId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -144,6 +145,16 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('home');
   };
 
+  const handleNavigateToGrades = () => {
+    console.log('🔍 handleNavigateToGrades called');
+    console.log('🔍 Setting currentScreen to grades');
+    setCurrentScreen('grades');
+  };
+
+  const handleBackToHomeFromGrades = () => {
+    setCurrentScreen('home');
+  };
+
   const handleBranchSelected = (branch: BranchType) => {
     setSelectedBranch(branch);
     setCurrentScreen('login');
@@ -196,6 +207,15 @@ const AppNavigator: React.FC = () => {
   }
 
   if (isAuthenticated && userInfo) {
+    if (currentScreen === 'grades') {
+      return (
+        <GradesScreen
+          accessToken={userInfo.accessToken}
+          onBack={handleBackToHomeFromGrades}
+        />
+      );
+    }
+    
     if (currentScreen === 'exams') {
       return (
         <ExamsScreen
@@ -252,6 +272,7 @@ const AppNavigator: React.FC = () => {
         onNavigateToProfile={handleNavigateToProfile}
         onNavigateToSchedule={handleNavigateToSchedule}
         onNavigateToExams={handleNavigateToExams}
+        onNavigateToGrades={handleNavigateToGrades}
       />
     );
   }
