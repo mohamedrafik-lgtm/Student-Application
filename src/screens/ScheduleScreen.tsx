@@ -667,7 +667,7 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.background,
   },
   backgroundContainer: {
     position: 'absolute',
@@ -682,7 +682,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.background,
   },
   decorativeCircles: {
     position: 'absolute',
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
   circle: {
     position: 'absolute',
     borderRadius: 1000,
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+    backgroundColor: Colors.primarySoft,
   },
   circle1: {
     width: 200,
@@ -722,7 +722,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: Colors.textLight,
+    color: Colors.textSecondary,
     marginTop: 16,
     textAlign: 'center',
   },
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
   },
   errorMessage: {
     fontSize: 16,
-    color: Colors.textLight,
+    color: Colors.textSecondary,
     marginBottom: 24,
     textAlign: 'center',
     lineHeight: 24,
@@ -762,24 +762,24 @@ const styles = StyleSheet.create({
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: Colors.backgroundSoft,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: Colors.primarySoft,
   },
   backButtonIcon: {
     marginRight: 8,
   },
   backButtonText: {
     fontSize: 18,
-    color: Colors.white,
+    color: Colors.primary,
     fontWeight: '700',
   },
   backButtonLabel: {
     fontSize: 14,
-    color: Colors.white,
+    color: Colors.primary,
     fontWeight: '600',
   },
   headerTitleContainer: {
@@ -788,7 +788,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: Colors.white,
+    color: Colors.textPrimary,
     textAlign: 'center',
     letterSpacing: -0.5,
   },
@@ -840,7 +840,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   statsCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.white,
     borderRadius: 20,
     padding: 24,
     shadowColor: Colors.shadowDark,
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: Colors.primarySoft,
   },
   statsContent: {
     flexDirection: 'row',
@@ -873,14 +873,14 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 40,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    backgroundColor: Colors.primarySoft,
   },
   viewModeSection: {
     marginBottom: 32,
   },
   viewModeToggle: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: Colors.backgroundSoft,
     borderRadius: 16,
     padding: 4,
   },
@@ -902,7 +902,7 @@ const styles = StyleSheet.create({
   viewModeButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.white,
+    color: Colors.textPrimary,
   },
   viewModeButtonTextActive: {
     color: Colors.white,
@@ -919,14 +919,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   dayButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: Colors.backgroundSoft,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 16,
     marginRight: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: Colors.primarySoft,
     minWidth: 80,
   },
   dayButtonActive: {
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
   dayButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.white,
+    color: Colors.textPrimary,
     marginBottom: 4,
   },
   dayButtonTextActive: {
@@ -951,15 +951,15 @@ const styles = StyleSheet.create({
   dayButtonCount: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.textLight,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    color: Colors.textSecondary,
+    backgroundColor: Colors.primarySoft,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
   },
   dayButtonCountActive: {
     color: Colors.white,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: Colors.primarySoft,
   },
   bottomSpacing: {
     height: 20,

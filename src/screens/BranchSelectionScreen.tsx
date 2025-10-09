@@ -331,7 +331,7 @@ const BranchSelectionScreen: React.FC<BranchSelectionScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   backgroundContainer: {
     position: 'absolute',
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   decorativeCircles: {
     position: 'absolute',
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   circle: {
     position: 'absolute',
     borderRadius: 1000,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    backgroundColor: Colors.primarySoft,
   },
   circle1: {
     width: 200,

@@ -19,11 +19,11 @@ export const Colors = {
   accentDark: '#059669',
   accentSoft: 'rgba(16, 185, 129, 0.1)',
   
-  // Neutral Colors - Enhanced
+  // Neutral Colors - Enhanced (White Theme)
   white: '#FFFFFF',
-  background: '#F8FAFC', // Cool gray background
-  backgroundDark: '#0F172A',
-  backgroundSoft: '#F1F5F9',
+  background: '#FFFFFF', // Pure white background
+  backgroundDark: '#FFFFFF', // Changed from dark to white
+  backgroundSoft: '#F9FAFB', // Light gray for soft backgrounds
   cardBackground: '#FFFFFF',
   
   // Text Colors - Enhanced

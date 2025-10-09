@@ -60,6 +60,7 @@ export const API_CONFIG = {
     SCHEDULE_SLOT: '/api/schedule/slots',
     MY_SCHEDULE: '/api/trainee-auth/my-schedule',
     MY_GRADES: '/api/trainee-auth/my-grades',
+    ATTENDANCE_RECORDS: '/api/trainee-auth/attendance-records',
     AVAILABLE_QUIZZES: '/api/quizzes/trainee/available',
     QUIZ_DETAIL: '/api/quizzes', // + /{quizId}
     START_QUIZ: '/api/quizzes', // + /{quizId}/start

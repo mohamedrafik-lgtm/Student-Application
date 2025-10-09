@@ -14,6 +14,7 @@ import SignupScreen from '../screens/SignupScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
 import ExamsScreen from '../screens/ExamsScreen';
 import GradesScreen from '../screens/GradesScreen';
+import AttendanceScreen from '../screens/AttendanceScreen';
 import BranchSelectionScreen from '../screens/BranchSelectionScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
@@ -27,7 +28,7 @@ interface UserInfo {
   classroomId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -155,6 +156,14 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('home');
   };
 
+  const handleNavigateToAttendance = () => {
+    setCurrentScreen('attendance');
+  };
+
+  const handleBackToHomeFromAttendance = () => {
+    setCurrentScreen('home');
+  };
+
   const handleBranchSelected = (branch: BranchType) => {
     setSelectedBranch(branch);
     setCurrentScreen('login');
@@ -207,6 +216,15 @@ const AppNavigator: React.FC = () => {
   }
 
   if (isAuthenticated && userInfo) {
+    if (currentScreen === 'attendance') {
+      return (
+        <AttendanceScreen
+          accessToken={userInfo.accessToken}
+          onBack={handleBackToHomeFromAttendance}
+        />
+      );
+    }
+    
     if (currentScreen === 'grades') {
       return (
         <GradesScreen
@@ -273,6 +291,7 @@ const AppNavigator: React.FC = () => {
         onNavigateToSchedule={handleNavigateToSchedule}
         onNavigateToExams={handleNavigateToExams}
         onNavigateToGrades={handleNavigateToGrades}
+        onNavigateToAttendance={handleNavigateToAttendance}
       />
     );
   }

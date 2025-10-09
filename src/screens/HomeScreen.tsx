@@ -33,6 +33,7 @@ interface HomeScreenProps {
   onNavigateToSchedule?: () => void;
   onNavigateToExams?: () => void;
   onNavigateToGrades?: () => void;
+  onNavigateToAttendance?: () => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ 
@@ -41,7 +42,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigateToProfile,
   onNavigateToSchedule,
   onNavigateToExams,
-  onNavigateToGrades
+  onNavigateToGrades,
+  onNavigateToAttendance
 }) => {
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -125,6 +127,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     }
   };
 
+  const handleAttendance = () => {
+    if (onNavigateToAttendance) {
+      onNavigateToAttendance();
+    } else {
+      Alert.alert('الحضور والغياب', 'سيتم إضافة هذه الميزة قريباً');
+    }
+  };
+
   const handleNotifications = () => {
     Alert.alert('الإشعارات', 'سيتم إضافة هذه الميزة قريباً');
   };
@@ -201,6 +211,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 <Text style={styles.quickActionEmoji}>📝</Text>
               </View>
               <Text style={styles.quickActionText}>الاختبارات</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.quickActionCard} onPress={handleAttendance}>
+              <View style={[styles.quickActionIcon, { backgroundColor: Colors.warningSoft }]}>
+                <Text style={styles.quickActionEmoji}>📅</Text>
+              </View>
+              <Text style={styles.quickActionText}>الحضور</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -283,7 +300,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.background,
   },
   backgroundContainer: {
     position: 'absolute',
@@ -298,7 +315,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -312,14 +329,14 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: Colors.white,
+    color: Colors.textPrimary,
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 8,
   },
   welcomeSubtitle: {
     fontSize: 16,
-    color: Colors.textLight,
+    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -329,7 +346,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.white,
+    color: Colors.textPrimary,
     marginBottom: 16,
     textAlign: 'right',
   },

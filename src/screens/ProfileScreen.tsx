@@ -700,7 +700,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.background,
   },
   backgroundContainer: {
     position: 'absolute',
@@ -715,7 +715,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.background,
   },
   decorativeCircles: {
     position: 'absolute',
@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
   circle: {
     position: 'absolute',
     borderRadius: 1000,
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+    backgroundColor: Colors.primarySoft,
   },
   circle1: {
     width: 200,
@@ -755,7 +755,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: Colors.textLight,
+    color: Colors.textSecondary,
     marginTop: 16,
     textAlign: 'center',
   },
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
   },
   errorMessage: {
     fontSize: 16,
-    color: Colors.textLight,
+    color: Colors.textSecondary,
     marginBottom: 24,
     textAlign: 'center',
     lineHeight: 24,
@@ -795,24 +795,24 @@ const styles = StyleSheet.create({
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: Colors.backgroundSoft,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: Colors.primarySoft,
   },
   backButtonIcon: {
     marginRight: 8,
   },
   backButtonText: {
     fontSize: 18,
-    color: Colors.white,
+    color: Colors.primary,
     fontWeight: '700',
   },
   backButtonLabel: {
     fontSize: 14,
-    color: Colors.white,
+    color: Colors.primary,
     fontWeight: '600',
   },
   headerTitleContainer: {
@@ -821,7 +821,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: Colors.white,
+    color: Colors.textPrimary,
     textAlign: 'center',
     letterSpacing: -0.5,
   },
@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   profileCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.white,
     borderRadius: 24,
     padding: 32,
     alignItems: 'center',
@@ -861,7 +861,7 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: Colors.primarySoft,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -871,7 +871,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 120,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    backgroundColor: Colors.primarySoft,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
     right: -8,
     bottom: -8,
     borderRadius: 60,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    backgroundColor: Colors.primarySoft,
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
@@ -991,7 +991,7 @@ const styles = StyleSheet.create({
   profileStats: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(99, 102, 241, 0.08)',
+    backgroundColor: Colors.primarySoft,
     borderRadius: 16,
     padding: 16,
     width: '100%',
@@ -1014,7 +1014,7 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 30,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    backgroundColor: Colors.primarySoft,
     marginHorizontal: 16,
   },
   quickActionsSection: {
@@ -1026,7 +1026,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: Colors.white,
+    color: Colors.textPrimary,
     textAlign: 'right',
     letterSpacing: -0.3,
   },
@@ -1045,7 +1045,7 @@ const styles = StyleSheet.create({
   },
   quickActionCard: {
     width: (width - 60) / 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.white,
     borderRadius: 20,
     padding: 20,
     alignItems: 'center',
@@ -1056,7 +1056,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: Colors.primarySoft,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -1118,7 +1118,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   infoCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.white,
     borderRadius: 20,
     padding: 24,
     shadowColor: Colors.shadowDark,
@@ -1127,13 +1127,13 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: Colors.primarySoft,
   },
   infoCardHeader: {
     marginBottom: 20,
     paddingBottom: 16,
     borderBottomWidth: 2,
-    borderBottomColor: 'rgba(99, 102, 241, 0.1)',
+    borderBottomColor: Colors.primarySoft,
   },
   infoCardTitle: {
     fontSize: 18,
@@ -1147,17 +1147,17 @@ const styles = StyleSheet.create({
   infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+    backgroundColor: Colors.primarySoft,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.1)',
+    borderColor: Colors.primarySoft,
   },
   infoItemIcon: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    backgroundColor: Colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
