@@ -323,11 +323,11 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   largeButtonText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
     letterSpacing: -0.2,
-    lineHeight: 22,
+    lineHeight: 24,
     flexShrink: 1,
   },
   
