@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
 import { Colors } from '../styles/colors';
 import { attendanceService } from '../services/attendanceService';
+import { API_CONFIG } from '../services/apiConfig';
 import { 
   AttendanceResponse, 
   ContentGroup,
@@ -80,7 +81,9 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
       setError(null);
 
       console.log('🔍 Loading attendance records...');
-      
+      console.log('ℹ️ API_BASE_URL:', API_CONFIG.BASE_URL);
+      console.log('ℹ️ accessToken present:', !!accessToken, accessToken ? `${accessToken.substring(0,20)}...` : 'no-token');
+
       const response = await attendanceService.getAttendanceRecords(accessToken);
       
       console.log('✅ Attendance records loaded successfully!');
@@ -103,12 +106,21 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
       } else {
         console.warn('⚠️ Invalid response structure or no attendance records found');
         setAttendanceData(null);
+        
       }
 
     } catch (error) {
       console.error('❌ Failed to load attendance records:', error);
       const apiError = error as AttendanceError;
-      
+
+      // Surface BASE_URL missing clearly to the UI
+      if (apiError && apiError.message && apiError.message.includes('BASE_URL')) {
+        setError('خطأ تكوين: لم يتم تعيين عنوان الخادم (BASE_URL). يرجى اختيار الفرع أو إعادة تهيئة التطبيق.');
+        setAttendanceData(null);
+        setIsLoading(false);
+        return;
+      }
+
       let errorMessage = 'حدث خطأ أثناء تحميل سجلات الحضور';
       if (apiError.statusCode === 401) {
         errorMessage = 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى';
@@ -117,8 +129,8 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
       } else if (apiError.message) {
         errorMessage = apiError.message;
       }
-      
-      setError(errorMessage);
+
+  setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -402,6 +414,7 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        
         {/* Loading State */}
         {isLoading && (
           <Animated.View style={[

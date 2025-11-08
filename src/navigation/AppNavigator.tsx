@@ -19,6 +19,7 @@ import BranchSelectionScreen from '../screens/BranchSelectionScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
 import { BranchType } from '../types/auth';
+import RightDrawerMenu, { DrawerTab } from '../components/RightDrawerMenu';
 
 interface UserInfo {
   nameAr: string;
@@ -216,83 +217,96 @@ const AppNavigator: React.FC = () => {
   }
 
   if (isAuthenticated && userInfo) {
-    if (currentScreen === 'attendance') {
-      return (
-        <AttendanceScreen
-          accessToken={userInfo.accessToken}
-          onBack={handleBackToHomeFromAttendance}
-        />
-      );
+    // Render the requested screen into a container and show the bottom nav
+    let screenElement: React.ReactElement | null = null;
+
+    switch (currentScreen) {
+      case 'attendance':
+        screenElement = (
+          <AttendanceScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToHomeFromAttendance}
+          />
+        );
+        break;
+      case 'grades':
+        screenElement = (
+          <GradesScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToHomeFromGrades}
+          />
+        );
+        break;
+      case 'exams':
+        screenElement = (
+          <ExamsScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToHomeFromExams}
+          />
+        );
+        break;
+      case 'schedule':
+        screenElement = (
+          <ScheduleScreen
+            accessToken={userInfo.accessToken}
+            classroomId={userInfo.classroomId}
+            onBack={handleBackToProfileFromSchedule}
+          />
+        );
+        break;
+      case 'payments':
+        screenElement = (
+          <PaymentsScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToProfileFromPayments}
+          />
+        );
+        break;
+      case 'documents':
+        screenElement = (
+          <DocumentsScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToProfile}
+          />
+        );
+        break;
+      case 'profile':
+        screenElement = (
+          <ProfileScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToHome}
+            onNavigateToDocuments={handleNavigateToDocuments}
+            onNavigateToPayments={handleNavigateToPayments}
+            onNavigateToSchedule={handleNavigateToSchedule}
+          />
+        );
+        break;
+      case 'home':
+      default:
+        screenElement = (
+          <HomeScreen
+            userInfo={userInfo}
+            onLogout={handleLogout}
+            onNavigateToSchedule={handleNavigateToSchedule}
+            onNavigateToExams={handleNavigateToExams}
+            onNavigateToGrades={handleNavigateToGrades}
+            onNavigateToAttendance={handleNavigateToAttendance}
+            onNavigateToProfile={handleNavigateToProfile}
+            onNavigateToDocuments={handleNavigateToDocuments}
+            onNavigateToPayments={handleNavigateToPayments}
+          />
+        );
+        break;
     }
-    
-    if (currentScreen === 'grades') {
-      return (
-        <GradesScreen
-          accessToken={userInfo.accessToken}
-          onBack={handleBackToHomeFromGrades}
-        />
-      );
-    }
-    
-    if (currentScreen === 'exams') {
-      return (
-        <ExamsScreen
-          accessToken={userInfo.accessToken}
-          onBack={handleBackToHomeFromExams}
-        />
-      );
-    }
-    
-    if (currentScreen === 'schedule') {
-      return (
-        <ScheduleScreen
-          accessToken={userInfo.accessToken}
-          classroomId={userInfo.classroomId}
-          onBack={handleBackToProfileFromSchedule}
-        />
-      );
-    }
-    
-    if (currentScreen === 'payments') {
-      return (
-        <PaymentsScreen
-          accessToken={userInfo.accessToken}
-          onBack={handleBackToProfileFromPayments}
-        />
-      );
-    }
-    
-    if (currentScreen === 'documents') {
-      return (
-        <DocumentsScreen
-          accessToken={userInfo.accessToken}
-          onBack={handleBackToProfile}
-        />
-      );
-    }
-    
-    if (currentScreen === 'profile') {
-      return (
-        <ProfileScreen
-          accessToken={userInfo.accessToken}
-          onBack={handleBackToHome}
-          onNavigateToDocuments={handleNavigateToDocuments}
-          onNavigateToPayments={handleNavigateToPayments}
-          onNavigateToSchedule={handleNavigateToSchedule}
-        />
-      );
-    }
-    
+
     return (
-      <HomeScreen
-        userInfo={userInfo}
-        onLogout={handleLogout}
-        onNavigateToProfile={handleNavigateToProfile}
-        onNavigateToSchedule={handleNavigateToSchedule}
-        onNavigateToExams={handleNavigateToExams}
-        onNavigateToGrades={handleNavigateToGrades}
-        onNavigateToAttendance={handleNavigateToAttendance}
-      />
+      <View style={{ flex: 1, backgroundColor: Colors.background }}>
+        {screenElement}
+        <RightDrawerMenu
+          currentTab={currentScreen as DrawerTab}
+          onSelect={(tab: DrawerTab) => setCurrentScreen(tab as Screen)}
+        />
+      </View>
     );
   }
 

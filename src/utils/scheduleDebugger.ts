@@ -1,7 +1,7 @@
 // أداة تصحيح الجداول الدراسية
 // تستخدم لاختبار الاتصال بالباك إند وتشخيص المشاكل
 
-import { AuthService } from '../services/authService';
+import { authService } from '../services/authService';
 import { API_CONFIG } from '../services/apiConfig';
 import { BranchService } from '../services/branchService';
 import { MyScheduleResponse } from '../types/auth';
@@ -48,7 +48,6 @@ export class ScheduleDebugger {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        timeout: 5000,
       });
       
       console.log('📡 Response status:', response.status);
@@ -94,24 +93,20 @@ export class ScheduleDebugger {
   ): Promise<{
     success: boolean;
     message: string;
-    details?: {
-      totalSessions: number;
-      daysWithSessions: string[];
-      scheduleData: MyScheduleResponse;
-    };
+    details?: any;
   }> {
     try {
       console.log('🔍 Testing schedule loading...');
       console.log('📊 Classroom ID:', classroomId);
       console.log('🔑 Has token:', !!accessToken);
       
-      const scheduleData = await AuthService.getMySchedule(accessToken);
+  const scheduleData = await authService.getMySchedule(accessToken);
       
       console.log('✅ Schedule loaded successfully:', scheduleData);
       
       // تحليل البيانات
-      const totalSessions = Object.values(scheduleData.schedule).reduce((total, daySessions) => {
-        return total + daySessions.length;
+      const totalSessions = (Object.values(scheduleData.schedule) as any[]).reduce((total: number, daySessions: any[]) => {
+        return total + (daySessions?.length || 0);
       }, 0);
       
       const daysWithSessions = Object.keys(scheduleData.schedule).filter(day => 

@@ -424,21 +424,20 @@ export interface ApiErrorResponse {
 // ===== الجداول الدراسية =====
 
 // أيام الأسبوع
-export enum DayOfWeek {
-  SUNDAY = 'SUNDAY',     // الأحد
-  MONDAY = 'MONDAY',     // الاثنين
-  TUESDAY = 'TUESDAY',   // الثلاثاء
-  WEDNESDAY = 'WEDNESDAY', // الأربعاء
-  THURSDAY = 'THURSDAY', // الخميس
-  FRIDAY = 'FRIDAY',     // الجمعة
-  SATURDAY = 'SATURDAY'  // السبت
-}
+export const DayOfWeek = {
+  SUNDAY: 'SUNDAY',
+  MONDAY: 'MONDAY',
+  TUESDAY: 'TUESDAY',
+  WEDNESDAY: 'WEDNESDAY',
+  THURSDAY: 'THURSDAY',
+  FRIDAY: 'FRIDAY',
+  SATURDAY: 'SATURDAY',
+} as const;
+
+export type DayOfWeek = typeof DayOfWeek[keyof typeof DayOfWeek];
 
 // نوع الجلسة
-export enum SessionType {
-  THEORY = 'THEORY',       // نظري
-  PRACTICAL = 'PRACTICAL'  // عملي
-}
+// SessionType is declared earlier in this file (kept the more complete enum). Do not redeclare.
 
 // المدرب
 export interface Instructor {
@@ -478,8 +477,8 @@ export interface ScheduleSession {
   endTime: string;          // بصيغة "HH:mm" مثل "11:00"
   type: SessionType;
   location: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   content: Content;
   classroom: Classroom;
   distributionRoom: DistributionRoom | null;
@@ -551,11 +550,11 @@ export interface WeeklyScheduleResponse extends WeeklySchedule {}
 export interface Session {
   id: number;
   scheduleSlotId: number;
-  date: Date;
+  date: string;
   isCancelled: boolean;
   cancellationReason: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // استجابة API لفترة واحدة من الجدول الدراسي
@@ -569,8 +568,8 @@ export interface ScheduleSlotResponse {
   endTime: string;          // Format: "HH:mm" (e.g., "11:00")
   type: SessionType;
   location: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   
   // Training Content Information
   content: {

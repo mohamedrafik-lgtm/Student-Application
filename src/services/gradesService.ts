@@ -126,14 +126,60 @@ export class GradesService implements IGradesService {
       console.warn('⚠️ Invalid response structure: missing overallStats');
     }
 
-    if (response.data && (!response.data.classrooms || !Array.isArray(response.data.classrooms))) {
-      console.warn('⚠️ Invalid response structure: missing or invalid classrooms array');
-      if (response.data) {
-        response.data.classrooms = [];
+    // Normalize different backend shapes: some endpoints may return the wrapped
+    // { success, data } object, others return an array of classrooms or a single classroom object.
+    const raw: any = response as any;
+
+    if (raw && typeof raw.success === 'boolean' && raw.data) {
+      if (!raw.data.classrooms || !Array.isArray(raw.data.classrooms)) {
+        console.warn('⚠️ Normalizing: setting empty classrooms array on wrapped response');
+        raw.data.classrooms = [];
       }
+      return raw as MyGradesResponse;
     }
 
-    return response;
+    // If backend returned array of classrooms directly
+    let classrooms: any[] = [];
+    if (Array.isArray(raw)) {
+      classrooms = raw;
+    } else if (raw && raw.classrooms && Array.isArray(raw.classrooms)) {
+      classrooms = raw.classrooms;
+    } else if (raw && raw.classroom && raw.contents) {
+      // single classroom object -> wrap into array
+      classrooms = [raw];
+    }
+
+    // Build minimal overallStats if missing
+    const overallStats = {
+      totalEarned: 0,
+      totalMax: 0,
+      percentage: 0,
+      totalContents: 0,
+    };
+
+    classrooms.forEach((cl: any) => {
+      const s = cl.stats || {};
+      overallStats.totalEarned += s.totalEarned || 0;
+      overallStats.totalMax += s.totalMax || 0;
+      overallStats.totalContents += s.contentCount || (Array.isArray(cl.contents) ? cl.contents.length : 0);
+    });
+    if (overallStats.totalMax > 0) {
+      overallStats.percentage = Math.round((overallStats.totalEarned / overallStats.totalMax) * 10000) / 100;
+    }
+
+    const trainee = (raw && raw.trainee) ? raw.trainee : { id: 0, nameAr: '', nameEn: '', nationalId: '', program: null } as any;
+
+    const normalized: MyGradesResponse = {
+      success: true,
+      data: {
+        trainee,
+        overallStats,
+        classrooms,
+      },
+    };
+
+    console.warn('ℹ️ Normalized grades response shape for UI compatibility');
+    return normalized;
   }
 }
 

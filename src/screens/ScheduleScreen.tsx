@@ -228,8 +228,8 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
       endTime: slot.endTime,
       type: slot.type,
       location: slot.location,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
       content: {
         id: slot.content.id,
         code: slot.content.code,

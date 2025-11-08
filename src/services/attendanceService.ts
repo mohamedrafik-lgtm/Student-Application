@@ -90,6 +90,15 @@ export class AttendanceService {
    * الحصول على سجلات الحضور للمتدرب
    */
   async getAttendanceRecords(accessToken: string): Promise<AttendanceRecordsResponse> {
+    if (!API_CONFIG.BASE_URL) {
+      const cfgError: AttendanceError = {
+        message: 'BASE_URL for API is not configured. Ensure a branch is selected or API base URL is set.',
+        statusCode: 0,
+      };
+      console.error('❌ Attendance request aborted - missing API base URL');
+      throw cfgError;
+    }
+
     const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ATTENDANCE_RECORDS}`;
     
     console.log('🔍 Attendance Records API Request:', {
@@ -125,14 +134,68 @@ export class AttendanceService {
       console.warn('⚠️ Invalid response structure: missing stats');
     }
 
-    if (response.data && (!response.data.contentGroups || !Array.isArray(response.data.contentGroups))) {
-      console.warn('⚠️ Invalid response structure: missing or invalid contentGroups array');
-      if (response.data) {
-        response.data.contentGroups = [];
+    // Normalize different backend shapes: some environments return the wrapped
+    // { success, data } object, others return an array of content groups or a single content-group object.
+    // Ensure we always return AttendanceRecordsResponse with data.contentGroups as an array.
+    const raw: any = response as any;
+
+    // If the response already matches expected wrapper, ensure contentGroups is an array and return
+    if (raw && typeof raw.success === 'boolean' && raw.data) {
+      if (!raw.data.contentGroups || !Array.isArray(raw.data.contentGroups)) {
+        console.warn('⚠️ Normalizing: setting empty contentGroups array on wrapped response');
+        raw.data.contentGroups = [];
       }
+      return raw as AttendanceRecordsResponse;
     }
 
-    return response;
+    // If the backend returned an array of content groups directly
+    let contentGroups: any[] = [];
+    if (Array.isArray(raw)) {
+      contentGroups = raw;
+    } else if (raw && raw.contentGroups && Array.isArray(raw.contentGroups)) {
+      contentGroups = raw.contentGroups;
+    } else if (raw && raw.content && raw.sessions) {
+      // single content-group object -> wrap into array
+      contentGroups = [raw];
+    }
+
+    // Build minimal overall stats if missing
+    const stats = {
+      total: 0,
+      present: 0,
+      absent: 0,
+      late: 0,
+      excused: 0,
+      attendanceRate: 0,
+    };
+
+    contentGroups.forEach((cg: any) => {
+      const s = cg.stats || {};
+      const sessionsCount = s.total || (Array.isArray(cg.sessions) ? cg.sessions.length : 0);
+      stats.total += sessionsCount;
+      stats.present += s.present || 0;
+      stats.absent += s.absent || 0;
+      stats.late += s.late || 0;
+      stats.excused += s.excused || 0;
+    });
+    if (stats.total > 0) {
+      stats.attendanceRate = Math.round((stats.present / stats.total) * 10000) / 100; // one decimal
+    }
+
+    // Minimal trainee object if not present
+    const trainee = (raw && raw.trainee) ? raw.trainee : { id: 0, nameAr: '', nameEn: '', nationalId: '', photoUrl: null, program: null, classroom: null } as any;
+
+    const normalized: AttendanceRecordsResponse = {
+      success: true,
+      data: {
+        trainee,
+        stats,
+        contentGroups,
+      },
+    };
+
+    console.warn('ℹ️ Normalized attendance response shape for UI compatibility');
+    return normalized;
   }
 }
 

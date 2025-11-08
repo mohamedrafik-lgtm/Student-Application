@@ -1,11 +1,12 @@
 // SOLID Principle: Single Responsibility - This file handles only color definitions
 export const Colors = {
   // Modern Primary Colors - Enhanced
-  primary: '#6366F1', // Modern indigo
-  primaryLight: '#818CF8',
-  primaryDark: '#4F46E5',
-  primaryGlow: 'rgba(99, 102, 241, 0.25)',
-  primarySoft: 'rgba(99, 102, 241, 0.1)',
+  // Brighter, more vibrant primary palette
+  primary: '#2563EB', // vivid blue
+  primaryLight: '#3B82F6',
+  primaryDark: '#1E3A8A',
+  primaryGlow: 'rgba(37, 99, 235, 0.18)',
+  primarySoft: 'rgba(59, 130, 246, 0.08)',
   
   // Secondary Colors - Enhanced
   secondary: '#F59E0B', // Warm amber
@@ -21,27 +22,27 @@ export const Colors = {
   
   // Neutral Colors - Enhanced (White Theme)
   white: '#FFFFFF',
-  background: '#FFFFFF', // Pure white background
-  backgroundDark: '#FFFFFF', // Changed from dark to white
-  backgroundSoft: '#F9FAFB', // Light gray for soft backgrounds
+  background: '#F6F9FF', // very light blue background for livelier feel
+  backgroundDark: '#0F172A',
+  backgroundSoft: '#F1F5FF', // soft light background
   cardBackground: '#FFFFFF',
   
   // Text Colors - Enhanced
-  textPrimary: '#1E293B',
-  textSecondary: '#64748B',
-  textLight: '#94A3B8',
-  textHint: '#CBD5E1',
-  textMuted: '#9CA3AF',
+  textPrimary: '#0F172A',
+  textSecondary: '#475569',
+  textLight: '#64748B',
+  textHint: '#94A3B8',
+  textMuted: '#94A3B8',
   
   // Status Colors - Enhanced
-  success: '#10B981',
-  successSoft: 'rgba(16, 185, 129, 0.1)',
+  success: '#06B6D4',
+  successSoft: 'rgba(6, 182, 212, 0.08)',
   error: '#EF4444',
   errorSoft: 'rgba(239, 68, 68, 0.1)',
   warning: '#F59E0B',
   warningSoft: 'rgba(245, 158, 11, 0.1)',
-  info: '#3B82F6',
-  infoSoft: 'rgba(59, 130, 246, 0.1)',
+  info: '#2563EB',
+  infoSoft: 'rgba(37, 99, 235, 0.08)',
   
   // Input Colors - Enhanced
   inputBorder: '#E2E8F0',
@@ -52,24 +53,24 @@ export const Colors = {
   inputDisabled: '#F8FAFC',
   
   // Shadow and Effects - Enhanced
-  shadow: 'rgba(15, 23, 42, 0.08)',
-  shadowMedium: 'rgba(15, 23, 42, 0.12)',
-  shadowDark: 'rgba(15, 23, 42, 0.20)',
-  shadowPrimary: 'rgba(99, 102, 241, 0.3)',
-  shadowSuccess: 'rgba(16, 185, 129, 0.3)',
-  shadowError: 'rgba(239, 68, 68, 0.3)',
+  shadow: 'rgba(2,6,23,0.06)',
+  shadowMedium: 'rgba(2,6,23,0.10)',
+  shadowDark: 'rgba(2,6,23,0.18)',
+  shadowPrimary: 'rgba(37, 99, 235, 0.16)',
+  shadowSuccess: 'rgba(6, 182, 212, 0.16)',
+  shadowError: 'rgba(239, 68, 68, 0.16)',
   
   // Gradients - Enhanced
-  gradientPrimary: ['#6366F1', '#8B5CF6'],
+  gradientPrimary: ['#2563EB', '#06B6D4'],
   gradientSecondary: ['#F59E0B', '#EF4444'],
-  gradientBackground: ['#F8FAFC', '#E2E8F0'],
+  gradientBackground: ['#F6F9FF', '#EEF2FF'],
   gradientCard: ['rgba(255, 255, 255, 0.98)', 'rgba(255, 255, 255, 0.95)'],
   
   // Border Colors - Enhanced
-  borderLight: '#F1F5F9',
-  borderMedium: '#E2E8F0',
+  borderLight: '#EEF2FF',
+  borderMedium: '#E6EEF9',
   borderDark: '#CBD5E1',
-  borderPrimary: '#6366F1',
+  borderPrimary: '#2563EB',
   borderError: '#EF4444',
   
   // Glass effect - Enhanced

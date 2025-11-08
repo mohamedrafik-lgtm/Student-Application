@@ -41,6 +41,8 @@ const dayOfWeekArabic = {
 const sessionTypeArabic = {
   THEORY: 'نظري',
   PRACTICAL: 'عملي',
+  EXAM: 'اختبار',
+  WORKSHOP: 'ورشة عمل',
 };
 
 const ScheduleSlotDetails: React.FC<ScheduleSlotDetailsProps> = ({ 
@@ -91,7 +93,7 @@ const ScheduleSlotDetails: React.FC<ScheduleSlotDetailsProps> = ({
     loadSlotData();
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleDateString('ar-SA', {
       year: 'numeric',
       month: 'long',

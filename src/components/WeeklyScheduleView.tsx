@@ -87,19 +87,21 @@ const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
   };
 
   const getTotalSessions = (): number => {
-    return Object.values(schedule).reduce((total, daySessions) => {
+    return (Object.values(schedule) as ScheduleSession[][]).reduce((total: number, daySessions: ScheduleSession[]) => {
       return total + daySessions.length;
     }, 0);
   };
 
   const getTotalHours = (): number => {
-    return Object.values(schedule).reduce((total, daySessions) => {
-      return daySessions.reduce((dayTotal, session) => {
+    return (Object.values(schedule) as ScheduleSession[][]).reduce((total: number, daySessions: ScheduleSession[]) => {
+      let dayHours = 0;
+      for (const session of daySessions) {
         const start = new Date(`2000-01-01T${session.startTime}`);
         const end = new Date(`2000-01-01T${session.endTime}`);
         const duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-        return dayTotal + duration;
-      }, 0) + total;
+        dayHours += duration;
+      }
+      return total + dayHours;
     }, 0);
   };
 

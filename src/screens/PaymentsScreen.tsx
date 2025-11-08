@@ -554,7 +554,7 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.background,
   },
   backgroundContainer: {
     position: 'absolute',
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.background,
   },
   decorativeCircles: {
     position: 'absolute',
@@ -649,24 +649,24 @@ const styles = StyleSheet.create({
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: Colors.cardBackground,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: Colors.borderLight,
   },
   backButtonIcon: {
     marginRight: 8,
   },
   backButtonText: {
     fontSize: 18,
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontWeight: '700',
   },
   backButtonLabel: {
     fontSize: 14,
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontWeight: '600',
   },
   headerTitleContainer: {
@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: Colors.white,
+    color: Colors.textPrimary,
     textAlign: 'center',
     letterSpacing: -0.5,
   },
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   historyButton: {
-    backgroundColor: Colors.info,
+    backgroundColor: Colors.accent,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 16,
@@ -705,7 +705,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   summaryCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.cardBackground,
     borderRadius: 20,
     padding: 24,
     marginBottom: 16,
@@ -820,7 +820,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: Colors.white,
+    color: Colors.textPrimary,
     textAlign: 'right',
     letterSpacing: -0.3,
   },
@@ -836,13 +836,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   filterChip: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: Colors.cardBackground,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
     marginRight: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: Colors.borderLight,
   },
   filterChipActive: {
     backgroundColor: Colors.primary,
@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
   filterChipText: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.white,
+    color: Colors.textPrimary,
   },
   filterChipTextActive: {
     color: Colors.white,
