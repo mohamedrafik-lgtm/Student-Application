@@ -16,10 +16,11 @@ import ExamsScreen from '../screens/ExamsScreen';
 import GradesScreen from '../screens/GradesScreen';
 import AttendanceScreen from '../screens/AttendanceScreen';
 import BranchSelectionScreen from '../screens/BranchSelectionScreen';
+import TrainingContentsScreen from '../screens/TrainingContentsScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
 import { BranchType } from '../types/auth';
-import RightDrawerMenu, { DrawerTab } from '../components/RightDrawerMenu';
+import TopNavigationBar, { TopNavTab } from '../components/TopNavigationBar';
 
 interface UserInfo {
   nameAr: string;
@@ -29,7 +30,7 @@ interface UserInfo {
   classroomId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -165,6 +166,14 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('home');
   };
 
+  const handleNavigateToTrainingContents = () => {
+    setCurrentScreen('training-contents');
+  };
+
+  const handleBackToHomeFromTrainingContents = () => {
+    setCurrentScreen('home');
+  };
+
   const handleBranchSelected = (branch: BranchType) => {
     setSelectedBranch(branch);
     setCurrentScreen('login');
@@ -237,6 +246,14 @@ const AppNavigator: React.FC = () => {
           />
         );
         break;
+      case 'training-contents':
+        screenElement = (
+          <TrainingContentsScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToHomeFromTrainingContents}
+          />
+        );
+        break;
       case 'exams':
         screenElement = (
           <ExamsScreen
@@ -286,12 +303,12 @@ const AppNavigator: React.FC = () => {
         screenElement = (
           <HomeScreen
             userInfo={userInfo}
-            onLogout={handleLogout}
             onNavigateToSchedule={handleNavigateToSchedule}
             onNavigateToExams={handleNavigateToExams}
             onNavigateToGrades={handleNavigateToGrades}
             onNavigateToAttendance={handleNavigateToAttendance}
             onNavigateToProfile={handleNavigateToProfile}
+            onNavigateToTrainingContents={handleNavigateToTrainingContents}
             onNavigateToDocuments={handleNavigateToDocuments}
             onNavigateToPayments={handleNavigateToPayments}
           />
@@ -301,11 +318,13 @@ const AppNavigator: React.FC = () => {
 
     return (
       <View style={{ flex: 1, backgroundColor: Colors.background }}>
-        {screenElement}
-        <RightDrawerMenu
-          currentTab={currentScreen as DrawerTab}
-          onSelect={(tab: DrawerTab) => setCurrentScreen(tab as Screen)}
+        <TopNavigationBar
+          currentTab={currentScreen as TopNavTab}
+          onSelect={(tab: TopNavTab) => setCurrentScreen(tab as Screen)}
+          onLogout={handleLogout}
+          onNavigateToProfile={handleNavigateToProfile}
         />
+        {screenElement}
       </View>
     );
   }

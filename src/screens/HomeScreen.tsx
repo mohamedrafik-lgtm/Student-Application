@@ -11,10 +11,8 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
-  Alert,
   Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../styles/colors';
 import { AuthService } from '../services/authService';
 
@@ -28,7 +26,6 @@ interface HomeScreenProps {
     photoUrl?: string;
     accessToken?: string;
   };
-  onLogout?: () => void;
   onNavigateToSchedule?: () => void;
   onNavigateToExams?: () => void;
   onNavigateToGrades?: () => void;
@@ -36,11 +33,11 @@ interface HomeScreenProps {
   onNavigateToProfile?: () => void;
   onNavigateToDocuments?: () => void;
   onNavigateToPayments?: () => void;
+  onNavigateToTrainingContents?: () => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
   userInfo,
-  onLogout,
   onNavigateToSchedule,
   onNavigateToExams,
   onNavigateToGrades,
@@ -48,6 +45,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigateToProfile,
   onNavigateToDocuments,
   onNavigateToPayments,
+  onNavigateToTrainingContents,
 }) => {
   const [studentPhotoUrl, setStudentPhotoUrl] = useState<string | undefined>(userInfo?.photoUrl);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -73,12 +71,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     if (!userInfo?.photoUrl) loadStudentPhoto();
   }, [fadeAnim, slideAnim, loadStudentPhoto, userInfo?.photoUrl]);
 
-  const handleLogout = () => {
-    Alert.alert('تسجيل الخروج', 'هل تريد تسجيل الخروج؟', [
-      { text: 'إلغاء', style: 'cancel' },
-      { text: 'تسجيل الخروج', style: 'destructive', onPress: onLogout },
-    ]);
-  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -88,19 +80,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
+      >
         <Animated.View style={[styles.headerCard, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}> 
           <View style={styles.headerRow}>
             <View style={styles.headerInfo}>
               <Text style={styles.greetingText}>{getGreeting()}, {userInfo?.nameAr || 'متدرب'}</Text>
               <Text style={styles.headerSub}>مرحباً بك في لوحة المتدرب</Text>
+              <Text style={styles.headerDescription}>
+                يمكنك الوصول إلى جميع خدماتك التعليمية من خلال القائمة أعلاه
+              </Text>
             </View>
 
             <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.smallBtn} onPress={handleLogout}>
-                <Text style={styles.smallBtnText}>تسجيل الخروج</Text>
-              </TouchableOpacity>
               <TouchableOpacity style={styles.profileBtn} onPress={() => onNavigateToProfile && onNavigateToProfile()}>
                 {studentPhotoUrl ? (
                   <Image source={{ uri: studentPhotoUrl }} style={styles.profileImage} />
@@ -132,6 +128,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           </TouchableOpacity>
         </View>
 
+        {/* Training Contents Action */}
+        {onNavigateToTrainingContents && (
+          <View style={styles.trainingContentsAction}>
+            <TouchableOpacity 
+              style={styles.trainingContentsButton} 
+              onPress={() => onNavigateToTrainingContents()}
+              activeOpacity={0.8}
+            >
+              <View style={styles.trainingContentsIconContainer}>
+                <Text style={styles.trainingContentsIcon}>📚</Text>
+              </View>
+              <View style={styles.trainingContentsTextContainer}>
+                <Text style={styles.trainingContentsTitle}>المحتوى التدريبي</Text>
+                <Text style={styles.trainingContentsSubtitle}>عرض المواد الدراسية</Text>
+              </View>
+              <Text style={styles.trainingContentsArrow}>→</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Compact info cards removed per UX request */}
 
         {/* Upcoming classes */}
@@ -156,30 +172,109 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
         <View style={{ height: 36 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  scrollView: { flex: 1 },
   scrollContent: { paddingBottom: 32 },
-  headerCard: { backgroundColor: Colors.primary, padding: 16, margin: 16, borderRadius: 14, shadowColor: Colors.shadowDark, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.18, shadowRadius: 12, elevation: 6 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  headerInfo: { flex: 1, paddingRight: 12 },
-  greetingText: { color: Colors.white, fontSize: 20, fontWeight: '800', writingDirection: 'rtl', textAlign: 'right' },
-  headerSub: { color: 'rgba(255,255,255,0.9)', marginTop: 4, writingDirection: 'rtl', textAlign: 'right' },
-  headerActions: { alignItems: 'flex-end' },
-  smallBtn: { backgroundColor: 'rgba(255,255,255,0.12)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, marginBottom: 8 },
-  smallBtnText: { color: Colors.white, fontSize: 12, writingDirection: 'rtl', textAlign: 'right' },
-  profileBtn: { width: 52, height: 52, borderRadius: 26, overflow: 'hidden', borderWidth: 2, borderColor: Colors.white },
-  profileImage: { width: 52, height: 52 },
-  profileDefault: { width: 52, height: 52, backgroundColor: Colors.white, alignItems: 'center', justifyContent: 'center' },
-  profileDefaultText: { color: Colors.primary, fontWeight: '800', fontSize: 20 },
+  headerCard: { 
+    backgroundColor: Colors.primary, 
+    padding: 24, 
+    margin: 16, 
+    marginTop: 8,
+    marginBottom: 24,
+    borderRadius: 20, 
+    minHeight: 140,
+    shadowColor: Colors.shadowDark, 
+    shadowOffset: { width: 0, height: 8 }, 
+    shadowOpacity: 0.22, 
+    shadowRadius: 16, 
+    elevation: 8 
+  },
+  headerRow: { 
+    flexDirection: 'row', 
+    alignItems: 'flex-start', 
+    justifyContent: 'space-between',
+    minHeight: 100,
+  },
+  headerInfo: { 
+    flex: 1, 
+    paddingRight: 16,
+    justifyContent: 'center',
+  },
+  greetingText: { 
+    color: Colors.white, 
+    fontSize: 26, 
+    fontWeight: '800', 
+    writingDirection: 'rtl', 
+    textAlign: 'right',
+    marginBottom: 8,
+  },
+  headerSub: { 
+    color: 'rgba(255,255,255,0.95)', 
+    fontSize: 16,
+    marginTop: 4, 
+    marginBottom: 8,
+    writingDirection: 'rtl', 
+    textAlign: 'right',
+    fontWeight: '600',
+  },
+  headerDescription: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 13,
+    marginTop: 8,
+    writingDirection: 'rtl',
+    textAlign: 'right',
+    lineHeight: 20,
+  },
+  headerActions: { 
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    paddingLeft: 16,
+  },
+  profileBtn: { 
+    width: 64, 
+    height: 64, 
+    borderRadius: 32, 
+    overflow: 'hidden', 
+    borderWidth: 3, 
+    borderColor: Colors.white,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  profileImage: { width: 64, height: 64 },
+  profileDefault: { 
+    width: 64, 
+    height: 64, 
+    backgroundColor: Colors.white, 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
+  profileDefaultText: { 
+    color: Colors.primary, 
+    fontWeight: '800', 
+    fontSize: 24 
+  },
 
   quickActionsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, marginTop: 12 },
   quickActionButton: { flex: 1, minWidth: 72, backgroundColor: Colors.white, marginHorizontal: 6, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 8, alignItems: 'center', shadowColor: Colors.shadowDark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 },
   quickActionIcon: { fontSize: 20, marginBottom: 6 },
   quickActionLabel: { fontSize: 12, color: Colors.textPrimary, fontWeight: '700', writingDirection: 'rtl', textAlign: 'center', flexWrap: 'wrap', lineHeight: 16, flexShrink: 1, minWidth: 0, includeFontPadding: false },
+
+  trainingContentsAction: { paddingHorizontal: 16, marginTop: 12 },
+  trainingContentsButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: 16, padding: 16, shadowColor: Colors.shadowDark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 4, borderWidth: 1, borderColor: Colors.borderLight },
+  trainingContentsIconContainer: { width: 50, height: 50, borderRadius: 12, backgroundColor: Colors.primarySoft, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  trainingContentsIcon: { fontSize: 24 },
+  trainingContentsTextContainer: { flex: 1 },
+  trainingContentsTitle: { fontSize: 16, fontWeight: '800', color: Colors.textPrimary, marginBottom: 4, writingDirection: 'rtl', textAlign: 'right' },
+  trainingContentsSubtitle: { fontSize: 13, color: Colors.textSecondary, writingDirection: 'rtl', textAlign: 'right' },
+  trainingContentsArrow: { fontSize: 20, color: Colors.primary, fontWeight: '800', marginLeft: 8 },
 
   cardsGridCompact: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, marginTop: 14 },
   infoCardCompact: { flex: 1, backgroundColor: Colors.white, marginHorizontal: 6, borderRadius: 12, padding: 12, alignItems: 'center', flexDirection: 'row', minWidth: 72 },

@@ -29,7 +29,7 @@ import {
   GradesError 
 } from '../types/grades';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface GradesScreenProps {
   accessToken: string;
@@ -150,6 +150,26 @@ const GradesScreen: React.FC<GradesScreenProps> = ({
     setExpandedContent(expandedContent === contentId ? null : contentId);
   };
 
+  const renderProgressBar = (percentage: number, color: string) => {
+    const progressWidth = Math.min(Math.max(percentage, 0), 100);
+    
+    return (
+      <View style={styles.progressBarContainer}>
+        <View style={styles.progressBarBackground}>
+          <View
+            style={[
+              styles.progressBarFill,
+              {
+                width: `${progressWidth}%`,
+                backgroundColor: color,
+              }
+            ]}
+          />
+        </View>
+      </View>
+    );
+  };
+
   const renderGradeBreakdown = (content: ContentWithGrades) => {
     const gradeTypes = [
       GradeType.YEAR_WORK,
@@ -162,121 +182,186 @@ const GradesScreen: React.FC<GradesScreenProps> = ({
 
     return (
       <View style={styles.gradeBreakdown}>
-        <Text style={styles.breakdownTitle}>تفاصيل الدرجات:</Text>
-        {gradeTypes.map((gradeType) => {
-          const typeInfo = GRADE_TYPE_INFO[gradeType];
-          const earned = content.grades[gradeType];
-          const max = content.maxMarks[gradeType];
-          const percentage = max > 0 ? (earned / max) * 100 : 0;
+        <View style={styles.breakdownHeader}>
+          <Text style={styles.breakdownTitle}>تفاصيل الدرجات</Text>
+          <View style={styles.breakdownDivider} />
+        </View>
+        <View style={styles.gradeTypesContainer}>
+          {gradeTypes.map((gradeType, index) => {
+            const typeInfo = GRADE_TYPE_INFO[gradeType];
+            const earned = content.grades[gradeType];
+            const max = content.maxMarks[gradeType];
+            const percentage = max > 0 ? (earned / max) * 100 : 0;
+            const color = getGradeColor(percentage);
 
-          return (
-            <View key={gradeType} style={styles.gradeTypeRow}>
-              <View style={styles.gradeTypeInfo}>
-                <Text style={styles.gradeTypeIcon}>{typeInfo.icon}</Text>
-                <Text style={styles.gradeTypeLabel}>{typeInfo.labelAr}</Text>
+            return (
+              <View key={gradeType} style={styles.gradeTypeCard}>
+                <View style={styles.gradeTypeHeader}>
+                  <View style={[styles.gradeTypeIconContainer, { backgroundColor: color + '15' }]}>
+                    <Text style={styles.gradeTypeIcon}>{typeInfo.icon}</Text>
+                  </View>
+                  <View style={styles.gradeTypeInfo}>
+                    <Text style={styles.gradeTypeLabel}>{typeInfo.labelAr}</Text>
+                    <Text style={styles.gradeTypeMarks}>
+                      {formatGrade(earned, max)}
+                    </Text>
+                  </View>
+                  <View style={styles.gradeTypePercentageContainer}>
+                    <Text style={[
+                      styles.gradeTypePercentage,
+                      { color: color }
+                    ]}>
+                      {percentage.toFixed(1)}%
+                    </Text>
+                  </View>
+                </View>
+                {max > 0 && renderProgressBar(percentage, color)}
               </View>
-              <View style={styles.gradeTypeValues}>
-                <Text style={styles.gradeTypeMarks}>
-                  {formatGrade(earned, max)}
-                </Text>
-                <Text style={[
-                  styles.gradeTypePercentage,
-                  { color: getGradeColor(percentage) }
-                ]}>
-                  {percentage.toFixed(1)}%
-                </Text>
-              </View>
-            </View>
-          );
-        })}
+            );
+          })}
+        </View>
       </View>
     );
   };
 
   const renderContentCard = (content: ContentWithGrades, classroomId: number) => {
     const isExpanded = expandedContent === content.content.id;
+    const gradeColor = getGradeColor(content.percentage);
     
     return (
       <TouchableOpacity
         key={content.content.id}
-        style={styles.contentCard}
+        style={[styles.contentCard, isExpanded && styles.contentCardExpanded]}
         onPress={() => toggleContent(content.content.id)}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
-        {/* Content Header */}
-        <View style={styles.contentHeader}>
+        {/* Content Header with Gradient Effect */}
+        <View style={[styles.contentHeader, { borderLeftColor: gradeColor }]}>
           <View style={styles.contentInfo}>
-            <Text style={styles.contentCode}>{content.content.code}</Text>
-            <Text style={styles.contentName}>{content.content.name}</Text>
-          </View>
-          <View style={styles.contentGrade}>
-            <Text style={[
-              styles.contentPercentage,
-              { color: getGradeColor(content.percentage) }
-            ]}>
-              {content.percentage.toFixed(1)}%
+            <View style={styles.contentCodeContainer}>
+              <Text style={styles.contentCode}>{content.content.code}</Text>
+            </View>
+            <Text style={styles.contentName} numberOfLines={2}>
+              {content.content.name}
             </Text>
+          </View>
+          <View style={styles.contentGradeContainer}>
+            <View style={[styles.contentPercentageCircle, { borderColor: gradeColor }]}>
+              <Text style={[
+                styles.contentPercentage,
+                { color: gradeColor }
+              ]}>
+                {content.percentage.toFixed(0)}%
+              </Text>
+            </View>
             <Text style={styles.contentTotal}>
               {formatGrade(content.grades.totalMarks, content.maxMarks.total)}
             </Text>
           </View>
         </View>
 
-        {/* Grade Status */}
+        {/* Progress Bar */}
+        <View style={styles.contentProgressContainer}>
+          {renderProgressBar(content.percentage, gradeColor)}
+        </View>
+
+        {/* Grade Status and Expand */}
         <View style={styles.gradeStatusContainer}>
           <View style={[
             styles.gradeStatusBadge,
-            { backgroundColor: getGradeColor(content.percentage) + '20' }
+            { backgroundColor: gradeColor + '15', borderColor: gradeColor + '40' }
           ]}>
+            <View style={[styles.gradeStatusDot, { backgroundColor: gradeColor }]} />
             <Text style={[
               styles.gradeStatusText,
-              { color: getGradeColor(content.percentage) }
+              { color: gradeColor }
             ]}>
               {getGradeStatus(content.percentage)}
             </Text>
           </View>
-          <Text style={styles.expandIcon}>
-            {isExpanded ? '▲' : '▼'}
-          </Text>
+          <View style={[styles.expandButton, isExpanded && styles.expandButtonActive]}>
+            <Text style={styles.expandIcon}>
+              {isExpanded ? '▲' : '▼'}
+            </Text>
+          </View>
         </View>
 
-        {/* Expanded Details */}
-        {isExpanded && renderGradeBreakdown(content)}
+        {/* Expanded Details with Animation */}
+        {isExpanded && (
+          <Animated.View 
+            style={[
+              styles.expandedContent,
+              { opacity: fadeAnim }
+            ]}
+          >
+            {renderGradeBreakdown(content)}
+          </Animated.View>
+        )}
       </TouchableOpacity>
     );
   };
 
   const renderClassroomCard = (classroomData: ClassroomWithContents) => {
     const isExpanded = expandedClassroom === classroomData.classroom.id;
+    const gradeColor = getGradeColor(classroomData.stats.percentage);
     
     return (
-      <View key={classroomData.classroom.id} style={styles.classroomCard}>
+      <View key={classroomData.classroom.id} style={[styles.classroomCard, isExpanded && styles.classroomCardExpanded]}>
         {/* Classroom Header */}
         <TouchableOpacity
-          style={styles.classroomHeader}
+          style={[styles.classroomHeader, { borderLeftColor: gradeColor }]}
           onPress={() => toggleClassroom(classroomData.classroom.id)}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
         >
-          <View style={styles.classroomInfo}>
-            <Text style={styles.classroomName}>
-              {classroomData.classroom.name}
-            </Text>
-            <Text style={styles.classroomStats}>
-              {classroomData.stats.contentCount} مادة • {classroomData.stats.percentage.toFixed(1)}%
-            </Text>
-          </View>
-          <View style={styles.classroomGrade}>
-            <Text style={[
-              styles.classroomPercentage,
-              { color: getGradeColor(classroomData.stats.percentage) }
-            ]}>
-              {classroomData.stats.percentage.toFixed(1)}%
-            </Text>
-            <Text style={styles.classroomTotal}>
-              {formatGrade(classroomData.stats.totalEarned, classroomData.stats.totalMax)}
-            </Text>
+          <View style={styles.classroomHeaderContent}>
+            <View style={styles.classroomInfo}>
+              <View style={styles.classroomNameContainer}>
+                <Text style={styles.classroomName}>
+                  {classroomData.classroom.name}
+                </Text>
+                <View style={[styles.classroomIndicator, { backgroundColor: gradeColor }]} />
+              </View>
+              <View style={styles.classroomStatsContainer}>
+                <View style={styles.classroomStatItem}>
+                  <Text style={styles.classroomStatIcon}>📚</Text>
+                  <Text style={styles.classroomStats}>
+                    {classroomData.stats.contentCount} مادة
+                  </Text>
+                </View>
+                <View style={styles.classroomStatDivider} />
+                <View style={styles.classroomStatItem}>
+                  <Text style={styles.classroomStatIcon}>📊</Text>
+                  <Text style={styles.classroomStats}>
+                    {classroomData.stats.percentage.toFixed(1)}%
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View style={styles.classroomGradeContainer}>
+              <View style={[styles.classroomPercentageCircle, { backgroundColor: gradeColor + '15', borderColor: gradeColor }]}>
+                <Text style={[
+                  styles.classroomPercentage,
+                  { color: gradeColor }
+                ]}>
+                  {classroomData.stats.percentage.toFixed(0)}%
+                </Text>
+              </View>
+              <Text style={styles.classroomTotal}>
+                {formatGrade(classroomData.stats.totalEarned, classroomData.stats.totalMax)}
+              </Text>
+            </View>
+            <View style={[styles.classroomExpandButton, isExpanded && styles.classroomExpandButtonActive]}>
+              <Text style={styles.classroomExpandIcon}>
+                {isExpanded ? '▲' : '▼'}
+              </Text>
+            </View>
           </View>
         </TouchableOpacity>
+
+        {/* Progress Bar for Classroom */}
+        <View style={styles.classroomProgressContainer}>
+          {renderProgressBar(classroomData.stats.percentage, gradeColor)}
+        </View>
 
         {/* Classroom Contents */}
         {isExpanded && (
@@ -306,10 +391,16 @@ const GradesScreen: React.FC<GradesScreenProps> = ({
         <TouchableOpacity 
           style={styles.backButton}
           onPress={onBack}
+          activeOpacity={0.7}
         >
-          <Text style={styles.backButtonText}>←</Text>
+          <View style={styles.backButtonContainer}>
+            <Text style={styles.backButtonText}>←</Text>
+          </View>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>الدرجات</Text>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>الدرجات</Text>
+          <Text style={styles.headerSubtitle}>سجل الدرجات الأكاديمي</Text>
+        </View>
         <View style={styles.headerSpacer} />
       </Animated.View>
 
@@ -360,27 +451,61 @@ const GradesScreen: React.FC<GradesScreenProps> = ({
           ]}>
             {/* Overall Stats */}
             <View style={styles.overallStatsCard}>
+              {/* Header Section */}
               <View style={styles.overallStatsHeader}>
-                <Text style={styles.overallStatsTitle}>الإحصائيات العامة</Text>
-                <Text style={styles.traineeName}>{gradesData.trainee.nameAr}</Text>
+                <View style={styles.overallStatsHeaderLeft}>
+                  <View style={styles.overallStatsIconContainer}>
+                    <Text style={styles.overallStatsIcon}>📊</Text>
+                  </View>
+                  <View>
+                    <Text style={styles.overallStatsTitle}>الإحصائيات العامة</Text>
+                    <Text style={styles.traineeName}>{gradesData.trainee.nameAr}</Text>
+                  </View>
+                </View>
+                <View style={[styles.overallPercentageCircle, { 
+                  backgroundColor: getGradeColor(gradesData.overallStats.percentage) + '15',
+                  borderColor: getGradeColor(gradesData.overallStats.percentage)
+                }]}>
+                  <Text style={[
+                    styles.overallPercentageText,
+                    { color: getGradeColor(gradesData.overallStats.percentage) }
+                  ]}>
+                    {gradesData.overallStats.percentage.toFixed(0)}%
+                  </Text>
+                </View>
               </View>
               
-              <View style={styles.overallStatsContent}>
-                <View style={styles.overallStatItem}>
+              {/* Progress Bar */}
+              <View style={styles.overallProgressContainer}>
+                {renderProgressBar(gradesData.overallStats.percentage, getGradeColor(gradesData.overallStats.percentage))}
+              </View>
+
+              {/* Stats Grid */}
+              <View style={styles.overallStatsGrid}>
+                <View style={styles.overallStatCard}>
+                  <View style={[styles.overallStatIcon, { backgroundColor: Colors.primary + '15' }]}>
+                    <Text style={styles.overallStatIconText}>🎯</Text>
+                  </View>
                   <Text style={styles.overallStatValue}>
                     {gradesData.overallStats.percentage.toFixed(1)}%
                   </Text>
                   <Text style={styles.overallStatLabel}>النسبة الإجمالية</Text>
                 </View>
                 
-                <View style={styles.overallStatItem}>
+                <View style={styles.overallStatCard}>
+                  <View style={[styles.overallStatIcon, { backgroundColor: Colors.accent + '15' }]}>
+                    <Text style={styles.overallStatIconText}>⭐</Text>
+                  </View>
                   <Text style={styles.overallStatValue}>
                     {formatGrade(gradesData.overallStats.totalEarned, gradesData.overallStats.totalMax)}
                   </Text>
                   <Text style={styles.overallStatLabel}>إجمالي الدرجات</Text>
                 </View>
                 
-                <View style={styles.overallStatItem}>
+                <View style={styles.overallStatCard}>
+                  <View style={[styles.overallStatIcon, { backgroundColor: Colors.secondary + '15' }]}>
+                    <Text style={styles.overallStatIconText}>📚</Text>
+                  </View>
                   <Text style={styles.overallStatValue}>
                     {gradesData.overallStats.totalContents}
                   </Text>
@@ -388,10 +513,15 @@ const GradesScreen: React.FC<GradesScreenProps> = ({
                 </View>
               </View>
 
+              {/* Status Badge */}
               <View style={[
                 styles.overallStatusBadge,
-                { backgroundColor: getGradeColor(gradesData.overallStats.percentage) + '20' }
+                { 
+                  backgroundColor: getGradeColor(gradesData.overallStats.percentage) + '15',
+                  borderColor: getGradeColor(gradesData.overallStats.percentage) + '40'
+                }
               ]}>
+                <View style={[styles.overallStatusDot, { backgroundColor: getGradeColor(gradesData.overallStats.percentage) }]} />
                 <Text style={[
                   styles.overallStatusText,
                   { color: getGradeColor(gradesData.overallStats.percentage) }
@@ -433,7 +563,7 @@ const GradesScreen: React.FC<GradesScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -441,250 +571,457 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderBottomColor: Colors.borderLight,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 6,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  backButtonContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: Colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
   },
   backButtonText: {
     fontSize: 24,
     color: Colors.primary,
-    fontWeight: 'bold',
+    fontWeight: '800',
+  },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 12,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.textPrimary,
     textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 2,
   },
   headerSpacer: {
-    width: 40,
+    width: 44,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: 20,
+    paddingBottom: 32,
   },
   loadingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
   },
   loadingText: {
-    marginTop: 16,
+    marginTop: 20,
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.textSecondary,
     textAlign: 'center',
+    fontWeight: '600',
   },
   errorContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
     paddingHorizontal: 20,
   },
   errorEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
+    fontSize: 72,
+    marginBottom: 20,
   },
   errorText: {
     fontSize: 16,
-    color: '#EF4444',
+    color: Colors.error,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 24,
+    fontWeight: '600',
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
     paddingHorizontal: 20,
   },
   emptyEmoji: {
-    fontSize: 80,
-    marginBottom: 20,
+    fontSize: 96,
+    marginBottom: 24,
   },
   emptyTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontSize: 24,
+    fontWeight: '800',
+    color: Colors.textPrimary,
     textAlign: 'center',
     marginBottom: 12,
   },
   emptyDescription: {
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
   },
   gradesContainer: {
-    gap: 20,
+    gap: 24,
   },
+  // Overall Stats Card
   overallStatsCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: Colors.white,
+    borderRadius: 24,
+    padding: 24,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    borderColor: Colors.borderLight,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  overallStatsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  overallStatsHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  overallStatsIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    backgroundColor: Colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  overallStatsIcon: {
+    fontSize: 24,
+  },
+  overallStatsTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  traineeName: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  overallPercentageCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
   },
-  overallStatsHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
+  overallPercentageText: {
+    fontSize: 20,
+    fontWeight: '800',
   },
-  overallStatsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
+  overallProgressContainer: {
+    marginBottom: 24,
   },
-  traineeName: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  overallStatsContent: {
+  overallStatsGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginBottom: 20,
+    gap: 12,
   },
-  overallStatItem: {
+  overallStatCard: {
+    flex: 1,
     alignItems: 'center',
+    backgroundColor: Colors.backgroundSoft,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+  },
+  overallStatIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  overallStatIconText: {
+    fontSize: 20,
   },
   overallStatValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.textPrimary,
     marginBottom: 4,
   },
   overallStatLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.textSecondary,
     textAlign: 'center',
+    fontWeight: '600',
   },
   overallStatusBadge: {
-    padding: 12,
-    borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    justifyContent: 'center',
+  },
+  overallStatusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
   },
   overallStatusText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '800',
   },
-  classroomsContainer: {
-    gap: 16,
+  // Progress Bar
+  progressBarContainer: {
+    marginTop: 8,
   },
-  classroomsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  classroomCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+  progressBarBackground: {
+    height: 8,
+    backgroundColor: Colors.backgroundSoft,
+    borderRadius: 4,
     overflow: 'hidden',
   },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  // Classrooms
+  classroomsContainer: {
+    gap: 20,
+  },
+  classroomsTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+    textAlign: 'right',
+  },
+  classroomCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+    overflow: 'hidden',
+  },
+  classroomCardExpanded: {
+    borderColor: Colors.primary + '40',
+    shadowOpacity: 0.15,
+  },
   classroomHeader: {
+    borderLeftWidth: 4,
+    padding: 20,
+  },
+  classroomHeaderContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    justifyContent: 'space-between',
   },
   classroomInfo: {
     flex: 1,
+    marginRight: 12,
+  },
+  classroomNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   classroomName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginRight: 8,
+  },
+  classroomIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  classroomStatsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  classroomStatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  classroomStatIcon: {
+    fontSize: 14,
+    marginRight: 4,
   },
   classroomStats: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontWeight: '600',
   },
-  classroomGrade: {
+  classroomStatDivider: {
+    width: 1,
+    height: 12,
+    backgroundColor: Colors.borderMedium,
+    marginHorizontal: 8,
+  },
+  classroomGradeContainer: {
     alignItems: 'flex-end',
+    marginRight: 12,
+  },
+  classroomPercentageCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   classroomPercentage: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontSize: 18,
+    fontWeight: '800',
   },
   classroomTotal: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  classroomExpandButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: Colors.backgroundSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  classroomExpandButtonActive: {
+    backgroundColor: Colors.primarySoft,
+  },
+  classroomExpandIcon: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.textPrimary,
+    fontWeight: '700',
+  },
+  classroomProgressContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
   },
   classroomContents: {
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingTop: 16,
+    borderTopColor: Colors.borderLight,
+    paddingTop: 20,
+    paddingBottom: 8,
   },
+  // Content Card
   contentCard: {
     marginHorizontal: 16,
-    marginBottom: 12,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 16,
+    marginBottom: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 18,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.borderLight,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  contentCardExpanded: {
+    borderColor: Colors.primary + '40',
+    shadowOpacity: 0.12,
   },
   contentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    borderLeftWidth: 4,
+    paddingLeft: 14,
+    marginBottom: 16,
   },
   contentInfo: {
     flex: 1,
     marginRight: 12,
   },
+  contentCodeContainer: {
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.primarySoft,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginBottom: 6,
+  },
   contentCode: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
+    fontSize: 12,
+    color: Colors.primary,
+    fontWeight: '700',
   },
   contentName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    lineHeight: 22,
   },
-  contentGrade: {
+  contentGradeContainer: {
     alignItems: 'flex-end',
   },
+  contentPercentageCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
   contentPercentage: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontSize: 16,
+    fontWeight: '800',
   },
   contentTotal: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  contentProgressContainer: {
+    marginBottom: 12,
+    marginHorizontal: 2,
   },
   gradeStatusContainer: {
     flexDirection: 'row',
@@ -692,60 +1029,112 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   gradeStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  gradeStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
   },
   gradeStatusText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  expandButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: Colors.backgroundSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  expandButtonActive: {
+    backgroundColor: Colors.primarySoft,
   },
   expandIcon: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: 12,
+    color: Colors.textPrimary,
+    fontWeight: '700',
   },
-  gradeBreakdown: {
+  expandedContent: {
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: Colors.borderLight,
+  },
+  // Grade Breakdown
+  gradeBreakdown: {
+    marginTop: 4,
+  },
+  breakdownHeader: {
+    marginBottom: 16,
   },
   breakdownTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 12,
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 8,
+    textAlign: 'right',
   },
-  gradeTypeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
+  breakdownDivider: {
+    height: 2,
+    backgroundColor: Colors.primarySoft,
+    borderRadius: 1,
+    width: 40,
+    alignSelf: 'flex-end',
   },
-  gradeTypeInfo: {
+  gradeTypesContainer: {
+    gap: 12,
+  },
+  gradeTypeCard: {
+    backgroundColor: Colors.backgroundSoft,
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+  },
+  gradeTypeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    marginBottom: 10,
+  },
+  gradeTypeIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   gradeTypeIcon: {
-    fontSize: 16,
-    marginRight: 8,
+    fontSize: 18,
+  },
+  gradeTypeInfo: {
+    flex: 1,
   },
   gradeTypeLabel: {
     fontSize: 14,
-    color: '#1F2937',
-  },
-  gradeTypeValues: {
-    alignItems: 'flex-end',
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 4,
   },
   gradeTypeMarks: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 2,
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  gradeTypePercentageContainer: {
+    alignItems: 'flex-end',
   },
   gradeTypePercentage: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '800',
   },
 });
 
