@@ -148,28 +148,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           </View>
         )}
 
-        {/* Compact info cards removed per UX request */}
-
-        {/* Upcoming classes */}
-        <View style={styles.sectionBlock}>
-          <View style={styles.sectionHeader}><Text style={styles.sectionHeaderIcon}>🕒</Text><Text style={styles.sectionTitle}>الحصص القادمة</Text></View>
-          <View style={styles.sessionItem}><View style={styles.sessionLeft}><Text style={styles.sessionTime}>09:00</Text><Text style={styles.sessionSubject}>رياضيات</Text></View><View style={styles.sessionRight}><Text style={styles.sessionRoom}>قاعه 3</Text><Text style={styles.sessionTeacher}>أ. كريم</Text></View></View>
-          <View style={styles.sessionItem}><View style={styles.sessionLeft}><Text style={styles.sessionTime}>11:00</Text><Text style={styles.sessionSubject}>إنجليزي</Text></View><View style={styles.sessionRight}><Text style={styles.sessionRoom}>قاعه 1</Text><Text style={styles.sessionTeacher}>أ. سارة</Text></View></View>
-        </View>
-
-        {/* Recent Grades */}
-        <View style={styles.sectionBlock}>
-          <View style={styles.sectionHeader}><Text style={styles.sectionHeaderIcon}>🏆</Text><Text style={styles.sectionTitle}>أحدث الدرجات</Text></View>
-          <View style={styles.gradeCard}><View style={styles.gradeItem}><Text style={styles.gradeSubject}>رياضيات</Text><Text style={styles.gradeValue}>85%</Text></View><View style={styles.gradeItem}><Text style={styles.gradeSubject}>إنجليزي</Text><Text style={styles.gradeValue}>92%</Text></View></View>
-        </View>
-
-        {/* Notifications */}
-        <View style={styles.sectionBlock}>
-          <View style={styles.sectionHeader}><Text style={styles.sectionHeaderIcon}>🔔</Text><Text style={styles.sectionTitle}>الإشعارات</Text></View>
-          <View style={styles.activityItem}><View style={styles.activityDot} /><Text style={styles.activityText}>لديك اختبار قريب في مادة التاريخ يوم 2025/11/12</Text></View>
-          <View style={styles.activityItem}><View style={[styles.activityDot, { backgroundColor: Colors.warning }]} /><Text style={styles.activityText}>لم تقم برفع الوثائق المطلوبة، يرجى إكمالها.</Text></View>
-        </View>
-
         <View style={{ height: 36 }} />
       </ScrollView>
     </View>

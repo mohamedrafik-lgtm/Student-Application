@@ -128,7 +128,10 @@ const GradesScreen: React.FC<GradesScreenProps> = ({
     return '#6B7280'; // رمادي
   };
 
-  const getGradeStatus = (percentage: number) => {
+  const getGradeStatus = (percentage: number, totalEarned: number) => {
+    // إذا لم يتم إدخال أي درجات بعد
+    if (totalEarned === 0) return 'لم تُعرض النتيجة بعد';
+    
     if (percentage >= 90) return 'ممتاز';
     if (percentage >= 80) return 'جيد جداً';
     if (percentage >= 70) return 'جيد';
@@ -226,7 +229,8 @@ const GradesScreen: React.FC<GradesScreenProps> = ({
 
   const renderContentCard = (content: ContentWithGrades, classroomId: number) => {
     const isExpanded = expandedContent === content.content.id;
-    const gradeColor = getGradeColor(content.percentage);
+    const totalEarned = content.grades.totalMarks;
+    const gradeColor = totalEarned === 0 ? Colors.textSecondary : getGradeColor(content.percentage);
     
     return (
       <TouchableOpacity
@@ -276,7 +280,7 @@ const GradesScreen: React.FC<GradesScreenProps> = ({
               styles.gradeStatusText,
               { color: gradeColor }
             ]}>
-              {getGradeStatus(content.percentage)}
+              {getGradeStatus(content.percentage, content.grades.totalMarks)}
             </Text>
           </View>
           <View style={[styles.expandButton, isExpanded && styles.expandButtonActive]}>
@@ -303,7 +307,8 @@ const GradesScreen: React.FC<GradesScreenProps> = ({
 
   const renderClassroomCard = (classroomData: ClassroomWithContents) => {
     const isExpanded = expandedClassroom === classroomData.classroom.id;
-    const gradeColor = getGradeColor(classroomData.stats.percentage);
+    const totalEarned = classroomData.stats.totalEarned;
+    const gradeColor = totalEarned === 0 ? Colors.textSecondary : getGradeColor(classroomData.stats.percentage);
     
     return (
       <View key={classroomData.classroom.id} style={[styles.classroomCard, isExpanded && styles.classroomCardExpanded]}>
@@ -462,71 +467,87 @@ const GradesScreen: React.FC<GradesScreenProps> = ({
                     <Text style={styles.traineeName}>{gradesData.trainee.nameAr}</Text>
                   </View>
                 </View>
-                <View style={[styles.overallPercentageCircle, { 
-                  backgroundColor: getGradeColor(gradesData.overallStats.percentage) + '15',
-                  borderColor: getGradeColor(gradesData.overallStats.percentage)
-                }]}>
-                  <Text style={[
-                    styles.overallPercentageText,
-                    { color: getGradeColor(gradesData.overallStats.percentage) }
-                  ]}>
-                    {gradesData.overallStats.percentage.toFixed(0)}%
-                  </Text>
-                </View>
+                {gradesData.overallStats.totalEarned > 0 && (
+                  <View style={[styles.overallPercentageCircle, {
+                    backgroundColor: getGradeColor(gradesData.overallStats.percentage) + '15',
+                    borderColor: getGradeColor(gradesData.overallStats.percentage)
+                  }]}>
+                    <Text style={[
+                      styles.overallPercentageText,
+                      { color: getGradeColor(gradesData.overallStats.percentage) }
+                    ]}>
+                      {gradesData.overallStats.percentage.toFixed(0)}%
+                    </Text>
+                  </View>
+                )}
               </View>
               
-              {/* Progress Bar */}
-              <View style={styles.overallProgressContainer}>
-                {renderProgressBar(gradesData.overallStats.percentage, getGradeColor(gradesData.overallStats.percentage))}
-              </View>
+              {/* Progress Bar - Only if grades exist */}
+              {gradesData.overallStats.totalEarned > 0 && (
+                <View style={styles.overallProgressContainer}>
+                  {renderProgressBar(gradesData.overallStats.percentage, getGradeColor(gradesData.overallStats.percentage))}
+                </View>
+              )}
 
-              {/* Stats Grid */}
-              <View style={styles.overallStatsGrid}>
-                <View style={styles.overallStatCard}>
-                  <View style={[styles.overallStatIcon, { backgroundColor: Colors.primary + '15' }]}>
-                    <Text style={styles.overallStatIconText}>🎯</Text>
+              {/* Stats Grid - Only if grades exist */}
+              {gradesData.overallStats.totalEarned > 0 ? (
+                <View style={styles.overallStatsGrid}>
+                  <View style={styles.overallStatCard}>
+                    <View style={[styles.overallStatIcon, { backgroundColor: Colors.primary + '15' }]}>
+                      <Text style={styles.overallStatIconText}>🎯</Text>
+                    </View>
+                    <Text style={styles.overallStatValue}>
+                      {gradesData.overallStats.percentage.toFixed(1)}%
+                    </Text>
+                    <Text style={styles.overallStatLabel}>النسبة الإجمالية</Text>
                   </View>
-                  <Text style={styles.overallStatValue}>
-                    {gradesData.overallStats.percentage.toFixed(1)}%
-                  </Text>
-                  <Text style={styles.overallStatLabel}>النسبة الإجمالية</Text>
-                </View>
-                
-                <View style={styles.overallStatCard}>
-                  <View style={[styles.overallStatIcon, { backgroundColor: Colors.accent + '15' }]}>
-                    <Text style={styles.overallStatIconText}>⭐</Text>
+                  
+                  <View style={styles.overallStatCard}>
+                    <View style={[styles.overallStatIcon, { backgroundColor: Colors.accent + '15' }]}>
+                      <Text style={styles.overallStatIconText}>⭐</Text>
+                    </View>
+                    <Text style={styles.overallStatValue}>
+                      {formatGrade(gradesData.overallStats.totalEarned, gradesData.overallStats.totalMax)}
+                    </Text>
+                    <Text style={styles.overallStatLabel}>إجمالي الدرجات</Text>
                   </View>
-                  <Text style={styles.overallStatValue}>
-                    {formatGrade(gradesData.overallStats.totalEarned, gradesData.overallStats.totalMax)}
-                  </Text>
-                  <Text style={styles.overallStatLabel}>إجمالي الدرجات</Text>
-                </View>
-                
-                <View style={styles.overallStatCard}>
-                  <View style={[styles.overallStatIcon, { backgroundColor: Colors.secondary + '15' }]}>
-                    <Text style={styles.overallStatIconText}>📚</Text>
+                  
+                  <View style={styles.overallStatCard}>
+                    <View style={[styles.overallStatIcon, { backgroundColor: Colors.secondary + '15' }]}>
+                      <Text style={styles.overallStatIconText}>📚</Text>
+                    </View>
+                    <Text style={styles.overallStatValue}>
+                      {gradesData.overallStats.totalContents}
+                    </Text>
+                    <Text style={styles.overallStatLabel}>عدد المواد</Text>
                   </View>
-                  <Text style={styles.overallStatValue}>
-                    {gradesData.overallStats.totalContents}
-                  </Text>
-                  <Text style={styles.overallStatLabel}>عدد المواد</Text>
                 </View>
-              </View>
+              ) : (
+                <View style={styles.noGradesYetContainer}>
+                  <Text style={styles.noGradesYetIcon}>📋</Text>
+                  <Text style={styles.noGradesYetText}>
+                    لم يتم إدخال الدرجات بعد
+                  </Text>
+                  <Text style={styles.noGradesYetSubtext}>
+                    سيتم عرض الإحصائيات عند توفر الدرجات
+                  </Text>
+                </View>
+              )}
 
               {/* Status Badge */}
               <View style={[
                 styles.overallStatusBadge,
-                { 
-                  backgroundColor: getGradeColor(gradesData.overallStats.percentage) + '15',
-                  borderColor: getGradeColor(gradesData.overallStats.percentage) + '40'
+                {
+                  backgroundColor: (gradesData.overallStats.totalEarned === 0 ? Colors.textSecondary : getGradeColor(gradesData.overallStats.percentage)) + '15',
+                  borderColor: (gradesData.overallStats.totalEarned === 0 ? Colors.textSecondary : getGradeColor(gradesData.overallStats.percentage)) + '40'
                 }
               ]}>
-                <View style={[styles.overallStatusDot, { backgroundColor: getGradeColor(gradesData.overallStats.percentage) }]} />
+                <View style={[styles.overallStatusDot, { backgroundColor: gradesData.overallStats.totalEarned === 0 ? Colors.textSecondary : getGradeColor(gradesData.overallStats.percentage) }]} />
                 <Text style={[
                   styles.overallStatusText,
-                  { color: getGradeColor(gradesData.overallStats.percentage) }
+                  { color: gradesData.overallStats.totalEarned === 0 ? Colors.textSecondary : getGradeColor(gradesData.overallStats.percentage) }
                 ]}>
-                  {getGradeStatus(gradesData.overallStats.percentage)}
+                  {getGradeStatus(gradesData.overallStats.percentage, gradesData.overallStats.totalEarned)}
                 </Text>
               </View>
             </View>
@@ -1135,6 +1156,28 @@ const styles = StyleSheet.create({
   gradeTypePercentage: {
     fontSize: 16,
     fontWeight: '800',
+  },
+  noGradesYetContainer: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+  },
+  noGradesYetIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  noGradesYetText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  noGradesYetSubtext: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 

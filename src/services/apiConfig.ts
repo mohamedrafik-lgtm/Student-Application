@@ -67,6 +67,7 @@ export const API_CONFIG = {
     SUBMIT_QUIZ: '/api/quizzes', // + /{quizId}/submit
     QUIZ_RESULT: '/api/quizzes', // + /{quizId}/result
     TRAINING_CONTENTS: '/api/training-contents',
+    LECTURES: '/api/lectures', // + /{contentId} to get lectures for a content
   },
   
   // Request timeout in milliseconds

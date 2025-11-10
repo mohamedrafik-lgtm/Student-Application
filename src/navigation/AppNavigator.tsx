@@ -17,6 +17,7 @@ import GradesScreen from '../screens/GradesScreen';
 import AttendanceScreen from '../screens/AttendanceScreen';
 import BranchSelectionScreen from '../screens/BranchSelectionScreen';
 import TrainingContentsScreen from '../screens/TrainingContentsScreen';
+import TrainingContentDetailsScreen from '../screens/TrainingContentDetailsScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
 import { BranchType } from '../types/auth';
@@ -30,7 +31,7 @@ interface UserInfo {
   classroomId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'training-content-details';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -38,6 +39,7 @@ const AppNavigator: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentScreen, setCurrentScreen] = useState<Screen>('branch-selection');
   const [selectedBranch, setSelectedBranch] = useState<BranchType | null>(null);
+  const [selectedContentId, setSelectedContentId] = useState<number | null>(null);
 
   useEffect(() => {
     // Check if user is already logged in and has a saved branch
@@ -174,6 +176,16 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('home');
   };
 
+  const handleNavigateToContentDetails = (contentId: number) => {
+    setSelectedContentId(contentId);
+    setCurrentScreen('training-content-details');
+  };
+
+  const handleBackToTrainingContents = () => {
+    setCurrentScreen('training-contents');
+    setSelectedContentId(null);
+  };
+
   const handleBranchSelected = (branch: BranchType) => {
     setSelectedBranch(branch);
     setCurrentScreen('login');
@@ -251,8 +263,20 @@ const AppNavigator: React.FC = () => {
           <TrainingContentsScreen
             accessToken={userInfo.accessToken}
             onBack={handleBackToHomeFromTrainingContents}
+            onNavigateToDetails={handleNavigateToContentDetails}
           />
         );
+        break;
+      case 'training-content-details':
+        if (selectedContentId) {
+          screenElement = (
+            <TrainingContentDetailsScreen
+              contentId={selectedContentId}
+              accessToken={userInfo.accessToken}
+              onBack={handleBackToTrainingContents}
+            />
+          );
+        }
         break;
       case 'exams':
         screenElement = (

@@ -6,6 +6,8 @@
 import { API_CONFIG } from './apiConfig';
 import {
   TrainingContentsResponse,
+  TrainingContentDetails,
+  LecturesResponse,
   TrainingContentsError,
 } from '../types/trainingContents';
 
@@ -119,6 +121,100 @@ export class TrainingContentsService {
     });
 
     return response;
+  }
+
+  /**
+   * الحصول على تفاصيل مادة تدريبية محددة
+   * @param contentId - معرف المادة التدريبية
+   * @param accessToken - رمز الوصول
+   * @param includeQuestionCount - هل يتم تضمين عدد الأسئلة (اختياري)
+   */
+  async getTrainingContentDetails(
+    contentId: number,
+    accessToken: string,
+    includeQuestionCount: boolean = false
+  ): Promise<TrainingContentDetails> {
+    const queryParams = includeQuestionCount ? '?includeQuestionCount=true' : '';
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TRAINING_CONTENTS}/${contentId}${queryParams}`;
+    
+    console.log('🔍 Training Content Details API Request:', {
+      url,
+      contentId,
+      includeQuestionCount,
+      hasToken: !!accessToken,
+      tokenPreview: accessToken ? `${accessToken.substring(0, 20)}...` : 'No token'
+    });
+
+    const response = await TrainingContentsService.makeRequest<TrainingContentDetails>(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    console.log('📡 Training Content Details API Response:', {
+      contentId: response.id,
+      contentName: response.name,
+      contentCode: response.code,
+      instructorName: response.instructor.name,
+      totalMarks: response.yearWorkMarks + response.practicalMarks +
+                  response.writtenMarks + response.attendanceMarks +
+                  response.quizzesMarks + response.finalExamMarks,
+      chaptersCount: response.chaptersCount,
+      scheduleSlots: response._count.scheduleSlots,
+    });
+
+    return response;
+  }
+
+  /**
+   * الحصول على المحاضرات الخاصة بمادة تدريبية محددة
+   * يتم جلب المحتوى التدريبي أولاً ثم استخراج المحاضرات منه
+   * @param contentId - معرف المادة التدريبية
+   * @param accessToken - رمز الوصول
+   */
+  async getLecturesByContent(
+    contentId: number,
+    accessToken: string
+  ): Promise<LecturesResponse> {
+    // Get training content details which includes lectures
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TRAINING_CONTENTS}/${contentId}`;
+    
+    console.log('🔍 Training Content (with lectures) API Request:', {
+      url,
+      fullUrl: url,
+      contentId,
+      baseUrl: API_CONFIG.BASE_URL,
+      endpoint: API_CONFIG.ENDPOINTS.TRAINING_CONTENTS,
+      hasToken: !!accessToken,
+      tokenPreview: accessToken ? `${accessToken.substring(0, 20)}...` : 'No token'
+    });
+
+    const response = await TrainingContentsService.makeRequest<TrainingContentDetails>(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    console.log('📡 Training Content API Full Response:', response);
+    console.log('📡 Response keys:', Object.keys(response));
+    console.log('📡 Training Content API Response Summary:', {
+      contentId: response.id,
+      contentName: response.name,
+      contentCode: response.code,
+      hasLectures: !!response.lectures,
+      lecturesType: typeof response.lectures,
+      lecturesIsArray: Array.isArray(response.lectures),
+      lecturesCount: response.lectures?.length || 0,
+      firstLecture: response.lectures && response.lectures.length > 0 ? response.lectures[0].title : 'No lectures',
+      chapters: response.lectures ? [...new Set(response.lectures.map(l => l.chapter))].length : 0,
+    });
+
+    // Return lectures array (or empty array if no lectures)
+    const lectures = response.lectures || [];
+    console.log('📚 Returning lectures:', lectures.length, 'lectures');
+    return lectures;
   }
 }
 

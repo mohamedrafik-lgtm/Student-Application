@@ -87,13 +87,35 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
       const response = await attendanceService.getAttendanceRecords(accessToken);
       
       console.log('✅ Attendance records loaded successfully!');
+      console.log('📊 Full Response:', JSON.stringify(response, null, 2));
       console.log('📊 Response structure:', {
         success: response.success,
         hasData: !!response.data,
         traineeName: response.data?.trainee?.nameAr,
         attendanceRate: response.data?.stats?.attendanceRate,
-        contentGroupsCount: response.data?.contentGroups?.length || 0
+        contentGroupsCount: response.data?.contentGroups?.length || 0,
+        totalSessions: response.data?.stats?.total,
+        present: response.data?.stats?.present,
+        absent: response.data?.stats?.absent,
+        late: response.data?.stats?.late,
+        excused: response.data?.stats?.excused,
       });
+      
+      // Log each content group
+      if (response.data?.contentGroups) {
+        response.data.contentGroups.forEach((group, index) => {
+          console.log(`📚 Content Group ${index + 1}:`, {
+            contentName: group.content.nameAr,
+            totalSessions: group.stats.total,
+            present: group.stats.present,
+            absent: group.stats.absent,
+            late: group.stats.late,
+            excused: group.stats.excused,
+            attendanceRate: group.stats.attendanceRate,
+            sessionsCount: group.sessions.length,
+          });
+        });
+      }
       
       // التحقق من وجود البيانات قبل التعيين
       if (response.success && response.data) {

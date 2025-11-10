@@ -186,6 +186,8 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
     return new Intl.NumberFormat('ar-EG', {
       style: 'currency',
       currency: 'EGP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -299,12 +301,13 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Payment Summary */}
+          {/* Combined Payment Summary & Stats */}
           <View style={styles.summaryCard}>
             <View style={styles.summaryHeader}>
               <Text style={styles.summaryTitle}>ملخص المدفوعات</Text>
             </View>
             
+            {/* Financial Summary */}
             <View style={styles.summaryGrid}>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryNumber}>{formatCurrency(totalAmount)}</Text>
@@ -330,41 +333,40 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
               </View>
             </View>
             
+            {/* Progress Bar */}
             <View style={styles.progressContainer}>
               <View style={styles.progressBar}>
-                <View 
+                <View
                   style={[
-                    styles.progressFill, 
+                    styles.progressFill,
                     { width: `${(paidAmount / totalAmount) * 100}%` }
-                  ]} 
+                  ]}
                 />
               </View>
               <Text style={styles.progressText}>
                 {Math.round((paidAmount / totalAmount) * 100)}% مكتمل
               </Text>
             </View>
-          </View>
 
-          {/* Payment Stats */}
-          <View style={styles.statsCard}>
-            <View style={styles.statsContent}>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{payments.length}</Text>
-                <Text style={styles.statLabel}>إجمالي المدفوعات</Text>
+            {/* Payment Stats - Integrated */}
+            <View style={styles.integratedStatsContainer}>
+              <View style={styles.integratedStatItem}>
+                <Text style={styles.integratedStatNumber}>{payments.length}</Text>
+                <Text style={styles.integratedStatLabel}>إجمالي المدفوعات</Text>
               </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { color: Colors.success }]}>
+              <View style={styles.integratedStatDivider} />
+              <View style={styles.integratedStatItem}>
+                <Text style={[styles.integratedStatNumber, { color: Colors.success }]}>
                   {completedPayments}
                 </Text>
-                <Text style={styles.statLabel}>مكتملة</Text>
+                <Text style={styles.integratedStatLabel}>مكتملة</Text>
               </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { color: Colors.warning }]}>
+              <View style={styles.integratedStatDivider} />
+              <View style={styles.integratedStatItem}>
+                <Text style={[styles.integratedStatNumber, { color: Colors.warning }]}>
                   {pendingPayments}
                 </Text>
-                <Text style={styles.statLabel}>معلقة</Text>
+                <Text style={styles.integratedStatLabel}>معلقة</Text>
               </View>
             </View>
           </View>
@@ -523,20 +525,13 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
                   
                   <View style={styles.paymentActions}>
                     {payment.status === 'PENDING' && payment.amount > payment.paidAmount && (
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={styles.payButton}
                         onPress={() => handleMakePayment(payment)}
                       >
                         <Text style={styles.payButtonText}>💳 دفع الآن</Text>
                       </TouchableOpacity>
                     )}
-                    
-                    <TouchableOpacity 
-                      style={styles.detailsButton}
-                      onPress={() => handleViewPaymentDetails(payment)}
-                    >
-                      <Text style={styles.detailsButtonText}>👁️ التفاصيل</Text>
-                    </TouchableOpacity>
                   </View>
                 </Animated.View>
               ))}
@@ -811,6 +806,34 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: 'rgba(99, 102, 241, 0.2)',
   },
+  integratedStatsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+  },
+  integratedStatItem: {
+    alignItems: 'center',
+  },
+  integratedStatNumber: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.primary,
+    marginBottom: 4,
+  },
+  integratedStatLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  integratedStatDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: Colors.borderLight,
+  },
   filterSection: {
     marginBottom: 32,
   },
@@ -1002,12 +1025,17 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   payButton: {
-    flex: 1,
+    width: '100%',
     backgroundColor: Colors.success,
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 12,
     alignItems: 'center',
+    shadowColor: Colors.success,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   payButtonText: {
     fontSize: 14,

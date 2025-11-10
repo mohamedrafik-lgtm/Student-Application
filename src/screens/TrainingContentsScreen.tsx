@@ -30,11 +30,13 @@ const { width, height } = Dimensions.get('window');
 interface TrainingContentsScreenProps {
   accessToken: string;
   onBack: () => void;
+  onNavigateToDetails?: (contentId: number) => void;
 }
 
 const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
   accessToken,
   onBack,
+  onNavigateToDetails,
 }) => {
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -189,7 +191,13 @@ const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
       <TouchableOpacity
         key={content.id}
         style={[styles.contentCard, isExpanded && styles.contentCardExpanded]}
-        onPress={() => toggleContent(content.id)}
+        onPress={() => {
+          if (onNavigateToDetails) {
+            onNavigateToDetails(content.id);
+          } else {
+            toggleContent(content.id);
+          }
+        }}
         activeOpacity={0.8}
       >
         {/* Content Header */}
