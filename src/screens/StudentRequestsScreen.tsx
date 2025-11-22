@@ -21,17 +21,26 @@ import {
   StudentRequest,
   PaymentDeferralStatus,
   RequestError,
+  REQUEST_TYPE_INFO,
 } from '../types/requests';
 import CustomButton from '../components/CustomButton';
 
 interface StudentRequestsScreenProps {
   accessToken: string;
   onBack: () => void;
+  onNavigateToExamPostponement?: () => void;
+  onNavigateToSickLeave?: () => void;
+  onNavigateToEnrollmentProof?: () => void;
+  onNavigateToCertificate?: () => void;
 }
 
 const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
   accessToken,
-  onBack
+  onBack,
+  onNavigateToExamPostponement,
+  onNavigateToSickLeave,
+  onNavigateToEnrollmentProof,
+  onNavigateToCertificate
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,9 +74,21 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
       
       const response = await requestsService.getMyRequests(accessToken);
       
+      console.log('📊 Response check:', {
+        isArray: Array.isArray(response),
+        length: Array.isArray(response) ? response.length : 0,
+        firstItem: Array.isArray(response) && response.length > 0 ? response[0] : null
+      });
+      
       if (Array.isArray(response)) {
-        setRequests(response);
+        console.log('✅ Setting requests with', response.length, 'items');
+        // تصفية فقط الطلبات المجانية (التي لها type وليس feeId)
+        const freeRequests = response.filter(req => 'type' in req && !('feeId' in req));
+        console.log('📋 Free requests:', freeRequests.length);
+        setRequests(freeRequests as any[]);
+        console.log('✅ State updated, requests.length should be:', freeRequests.length);
       } else {
+        console.error('❌ Response is not array!');
         setError('صيغة استجابة غير صحيحة من الخادم');
       }
     } catch (err: any) {
@@ -123,6 +144,16 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
     });
   };
 
+  // Debug render conditions
+  console.log('🎨 RENDER CONDITIONS:', {
+    isLoading,
+    error,
+    requestsLength: requests.length,
+    shouldShowRequests: !isLoading && !error && requests.length > 0,
+    shouldShowEmpty: !isLoading && !error && requests.length === 0,
+    shouldShowCreateButtons: !isLoading && !error
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -136,7 +167,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
             <Text style={styles.backButtonText}>←</Text>
           </View>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>الطلبات</Text>
+        <Text style={styles.headerTitle}>الطلبات المجانية</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -179,7 +210,11 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
         {/* Create Request Buttons */}
         {!isLoading && !error && (
           <View style={styles.createRequestSection}>
-            <TouchableOpacity style={styles.requestTypeButton} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.requestTypeButton}
+              activeOpacity={0.7}
+              onPress={() => onNavigateToCertificate && onNavigateToCertificate()}
+            >
               <View style={styles.requestTypeIcon}>
                 <Text style={styles.iconEmoji}>📋</Text>
               </View>
@@ -187,7 +222,11 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
               <Text style={styles.createLabel}>إنشاء طلب</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.requestTypeButton} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.requestTypeButton}
+              activeOpacity={0.7}
+              onPress={() => onNavigateToEnrollmentProof && onNavigateToEnrollmentProof()}
+            >
               <View style={styles.requestTypeIcon}>
                 <Text style={styles.iconEmoji}>📄</Text>
               </View>
@@ -195,7 +234,11 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
               <Text style={styles.createLabel}>إنشاء طلب</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.requestTypeButton} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.requestTypeButton}
+              activeOpacity={0.7}
+              onPress={() => onNavigateToSickLeave && onNavigateToSickLeave()}
+            >
               <View style={styles.requestTypeIcon}>
                 <Text style={styles.iconEmoji}>🏥</Text>
               </View>
@@ -203,7 +246,11 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
               <Text style={styles.createLabel}>إنشاء طلب</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.requestTypeButton} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.requestTypeButton}
+              activeOpacity={0.7}
+              onPress={() => onNavigateToExamPostponement && onNavigateToExamPostponement()}
+            >
               <View style={styles.requestTypeIcon}>
                 <Text style={styles.iconEmoji}>📝</Text>
               </View>
@@ -215,30 +262,45 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
 
         {/* Requests List */}
         {!isLoading && !error && requests.length > 0 && (
-          <Animated.View style={[
-            styles.requestsContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}>
+          <View style={styles.requestsContainer}>
             {requests.map((request) => {
+              // التحقق من نوع الطلب
+              const isPaymentDeferral = 'feeId' in request;
+              const isTraineeReq = 'type' in request;
+              
               const statusColor = getStatusColor(request.status);
+              
+              // تحديد الأيقونة والعنوان حسب النوع
+              let icon = '💰';
+              let title = 'طلب';
+              
+              if (isPaymentDeferral) {
+                icon = '💰';
+                title = `تأجيل سداد - ${(request as any).fee?.name || 'غير محدد'}`;
+              } else if (isTraineeReq) {
+                const traineeReq = request as any;
+                const reqType = traineeReq.type as keyof typeof REQUEST_TYPE_INFO;
+                if (reqType && REQUEST_TYPE_INFO[reqType]) {
+                  const typeInfo = REQUEST_TYPE_INFO[reqType];
+                  icon = typeInfo.icon;
+                  title = typeInfo.nameAr;
+                }
+              }
               
               return (
                 <View key={request.id} style={styles.requestCard}>
                   {/* Header */}
                   <View style={styles.requestCardHeader}>
                     <View style={styles.requestMainInfo}>
-                      <View style={[styles.iconContainer, { backgroundColor: Colors.warning + '20' }]}>
-                        <Text style={styles.iconText}>💰</Text>
+                      <View style={styles.iconContainer}>
+                        <Text style={styles.iconText}>{icon}</Text>
                       </View>
                       <View style={styles.requestTitleSection}>
-                        <Text style={styles.requestTitle} numberOfLines={1}>
-                          {request.fee?.name || 'رسم غير محدد'}
+                        <Text style={styles.requestTitle}>
+                          {title}
                         </Text>
                         <Text style={styles.requestAmount}>
-                          المبلغ: {request.fee?.amount || 0} جنيه
+                          {request.reason}
                         </Text>
                       </View>
                     </View>
@@ -258,22 +320,22 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
 
                   {/* Request Details */}
                   <View style={styles.requestDetails}>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>📝 السبب:</Text>
-                      <Text style={styles.detailValue} numberOfLines={2}>{request.reason}</Text>
-                    </View>
+                    <Text style={styles.reasonText}>
+                      📝 {request.reason}
+                    </Text>
                     
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>⏰ عدد الأيام:</Text>
-                      <Text style={styles.detailValue}>{request.requestedExtensionDays} يوم</Text>
-                    </View>
-                    
-                    {request.requestedDeadline && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>📅 الموعد الجديد:</Text>
-                        <Text style={styles.detailValue}>{formatDate(request.requestedDeadline)}</Text>
+                    <View style={styles.statsRow}>
+                      <View style={styles.statBox}>
+                        <Text style={styles.statLabel}>⏰ عدد الأيام</Text>
+                        <Text style={styles.statValue}>{request.requestedExtensionDays}</Text>
                       </View>
-                    )}
+                      {request.requestedDeadline && (
+                        <View style={styles.statBox}>
+                          <Text style={styles.statLabel}>📅 الموعد الجديد</Text>
+                          <Text style={styles.statValue}>{formatDate(request.requestedDeadline)}</Text>
+                        </View>
+                      )}
+                    </View>
                   </View>
 
                   {/* Admin Response */}
@@ -306,7 +368,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
                 </View>
               );
             })}
-          </Animated.View>
+          </View>
         )}
 
         {/* Empty State */}
@@ -418,16 +480,17 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   requestTypeLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: '#1F2937',
     textAlign: 'center',
     marginBottom: 4,
   },
   createLabel: {
     fontSize: 12,
-    color: Colors.textSecondary,
+    color: '#6B7280',
     textAlign: 'center',
+    fontWeight: '500',
   },
   loadingContainer: {
     alignItems: 'center',
@@ -451,6 +514,40 @@ const styles = StyleSheet.create({
     fontSize: 72,
     marginBottom: 20,
   },
+  reasonText: {
+    fontSize: 15,
+    color: '#374151',
+    lineHeight: 22,
+    textAlign: 'right',
+    marginBottom: 14,
+    fontWeight: '600',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginBottom: 6,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1F2937',
+    textAlign: 'center',
+  },
   errorText: {
     fontSize: 16,
     color: Colors.error,
@@ -463,14 +560,15 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   requestCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.12,
     shadowRadius: 12,
     elevation: 6,
   },
@@ -493,6 +591,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 12,
+    backgroundColor: '#FFF7ED',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -504,15 +603,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   requestTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 4,
+    color: '#1F2937',
+    marginBottom: 6,
     textAlign: 'right',
+    letterSpacing: -0.3,
   },
   requestAmount: {
-    fontSize: 14,
-    color: Colors.textSecondary,
+    fontSize: 15,
+    color: '#6B7280',
     fontWeight: '600',
     textAlign: 'right',
   },
@@ -531,7 +631,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800',
   },
   requestDetails: {
@@ -573,9 +673,10 @@ const styles = StyleSheet.create({
   },
   adminResponseText: {
     fontSize: 14,
-    color: Colors.textPrimary,
+    color: '#1F2937',
     lineHeight: 20,
     textAlign: 'right',
+    fontWeight: '600',
   },
   reviewerInfo: {
     backgroundColor: Colors.primarySoft,
@@ -594,7 +695,7 @@ const styles = StyleSheet.create({
   },
   reviewerName: {
     fontSize: 14,
-    color: Colors.textPrimary,
+    color: '#1F2937',
     fontWeight: '700',
     textAlign: 'right',
     marginBottom: 4,
@@ -611,8 +712,9 @@ const styles = StyleSheet.create({
   },
   createdDate: {
     fontSize: 13,
-    color: Colors.textSecondary,
+    color: '#6B7280',
     textAlign: 'right',
+    fontWeight: '500',
   },
   emptyContainer: {
     alignItems: 'center',

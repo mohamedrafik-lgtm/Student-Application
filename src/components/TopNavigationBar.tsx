@@ -31,7 +31,7 @@ export type TopNavTab =
   | 'payments'
   | 'profile'
   | 'training-contents'
-  | 'student-requests';
+  | 'requests-hub';
 
 interface TopNavigationBarProps {
   currentTab: TopNavTab;
@@ -47,7 +47,7 @@ const TABS: { id: TopNavTab; label: string; icon?: string }[] = [
   { id: 'grades', label: 'الدرجات', icon: '📊' },
   { id: 'exams', label: 'الاختبارات', icon: '📝' },
   { id: 'attendance', label: 'الحضور', icon: '✅' },
-  { id: 'student-requests', label: 'الطلبات', icon: '📋' },
+  { id: 'requests-hub', label: 'الطلبات', icon: '📋' },
   { id: 'documents', label: 'الوثائق', icon: '📄' },
   { id: 'payments', label: 'المدفوعات', icon: '💰' },
   { id: 'profile', label: 'الملف', icon: '👤' },

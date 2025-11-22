@@ -1,5 +1,19 @@
 // SOLID Principle: Interface Segregation - Separate interfaces for different concerns
 
+// أنواع الطلبات
+export enum RequestType {
+  EXAM_POSTPONE = 'EXAM_POSTPONE',       // تأجيل اختبار
+  SICK_LEAVE = 'SICK_LEAVE',             // إجازة مرضية
+  ENROLLMENT_PROOF = 'ENROLLMENT_PROOF', // طلب إثبات قيد
+  CERTIFICATE = 'CERTIFICATE',           // طلب إفادة
+}
+
+// أنواع الاختبارات
+export enum ExamType {
+  MIDTERM = 'MIDTERM', // ميد تيرم
+  FINAL = 'FINAL',     // نهائي
+}
+
 // حالات طلب تأجيل السداد
 export enum PaymentDeferralStatus {
   PENDING = 'PENDING',       // قيد المراجعة
@@ -47,6 +61,21 @@ export interface PaymentDeferralRequest {
   } | null;
 }
 
+// Interface للبيانات المرسلة لإنشاء طلب
+export interface CreateTraineeRequestDto {
+  // حقول إلزامية
+  type: RequestType;        // نوع الطلب (إلزامي)
+  reason: string;           // سبب الطلب (إلزامي)
+  
+  // حقول اختيارية
+  attachmentUrl?: string;          // رابط المرفق (اختياري)
+  attachmentCloudinaryId?: string; // معرف المرفق في Cloudinary (اختياري)
+  
+  // حقول خاصة بتأجيل الاختبار (إلزامية فقط إذا type = EXAM_POSTPONE)
+  examType?: ExamType;  // نوع الاختبار (إلزامي لتأجيل الاختبار)
+  examDate?: string;    // تاريخ الاختبار الأصلي بصيغة ISO (إلزامي لتأجيل الاختبار)
+}
+
 // Alias للتوافق
 export type StudentRequest = PaymentDeferralRequest;
 export const RequestStatus = PaymentDeferralStatus;
@@ -68,8 +97,36 @@ export interface DeferralRequestsQueryParams {
   limit?: number;                                 // عدد النتائج في الصفحة (default: 20)
 }
 
-// استجابة قائمة الطلبات (API يرجع Array مباشرة)
-export type RequestsListResponse = PaymentDeferralRequest[];
+// طلب عام للمتدرب (تأجيل اختبار، إجازة مرضية، إلخ)
+export interface TraineeRequest {
+  id: string;
+  traineeId: number;
+  type: RequestType;
+  reason: string;
+  
+  // اختياري
+  attachmentUrl?: string | null;
+  attachmentCloudinaryId?: string | null;
+  examType?: ExamType | null;
+  examDate?: string | null;
+  
+  status: PaymentDeferralStatus;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  adminResponse?: string | null;
+  adminNotes?: string | null;
+  
+  createdAt: string;
+  updatedAt: string;
+  
+  reviewer?: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+// استجابة قائمة الطلبات (يمكن أن تكون مزيج من الأنواع)
+export type RequestsListResponse = (PaymentDeferralRequest | TraineeRequest)[];
 
 // استجابة إنشاء طلب
 export interface CreateRequestResponse {
@@ -93,11 +150,6 @@ export interface RequestError {
   details?: any;
 }
 
-// للتوافق مع الكود القديم - سيتم تحديثه لاحقاً
-export enum RequestType {
-  PAYMENT_DEFERRAL = 'PAYMENT_DEFERRAL'   // تأجيل سداد
-}
-
 export interface RequestTypeInfo {
   type: RequestType;
   nameAr: string;
@@ -109,13 +161,40 @@ export interface RequestTypeInfo {
 }
 
 export const REQUEST_TYPE_INFO: Record<RequestType, RequestTypeInfo> = {
-  [RequestType.PAYMENT_DEFERRAL]: {
-    type: RequestType.PAYMENT_DEFERRAL,
-    nameAr: 'تأجيل سداد',
-    nameEn: 'Payment Deferral',
-    icon: '💰',
+  [RequestType.EXAM_POSTPONE]: {
+    type: RequestType.EXAM_POSTPONE,
+    nameAr: 'تأجيل اختبار',
+    nameEn: 'Exam Postponement',
+    icon: '📝',
+    color: '#EF4444',
+    description: 'طلب تأجيل اختبار',
+    requiredFields: ['reason', 'examType', 'examDate']
+  },
+  [RequestType.SICK_LEAVE]: {
+    type: RequestType.SICK_LEAVE,
+    nameAr: 'إجازة مرضية',
+    nameEn: 'Sick Leave',
+    icon: '🏥',
     color: '#F59E0B',
-    description: 'طلب تأجيل موعد سداد رسوم',
-    requiredFields: ['reason', 'requestedExtensionDays']
+    description: 'طلب إجازة مرضية',
+    requiredFields: ['reason']
+  },
+  [RequestType.ENROLLMENT_PROOF]: {
+    type: RequestType.ENROLLMENT_PROOF,
+    nameAr: 'إثبات قيد',
+    nameEn: 'Enrollment Proof',
+    icon: '📄',
+    color: '#10B981',
+    description: 'طلب إثبات قيد',
+    requiredFields: ['reason']
+  },
+  [RequestType.CERTIFICATE]: {
+    type: RequestType.CERTIFICATE,
+    nameAr: 'إفادة',
+    nameEn: 'Certificate',
+    icon: '📋',
+    color: '#8B5CF6',
+    description: 'طلب إفادة',
+    requiredFields: ['reason']
   }
 };

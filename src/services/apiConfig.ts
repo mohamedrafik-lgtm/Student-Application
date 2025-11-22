@@ -68,7 +68,8 @@ export const API_CONFIG = {
     QUIZ_RESULT: '/api/quizzes', // + /{quizId}/result
     TRAINING_CONTENTS: '/api/training-contents',
     MY_REQUESTS: '/api/trainee-requests/my-requests',
-    CREATE_REQUEST: '/api/trainee-auth/create-request',
+    MY_DEFERRAL_REQUESTS: '/api/deferral-requests/my-requests',
+    CREATE_TRAINEE_REQUEST: '/api/trainee-requests',
     REQUEST_DETAILS: '/api/trainee-auth/request',
   },
   

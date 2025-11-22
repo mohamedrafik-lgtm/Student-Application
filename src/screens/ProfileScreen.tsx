@@ -312,13 +312,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               
               <View style={styles.profileStats}>
                 <View style={styles.statItem}>
-                  <Text style={styles.statNumber}>ID: {trainee.id}</Text>
-                  <Text style={styles.statLabel}>معرف المتدرب</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
                   <Text style={styles.statNumber}>{trainee.program.nameAr}</Text>
-                  <Text style={styles.statLabel}>البرنامج</Text>
+                  <Text style={styles.statLabel}>البرنامج التدريبي</Text>
                 </View>
               </View>
             </View>

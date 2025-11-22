@@ -18,6 +18,13 @@ import AttendanceScreen from '../screens/AttendanceScreen';
 import BranchSelectionScreen from '../screens/BranchSelectionScreen';
 import TrainingContentsScreen from '../screens/TrainingContentsScreen';
 import StudentRequestsScreen from '../screens/StudentRequestsScreen';
+import ExamPostponementScreen from '../screens/ExamPostponementScreen';
+import SickLeaveScreen from '../screens/SickLeaveScreen';
+import EnrollmentProofScreen from '../screens/EnrollmentProofScreen';
+import CertificateScreen from '../screens/CertificateScreen';
+import RequestsHubScreen from '../screens/RequestsHubScreen';
+import PaymentDeferralRequestsScreen from '../screens/PaymentDeferralRequestsScreen';
+import CreatePaymentDeferralScreen from '../screens/CreatePaymentDeferralScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
 import { BranchType } from '../types/auth';
@@ -32,7 +39,7 @@ interface UserInfo {
   traineeId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'student-requests';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -177,12 +184,52 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('home');
   };
 
+  const handleNavigateToRequestsHub = () => {
+    setCurrentScreen('requests-hub');
+  };
+
+  const handleBackToHomeFromRequestsHub = () => {
+    setCurrentScreen('home');
+  };
+
   const handleNavigateToStudentRequests = () => {
     setCurrentScreen('student-requests');
   };
 
-  const handleBackToHomeFromStudentRequests = () => {
-    setCurrentScreen('home');
+  const handleNavigateToPaymentDeferralRequests = () => {
+    setCurrentScreen('payment-deferral-requests');
+  };
+
+  const handleBackToRequestsHub = () => {
+    setCurrentScreen('requests-hub');
+  };
+
+  const handleNavigateToExamPostponement = () => {
+    setCurrentScreen('exam-postponement');
+  };
+
+  const handleBackToStudentRequests = () => {
+    setCurrentScreen('student-requests');
+  };
+
+  const handleNavigateToSickLeave = () => {
+    setCurrentScreen('sick-leave');
+  };
+
+  const handleNavigateToEnrollmentProof = () => {
+    setCurrentScreen('enrollment-proof');
+  };
+
+  const handleNavigateToCertificate = () => {
+    setCurrentScreen('certificate');
+  };
+
+  const handleNavigateToCreatePaymentDeferral = () => {
+    setCurrentScreen('create-payment-deferral');
+  };
+
+  const handleBackToPaymentDeferralRequests = () => {
+    setCurrentScreen('payment-deferral-requests');
   };
 
   const handleBranchSelected = (branch: BranchType) => {
@@ -265,11 +312,75 @@ const AppNavigator: React.FC = () => {
           />
         );
         break;
+      case 'requests-hub':
+        screenElement = (
+          <RequestsHubScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToHomeFromRequestsHub}
+            onNavigateToPaymentDeferral={handleNavigateToPaymentDeferralRequests}
+            onNavigateToFreeRequests={handleNavigateToStudentRequests}
+          />
+        );
+        break;
       case 'student-requests':
         screenElement = (
           <StudentRequestsScreen
             accessToken={userInfo.accessToken}
-            onBack={handleBackToHomeFromStudentRequests}
+            onBack={handleBackToRequestsHub}
+            onNavigateToExamPostponement={handleNavigateToExamPostponement}
+            onNavigateToSickLeave={handleNavigateToSickLeave}
+            onNavigateToEnrollmentProof={handleNavigateToEnrollmentProof}
+            onNavigateToCertificate={handleNavigateToCertificate}
+          />
+        );
+        break;
+      case 'payment-deferral-requests':
+        screenElement = (
+          <PaymentDeferralRequestsScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToRequestsHub}
+            onNavigateToCreateDeferral={handleNavigateToCreatePaymentDeferral}
+          />
+        );
+        break;
+      case 'create-payment-deferral':
+        screenElement = (
+          <CreatePaymentDeferralScreen
+            accessToken={userInfo.accessToken}
+            traineeId={userInfo.traineeId}
+            onBack={handleBackToPaymentDeferralRequests}
+          />
+        );
+        break;
+      case 'certificate':
+        screenElement = (
+          <CertificateScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToStudentRequests}
+          />
+        );
+        break;
+      case 'enrollment-proof':
+        screenElement = (
+          <EnrollmentProofScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToStudentRequests}
+          />
+        );
+        break;
+      case 'sick-leave':
+        screenElement = (
+          <SickLeaveScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToStudentRequests}
+          />
+        );
+        break;
+      case 'exam-postponement':
+        screenElement = (
+          <ExamPostponementScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToStudentRequests}
           />
         );
         break;
@@ -330,7 +441,7 @@ const AppNavigator: React.FC = () => {
             onNavigateToTrainingContents={handleNavigateToTrainingContents}
             onNavigateToDocuments={handleNavigateToDocuments}
             onNavigateToPayments={handleNavigateToPayments}
-            onNavigateToStudentRequests={handleNavigateToStudentRequests}
+            onNavigateToStudentRequests={handleNavigateToRequestsHub}
           />
         );
         break;

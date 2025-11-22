@@ -183,9 +183,12 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
   };
 
   const formatCurrency = (amount: number): string => {
+    // إزالة الأصفار بعد العلامة العشرية
     return new Intl.NumberFormat('ar-EG', {
       style: 'currency',
       currency: 'EGP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -299,7 +302,7 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Payment Summary */}
+          {/* Payment Summary & Stats Combined */}
           <View style={styles.summaryCard}>
             <View style={styles.summaryHeader}>
               <Text style={styles.summaryTitle}>ملخص المدفوعات</Text>
@@ -332,21 +335,19 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
             
             <View style={styles.progressContainer}>
               <View style={styles.progressBar}>
-                <View 
+                <View
                   style={[
-                    styles.progressFill, 
+                    styles.progressFill,
                     { width: `${(paidAmount / totalAmount) * 100}%` }
-                  ]} 
+                  ]}
                 />
               </View>
               <Text style={styles.progressText}>
                 {Math.round((paidAmount / totalAmount) * 100)}% مكتمل
               </Text>
             </View>
-          </View>
 
-          {/* Payment Stats */}
-          <View style={styles.statsCard}>
+            {/* Stats integrated */}
             <View style={styles.statsContent}>
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>{payments.length}</Text>
@@ -521,23 +522,16 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
                     )}
                   </View>
                   
-                  <View style={styles.paymentActions}>
-                    {payment.status === 'PENDING' && payment.amount > payment.paidAmount && (
-                      <TouchableOpacity 
+                  {payment.status === 'PENDING' && payment.amount > payment.paidAmount && (
+                    <View style={styles.paymentActions}>
+                      <TouchableOpacity
                         style={styles.payButton}
                         onPress={() => handleMakePayment(payment)}
                       >
                         <Text style={styles.payButtonText}>💳 دفع الآن</Text>
                       </TouchableOpacity>
-                    )}
-                    
-                    <TouchableOpacity 
-                      style={styles.detailsButton}
-                      onPress={() => handleViewPaymentDetails(payment)}
-                    >
-                      <Text style={styles.detailsButtonText}>👁️ التفاصيل</Text>
-                    </TouchableOpacity>
-                  </View>
+                    </View>
+                  )}
                 </Animated.View>
               ))}
             </View>
@@ -791,6 +785,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 2,
+    borderTopColor: 'rgba(99, 102, 241, 0.1)',
   },
   statItem: {
     alignItems: 'center',
@@ -1002,10 +1000,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   payButton: {
-    flex: 1,
     backgroundColor: Colors.success,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
     borderRadius: 12,
     alignItems: 'center',
   },

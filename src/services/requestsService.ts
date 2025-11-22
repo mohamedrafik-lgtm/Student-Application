@@ -8,6 +8,7 @@ import {
   RequestsListResponse,
   CreateRequestResponse,
   CreateRequestDto,
+  CreateTraineeRequestDto,
   RequestDetailsResponse,
   RequestError,
 } from '../types/requests';
@@ -123,13 +124,73 @@ export class RequestsService implements IRequestsService {
   }
 
   /**
-   * إنشاء طلب جديد
+   * الحصول على قائمة طلبات تأجيل السداد
+   */
+  async getMyDeferralRequests(accessToken: string): Promise<any[]> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MY_DEFERRAL_REQUESTS}`;
+    
+    console.log('🔍 My Deferral Requests API Request:', {
+      url,
+      baseUrl: API_CONFIG.BASE_URL,
+      endpoint: API_CONFIG.ENDPOINTS.MY_DEFERRAL_REQUESTS,
+      hasToken: !!accessToken
+    });
+
+    const response = await RequestsService.makeRequest<any[]>(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    console.log('📡 My Deferral Requests API Response:', {
+      isArray: Array.isArray(response),
+      requestsCount: Array.isArray(response) ? response.length : 0
+    });
+
+    return response;
+  }
+
+  /**
+   * إنشاء طلب متدرب جديد (تأجيل اختبار، إجازة مرضية، إلخ)
+   */
+  async createTraineeRequest(
+    requestData: CreateTraineeRequestDto,
+    accessToken: string
+  ): Promise<CreateRequestResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CREATE_TRAINEE_REQUEST}`;
+    
+    console.log('🔍 Create Trainee Request API Request:', {
+      url,
+      requestType: requestData.type,
+      hasToken: !!accessToken
+    });
+
+    const response = await RequestsService.makeRequest<CreateRequestResponse>(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(requestData),
+    });
+
+    console.log('📡 Create Trainee Request API Response:', {
+      success: response.success,
+      requestId: response.request?.id,
+      message: response.message
+    });
+
+    return response;
+  }
+
+  /**
+   * إنشاء طلب تأجيل سداد (deprecated - استخدم createTraineeRequest)
    */
   async createRequest(
     requestData: CreateRequestDto,
     accessToken: string
   ): Promise<CreateRequestResponse> {
-    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CREATE_REQUEST}`;
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CREATE_TRAINEE_REQUEST}`;
     
     console.log('🔍 Create Request API Request:', {
       url,
