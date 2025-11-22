@@ -17,6 +17,7 @@ import GradesScreen from '../screens/GradesScreen';
 import AttendanceScreen from '../screens/AttendanceScreen';
 import BranchSelectionScreen from '../screens/BranchSelectionScreen';
 import TrainingContentsScreen from '../screens/TrainingContentsScreen';
+import StudentRequestsScreen from '../screens/StudentRequestsScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
 import { BranchType } from '../types/auth';
@@ -28,9 +29,10 @@ interface UserInfo {
   nationalId: string;
   accessToken: string;
   classroomId?: number;
+  traineeId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'student-requests';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -89,6 +91,7 @@ const AppNavigator: React.FC = () => {
       nationalId: loginData.trainee.nationalId,
       accessToken: loginData.access_token,
       classroomId: loginData.trainee.classroomId || loginData.trainee.classLevel || 1,
+      traineeId: loginData.trainee.id,
     };
     
     setUserInfo(userData);
@@ -174,6 +177,14 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('home');
   };
 
+  const handleNavigateToStudentRequests = () => {
+    setCurrentScreen('student-requests');
+  };
+
+  const handleBackToHomeFromStudentRequests = () => {
+    setCurrentScreen('home');
+  };
+
   const handleBranchSelected = (branch: BranchType) => {
     setSelectedBranch(branch);
     setCurrentScreen('login');
@@ -254,6 +265,14 @@ const AppNavigator: React.FC = () => {
           />
         );
         break;
+      case 'student-requests':
+        screenElement = (
+          <StudentRequestsScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToHomeFromStudentRequests}
+          />
+        );
+        break;
       case 'exams':
         screenElement = (
           <ExamsScreen
@@ -311,6 +330,7 @@ const AppNavigator: React.FC = () => {
             onNavigateToTrainingContents={handleNavigateToTrainingContents}
             onNavigateToDocuments={handleNavigateToDocuments}
             onNavigateToPayments={handleNavigateToPayments}
+            onNavigateToStudentRequests={handleNavigateToStudentRequests}
           />
         );
         break;

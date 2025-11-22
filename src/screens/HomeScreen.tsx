@@ -34,6 +34,7 @@ interface HomeScreenProps {
   onNavigateToDocuments?: () => void;
   onNavigateToPayments?: () => void;
   onNavigateToTrainingContents?: () => void;
+  onNavigateToStudentRequests?: () => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
@@ -46,6 +47,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigateToDocuments,
   onNavigateToPayments,
   onNavigateToTrainingContents,
+  onNavigateToStudentRequests,
 }) => {
   const [studentPhotoUrl, setStudentPhotoUrl] = useState<string | undefined>(userInfo?.photoUrl);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -125,6 +127,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           <TouchableOpacity style={styles.quickActionButton} onPress={() => onNavigateToAttendance && onNavigateToAttendance()}>
             <Text style={styles.quickActionIcon}>✅</Text>
             <Text style={styles.quickActionLabel} numberOfLines={2} ellipsizeMode="tail" allowFontScaling={false}>الحضور</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.quickActionButton} onPress={() => onNavigateToStudentRequests && onNavigateToStudentRequests()}>
+            <Text style={styles.quickActionIcon}>📋</Text>
+            <Text style={styles.quickActionLabel} numberOfLines={2} ellipsizeMode="tail" allowFontScaling={false}>الطلبات</Text>
           </TouchableOpacity>
         </View>
 
