@@ -7,6 +7,7 @@ import { API_CONFIG } from './apiConfig';
 import {
   TrainingContentsResponse,
   TrainingContentsError,
+  TrainingContentDetails,
 } from '../types/trainingContents';
 
 /**
@@ -93,15 +94,19 @@ export class TrainingContentsService {
   }
 
   /**
-   * الحصول على المحتوى التدريبي (المواد الدراسية)
+   * الحصول على المحتوى التدريبي (المواد الدراسية) حسب البرنامج
+   * @param programId معرف البرنامج التدريبي
+   * @param accessToken رمز الوصول
    */
-  async getTrainingContents(accessToken: string): Promise<TrainingContentsResponse> {
-    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TRAINING_CONTENTS}`;
+  async getTrainingContents(programId: number, accessToken: string): Promise<TrainingContentsResponse> {
+    // إضافة programId كـ query parameter
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TRAINING_CONTENTS}?programId=${programId}`;
     
     console.log('🔍 Training Contents API Request:', {
       url,
       baseUrl: API_CONFIG.BASE_URL,
       endpoint: API_CONFIG.ENDPOINTS.TRAINING_CONTENTS,
+      programId,
       hasToken: !!accessToken,
       tokenPreview: accessToken ? `${accessToken.substring(0, 20)}...` : 'No token'
     });
@@ -114,8 +119,44 @@ export class TrainingContentsService {
     });
 
     console.log('📡 Training Contents API Response:', {
-      contentsCount: Array.isArray(response) ? response.length : 0,
-      firstContent: Array.isArray(response) && response.length > 0 ? response[0].name : 'No contents',
+      success: Array.isArray(response),
+      contentsCount: response.length || 0,
+      firstContent: response.length > 0 ? response[0].name : 'No contents',
+    });
+
+    return response;
+  }
+
+  /**
+   * الحصول على تفاصيل مادة دراسية معينة مع جميع المحاضرات
+   * @param contentId معرف المادة الدراسية
+   * @param accessToken رمز الوصول
+   */
+  async getTrainingContentDetails(contentId: number, accessToken: string): Promise<TrainingContentDetails> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TRAINING_CONTENTS}/${contentId}`;
+    
+    console.log('🔍 Training Content Details API Request:', {
+      url,
+      baseUrl: API_CONFIG.BASE_URL,
+      endpoint: API_CONFIG.ENDPOINTS.TRAINING_CONTENTS,
+      contentId,
+      hasToken: !!accessToken,
+      tokenPreview: accessToken ? `${accessToken.substring(0, 20)}...` : 'No token'
+    });
+
+    const response = await TrainingContentsService.makeRequest<TrainingContentDetails>(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    console.log('📡 Training Content Details API Response:', {
+      id: response.id,
+      name: response.name,
+      code: response.code,
+      chaptersCount: response.chaptersCount,
+      scheduleSlotsCount: response._count.scheduleSlots,
     });
 
     return response;
@@ -124,4 +165,3 @@ export class TrainingContentsService {
 
 // Export a default instance for easier usage
 export const trainingContentsService = new TrainingContentsService();
-

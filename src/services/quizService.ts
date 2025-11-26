@@ -8,10 +8,8 @@ import {
   AvailableQuizzesResponse,
   QuizDetailResponse,
   StartQuizResponse,
-  SubmitQuizResponse,
   QuizResultResponse,
   QuizError,
-  SubmitQuizRequest,
 } from '../types/quizzes';
 
 /**
