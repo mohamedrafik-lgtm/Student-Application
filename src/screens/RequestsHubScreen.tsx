@@ -15,12 +15,14 @@ interface RequestsHubScreenProps {
   onBack: () => void;
   onNavigateToPaymentDeferral?: () => void;
   onNavigateToFreeRequests?: () => void;
+  onNavigateToSettings?: () => void;
 }
 
 const RequestsHubScreen: React.FC<RequestsHubScreenProps> = ({
   onBack,
   onNavigateToPaymentDeferral,
-  onNavigateToFreeRequests
+  onNavigateToFreeRequests,
+  onNavigateToSettings
 }) => {
   return (
     <SafeAreaView style={styles.container}>
@@ -32,7 +34,14 @@ const RequestsHubScreen: React.FC<RequestsHubScreenProps> = ({
           </View>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>الطلبات</Text>
-        <View style={styles.headerSpacer} />
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={() => onNavigateToSettings && onNavigateToSettings()}
+        >
+          <View style={styles.settingsButtonContainer}>
+            <Text style={styles.settingsButtonText}>⚙️</Text>
+          </View>
+        </TouchableOpacity>
       </View>
 
       {/* Main Content */}
@@ -116,8 +125,24 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     textAlign: 'center',
   },
-  headerSpacer: {
+  settingsButton: {
     width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingsButtonContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: Colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+  },
+  settingsButtonText: {
+    fontSize: 20,
   },
   content: {
     flex: 1,

@@ -63,8 +63,9 @@ export const API_CONFIG = {
     ATTENDANCE_RECORDS: '/api/trainee-auth/attendance-records',
     AVAILABLE_QUIZZES: '/api/quizzes/trainee/available',
     QUIZ_DETAIL: '/api/quizzes', // + /{quizId}
-    START_QUIZ: '/api/quizzes', // + /{quizId}/start
-    SUBMIT_QUIZ: '/api/quizzes', // + /{quizId}/submit
+    START_QUIZ: '/api/quizzes/trainee/start',
+    ANSWER_QUESTION: '/api/quizzes/trainee/answer',
+    SUBMIT_QUIZ: '/api/quizzes/trainee/submit',
     QUIZ_RESULT: '/api/quizzes', // + /{quizId}/result
     TRAINING_CONTENTS: '/api/training-contents',
     MY_REQUESTS: '/api/trainee-requests/my-requests',

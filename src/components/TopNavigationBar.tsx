@@ -29,6 +29,7 @@ export type TopNavTab =
   | 'attendance'
   | 'documents'
   | 'payments'
+  | 'payment-due-dates'
   | 'profile'
   | 'training-contents'
   | 'requests-hub';
@@ -50,6 +51,7 @@ const TABS: { id: TopNavTab; label: string; icon?: string }[] = [
   { id: 'requests-hub', label: 'الطلبات', icon: '📋' },
   { id: 'documents', label: 'الوثائق', icon: '📄' },
   { id: 'payments', label: 'المدفوعات', icon: '💰' },
+  { id: 'payment-due-dates', label: 'مواعيد السداد', icon: '📆' },
   { id: 'profile', label: 'الملف', icon: '👤' },
 ];
 

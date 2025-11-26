@@ -161,15 +161,87 @@ export interface StartQuizRequest {
 }
 
 /**
+ * Question option in attempt
+ */
+export interface QuestionOption {
+  id: number;
+  text: string;
+  isCorrect: boolean;
+  order: number;
+}
+
+/**
+ * Question in quiz attempt
+ */
+export interface AttemptQuestion {
+  id: number;
+  text: string;
+  type: 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'SHORT_ANSWER';
+  image: string | null;
+  options: QuestionOption[];
+}
+
+/**
+ * Quiz question in attempt
+ */
+export interface QuizAttemptQuestion {
+  id: number;
+  order: number;
+  points: number;
+  question: AttemptQuestion;
+}
+
+/**
+ * Training content in attempt
+ */
+export interface AttemptTrainingContent {
+  id: number;
+  name: string;
+  code: string;
+  classroom: {
+    id: number;
+    name: string;
+  };
+}
+
+/**
+ * Quiz details in attempt
+ */
+export interface AttemptQuiz {
+  id: number;
+  title: string;
+  description: string;
+  duration: number;
+  passingScore: number;
+  shuffleQuestions: boolean;
+  shuffleAnswers: boolean;
+  trainingContent: AttemptTrainingContent;
+  questions: QuizAttemptQuestion[];
+}
+
+/**
+ * Quiz attempt answer
+ */
+export interface QuizAttemptAnswer {
+  questionId: number;
+  selectedOptionId?: number;
+  answer?: string;
+  answeredAt: Date;
+}
+
+/**
  * API response for starting a quiz
  */
 export interface StartQuizResponse {
-  success: boolean;
-  attemptId: string;
-  quiz: AvailableQuiz;
-  questions: QuizQuestion[];
+  id: string;                    // معرف المحاولة
+  quizId: number;
+  traineeId: number;
+  attemptNumber: number;
+  status: 'IN_PROGRESS';
   startedAt: Date;
-  message?: string;
+  totalPoints: number;
+  quiz: AttemptQuiz;
+  answers: QuizAttemptAnswer[];
 }
 
 /**
@@ -242,3 +314,31 @@ export interface QuizError {
   details?: any;
 }
 
+
+/**
+ * Submit answer request
+ */
+export interface SubmitAnswerRequest {
+  attemptId: string;
+  questionId: number;
+  selectedAnswer?: string;
+  textAnswer?: string;
+}
+
+/**
+ * Quiz answer response
+ */
+export interface QuizAnswerResponse {
+  id: string;
+  attemptId: string;
+  questionId: number;
+  selectedAnswer: string | null;
+  textAnswer: string | null;
+  isCorrect: boolean | null;
+  points: number | null;
+  feedback: string | null;
+  answeredAt: string;
+  timeSpent: number | null;
+  createdAt: string;
+  updatedAt: string;
+}

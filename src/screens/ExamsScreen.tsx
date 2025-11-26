@@ -20,7 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
 import { Colors } from '../styles/colors';
 import { quizService } from '../services/quizService';
-import { AvailableQuiz, QuizStatus, QuizError } from '../types/quizzes';
+import { AvailableQuiz, QuizStatus, QuizError, StartQuizResponse, QuizAttemptAnswer } from '../types/quizzes';
 
 const { width } = Dimensions.get('window');
 
@@ -42,6 +42,14 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [quizzes, setQuizzes] = useState<AvailableQuiz[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<'all' | QuizStatus>('all');
+  
+  // Quiz taking state
+  const [quizAttempt, setQuizAttempt] = useState<StartQuizResponse | null>(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<QuizAttemptAnswer[]>([]);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [quizResult, setQuizResult] = useState<any | null>(null);
 
   useEffect(() => {
     // Start animations
@@ -60,6 +68,7 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({
 
     // Load quizzes data
     loadQuizzes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadQuizzes = async () => {
@@ -202,12 +211,341 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({
   };
 
   const startQuiz = async (quiz: AvailableQuiz) => {
-    // TODO: Navigate to quiz screen
-    Alert.alert('قريباً', 'سيتم إضافة صفحة الاختبار قريباً');
+    try {
+      setIsLoading(true);
+      console.log('🚀 Starting quiz:', quiz.id);
+      
+      const response = await quizService.startQuiz(quiz.id, accessToken);
+      
+      console.log('✅ Quiz started successfully:', response);
+      
+      // Set quiz attempt and start quiz taking mode
+      setQuizAttempt(response);
+      setCurrentQuestionIndex(0);
+      setAnswers([]);
+      setSelectedAnswer(null);
+      setTimeRemaining(response.quiz.duration * 60); // Convert to seconds
+      
+    } catch (error) {
+      console.error('❌ Failed to start quiz:', error);
+      const errorMessage = (error as any).message || 'فشل في بدء الاختبار';
+      Alert.alert('خطأ', errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleAnswerSelect = async (optionId: number) => {
+    if (!quizAttempt) return;
+    
+    setSelectedAnswer(optionId);
+    
+    // Save to local state immediately
+    const currentQuestion = quizAttempt.quiz.questions[currentQuestionIndex];
+    const newAnswer: QuizAttemptAnswer = {
+      questionId: currentQuestion.question.id,
+      selectedOptionId: optionId,
+      answeredAt: new Date()
+    };
+    
+    // Update or add answer
+    const existingIndex = answers.findIndex(a => a.questionId === currentQuestion.question.id);
+    if (existingIndex >= 0) {
+      const newAnswers = [...answers];
+      newAnswers[existingIndex] = newAnswer;
+      setAnswers(newAnswers);
+    } else {
+      setAnswers([...answers, newAnswer]);
+    }
+    
+    // Send answer to API immediately
+    try {
+      await quizService.answerQuestion({
+        attemptId: quizAttempt.id,
+        questionId: currentQuestion.question.id,
+        selectedAnswer: optionId.toString()
+      }, accessToken);
+      
+      console.log('✅ Answer saved successfully');
+    } catch (error) {
+      console.error('❌ Failed to save answer:', error);
+      // Don't show error to user, just log it
+    }
+  };
+  
+  const handleNextQuestion = () => {
+    if (!quizAttempt) return;
+    
+    // Save current answer
+    if (selectedAnswer !== null) {
+      const currentQuestion = quizAttempt.quiz.questions[currentQuestionIndex];
+      const newAnswer: QuizAttemptAnswer = {
+        questionId: currentQuestion.question.id,
+        selectedOptionId: selectedAnswer,
+        answeredAt: new Date()
+      };
+      
+      // Update or add answer
+      const existingIndex = answers.findIndex(a => a.questionId === currentQuestion.question.id);
+      if (existingIndex >= 0) {
+        const newAnswers = [...answers];
+        newAnswers[existingIndex] = newAnswer;
+        setAnswers(newAnswers);
+      } else {
+        setAnswers([...answers, newAnswer]);
+      }
+    }
+    
+    // Move to next question
+    if (currentQuestionIndex < quizAttempt.quiz.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswer(null);
+    }
+  };
+  
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      // Load previous answer if exists
+      const prevQuestion = quizAttempt?.quiz.questions[currentQuestionIndex - 1];
+      const prevAnswer = answers.find(a => a.questionId === prevQuestion?.question.id);
+      setSelectedAnswer(prevAnswer?.selectedOptionId || null);
+    }
+  };
+  
+  const handleSubmitQuiz = () => {
+    if (!quizAttempt) return;
+    
+    Alert.alert(
+      'تسليم الاختبار',
+      `هل أنت متأكد من تسليم الاختبار؟\n\nأجبت على ${answers.length} من ${quizAttempt.quiz.questions.length} سؤال`,
+      [
+        { text: 'إلغاء', style: 'cancel' },
+        {
+          text: 'تسليم',
+          style: 'destructive',
+          onPress: () => submitQuiz()
+        }
+      ]
+    );
+  };
+  
+  const submitQuiz = async () => {
+    if (!quizAttempt) return;
+    
+    try {
+      setIsLoading(true);
+      
+      console.log('📤 Submitting quiz:', {
+        attemptId: quizAttempt.id,
+        answers: answers.length
+      });
+      
+      const result = await quizService.submitQuiz(quizAttempt.id, accessToken);
+      
+      console.log('✅ Quiz submitted successfully');
+      
+      // Show results screen
+      setQuizResult(result);
+      setQuizAttempt(null);
+      
+    } catch (error) {
+      console.error('❌ Failed to submit quiz:', error);
+      const errorMessage = (error as any).message || 'فشل في تسليم الاختبار';
+      Alert.alert('خطأ', errorMessage.toString());
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleExitQuiz = () => {
+    Alert.alert(
+      'الخروج من الاختبار',
+      'هل أنت متأكد من الخروج؟ سيتم حفظ إجاباتك.',
+      [
+        { text: 'البقاء في الاختبار', style: 'cancel' },
+        {
+          text: 'الخروج',
+          style: 'destructive',
+          onPress: () => setQuizAttempt(null)
+        }
+      ]
+    );
   };
 
   const filteredQuizzes = getFilteredQuizzes();
 
+  // If quiz result is available, show results screen
+  if (quizResult) {
+    const isPassed = quizResult.passed === true;
+    const scoreValue = typeof quizResult.score === 'number' ? quizResult.score : 0;
+    const totalValue = typeof quizResult.totalPoints === 'number' ? quizResult.totalPoints : 0;
+    const percentValue = typeof quizResult.percentage === 'number' ? quizResult.percentage : 0;
+    const durationValue = typeof quizResult.duration === 'number' ? Math.floor(quizResult.duration / 60) : 0;
+    
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.resultScrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Result Icon */}
+          <View style={[styles.resultIconContainer, { backgroundColor: isPassed ? Colors.successSoft : Colors.errorSoft }]}>
+            <Text style={styles.resultIcon}>{isPassed ? '🎉' : '📝'}</Text>
+          </View>
+
+          {/* Result Title */}
+          <Text style={styles.resultTitle}>نتيجة الاختبار</Text>
+          
+          <Text style={styles.resultSubtitle}>تم تسليم الاختبار بنجاح</Text>
+
+          {/* Score Card */}
+          <View style={styles.scoreCard}>
+            <View style={styles.scoreCircle}>
+              <Text style={styles.scorePercentage}>{percentValue}%</Text>
+              <Text style={styles.scoreLabel}>النسبة المئوية</Text>
+            </View>
+          </View>
+
+          {/* Details Cards */}
+          <View style={styles.detailsGrid}>
+            <View style={styles.detailCard}>
+              <Text style={styles.detailIcon}>📊</Text>
+              <Text style={styles.detailValue}>{scoreValue}/{totalValue}</Text>
+              <Text style={styles.detailLabel}>الدرجة</Text>
+            </View>
+
+            <View style={styles.detailCard}>
+              <Text style={styles.detailIcon}>🎯</Text>
+              <Text style={styles.detailValue}>{quizResult.quiz?.passingScore || 0}%</Text>
+              <Text style={styles.detailLabel}>درجة النجاح</Text>
+            </View>
+
+            <View style={styles.detailCard}>
+              <Text style={styles.detailIcon}>⏱️</Text>
+              <Text style={styles.detailValue}>{durationValue} دقيقة</Text>
+              <Text style={styles.detailLabel}>الوقت المستغرق</Text>
+            </View>
+
+            <View style={styles.detailCard}>
+              <Text style={styles.detailIcon}>❓</Text>
+              <Text style={styles.detailValue}>{quizResult.answers?.length || 0}</Text>
+              <Text style={styles.detailLabel}>عدد الأسئلة</Text>
+            </View>
+          </View>
+
+
+          {/* Back Button */}
+          <TouchableOpacity
+            style={styles.backToListButton}
+            onPress={() => {
+              setQuizResult(null);
+              loadQuizzes();
+            }}
+          >
+            <Text style={styles.backToListButtonText}>← العودة للاختبارات</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // If quiz is in progress, show quiz taking UI
+  if (quizAttempt) {
+    const currentQuestion = quizAttempt.quiz.questions[currentQuestionIndex];
+    const progress = ((currentQuestionIndex + 1) / quizAttempt.quiz.questions.length) * 100;
+    
+    return (
+      <SafeAreaView style={styles.container}>
+        {/* Quiz Header */}
+        <View style={styles.quizHeader}>
+          <TouchableOpacity style={styles.exitButton} onPress={handleExitQuiz}>
+            <Text style={styles.exitButtonText}>✕ خروج</Text>
+          </TouchableOpacity>
+          <View style={styles.quizProgress}>
+            <Text style={styles.quizProgressText}>
+              السؤال {currentQuestionIndex + 1} من {quizAttempt.quiz.questions.length}
+            </Text>
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            </View>
+          </View>
+          <Text style={styles.quizPoints}>{currentQuestion.points} نقطة</Text>
+        </View>
+
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.quizContent}>
+          {/* Question */}
+          <View style={styles.questionCard}>
+            <Text style={styles.questionNumber}>السؤال {currentQuestion.order}</Text>
+            <Text style={styles.questionText}>{currentQuestion.question.text}</Text>
+            
+            {currentQuestion.question.image && (
+              <View style={styles.questionImageContainer}>
+                <Text style={styles.questionImagePlaceholder}>🖼️ صورة</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Options */}
+          <View style={styles.optionsContainer}>
+            {currentQuestion.question.options.map((option) => (
+              <TouchableOpacity
+                key={option.id}
+                style={[
+                  styles.optionButton,
+                  selectedAnswer === option.id && styles.optionButtonSelected
+                ]}
+                onPress={() => handleAnswerSelect(option.id)}
+              >
+                <View style={[
+                  styles.optionRadio,
+                  selectedAnswer === option.id && styles.optionRadioSelected
+                ]}>
+                  {selectedAnswer === option.id && <View style={styles.optionRadioDot} />}
+                </View>
+                <Text style={[
+                  styles.optionText,
+                  selectedAnswer === option.id && styles.optionTextSelected
+                ]}>
+                  {option.text}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+
+        {/* Navigation Buttons */}
+        <View style={styles.quizFooter}>
+          <TouchableOpacity
+            style={[styles.navButton, currentQuestionIndex === 0 && styles.navButtonDisabled]}
+            onPress={handlePreviousQuestion}
+            disabled={currentQuestionIndex === 0}
+          >
+            <Text style={styles.navButtonText}>← السابق</Text>
+          </TouchableOpacity>
+
+          {currentQuestionIndex < quizAttempt.quiz.questions.length - 1 ? (
+            <TouchableOpacity
+              style={[styles.navButton, styles.navButtonPrimary]}
+              onPress={handleNextQuestion}
+            >
+              <Text style={[styles.navButtonText, styles.navButtonTextPrimary]}>التالي →</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.navButton, styles.navButtonSubmit]}
+              onPress={handleSubmitQuiz}
+            >
+              <Text style={[styles.navButtonText, styles.navButtonTextSubmit]}>تسليم الاختبار ✓</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show quiz list
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -364,7 +702,7 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({
               transform: [{ translateY: slideAnim }]
             }
           ]}>
-            {filteredQuizzes.map((quiz, index) => (
+            {filteredQuizzes.map((quiz) => (
               <TouchableOpacity
                 key={quiz.id}
                 style={styles.quizCard}
@@ -742,6 +1080,348 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.primary,
     fontWeight: 'bold',
+  },
+  // Quiz Taking Styles
+  quizHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  exitButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.error,
+  },
+  exitButtonText: {
+    color: Colors.error,
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  quizProgress: {
+    flex: 1,
+    marginHorizontal: 20,
+  },
+  quizProgressText: {
+    fontSize: 15,
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: 10,
+    fontWeight: '600',
+  },
+  progressBar: {
+    height: 10,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+    borderRadius: 6,
+  },
+  quizPoints: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.primary,
+    backgroundColor: Colors.primarySoft,
+    paddingHorizontal: 16,
+  },
+  // Result Screen Styles
+  resultScrollContent: {
+    flexGrow: 1,
+    backgroundColor: Colors.background,
+    padding: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resultIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  resultIcon: {
+    fontSize: 64,
+  },
+  resultTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 8,
+    color: Colors.textPrimary,
+  },
+  resultSubtitle: {
+    fontSize: 18,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  scoreCard: {
+    width: '100%',
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    padding: 32,
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  scoreCircle: {
+    alignItems: 'center',
+  },
+  scorePercentage: {
+    fontSize: 56,
+    fontWeight: '800',
+    color: Colors.primary,
+    marginBottom: 8,
+  },
+  scoreLabel: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  detailsGrid: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 24,
+  },
+  detailCard: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  detailIcon: {
+    fontSize: 32,
+    marginBottom: 12,
+  },
+  detailValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 8,
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  statusBadgeLarge: {
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 16,
+    marginBottom: 32,
+  },
+  statusBadgeText: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.white,
+  },
+  backToListButton: {
+    width: '100%',
+    backgroundColor: Colors.primary,
+    paddingVertical: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  backToListButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.white,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  quizContent: {
+    padding: 24,
+  },
+  questionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 28,
+    marginBottom: 32,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  questionNumber: {
+    fontSize: 16,
+    color: Colors.white,
+    fontWeight: '800',
+    marginBottom: 16,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  questionText: {
+    fontSize: 20,
+    color: Colors.textPrimary,
+    lineHeight: 32,
+    textAlign: 'right',
+    fontWeight: '600',
+  },
+  questionImageContainer: {
+    marginTop: 20,
+    padding: 50,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
+  },
+  questionImagePlaceholder: {
+    fontSize: 56,
+  },
+  optionsContainer: {
+    gap: 16,
+  },
+  optionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  optionButtonSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primarySoft,
+    shadowColor: Colors.primary,
+    shadowOpacity: 0.3,
+    elevation: 6,
+  },
+  optionRadio: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 3,
+    borderColor: '#D1D5DB',
+    marginRight: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  optionRadioSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.white,
+  },
+  optionRadioDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: Colors.primary,
+  },
+  optionText: {
+    flex: 1,
+    fontSize: 17,
+    color: Colors.textPrimary,
+    textAlign: 'right',
+    lineHeight: 26,
+    fontWeight: '500',
+  },
+  optionTextSelected: {
+    color: Colors.primaryDark,
+    fontWeight: '700',
+  },
+  quizFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 2,
+    borderTopColor: '#E5E7EB',
+    gap: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  navButton: {
+    flex: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  navButtonDisabled: {
+    opacity: 0.4,
+  },
+  navButtonPrimary: {
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOpacity: 0.4,
+    elevation: 6,
+  },
+  navButtonSubmit: {
+    backgroundColor: Colors.success,
+    shadowColor: Colors.success,
+    shadowOpacity: 0.4,
+    elevation: 6,
+  },
+  navButtonText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  navButtonTextPrimary: {
+    color: Colors.white,
+  },
+  navButtonTextSubmit: {
+    color: Colors.white,
   },
 });
 

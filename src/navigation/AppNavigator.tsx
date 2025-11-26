@@ -25,6 +25,8 @@ import CertificateScreen from '../screens/CertificateScreen';
 import RequestsHubScreen from '../screens/RequestsHubScreen';
 import PaymentDeferralRequestsScreen from '../screens/PaymentDeferralRequestsScreen';
 import CreatePaymentDeferralScreen from '../screens/CreatePaymentDeferralScreen';
+import RequestSettingsScreen from '../screens/RequestSettingsScreen';
+import PaymentDueDatesScreen from '../screens/PaymentDueDatesScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
 import { BranchType } from '../types/auth';
@@ -39,7 +41,7 @@ interface UserInfo {
   traineeId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -142,6 +144,14 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('profile');
   };
 
+  const handleNavigateToPaymentDueDates = () => {
+    setCurrentScreen('payment-due-dates');
+  };
+
+  const handleBackToPaymentsFromDueDates = () => {
+    setCurrentScreen('payments');
+  };
+
   const handleNavigateToSchedule = () => {
     setCurrentScreen('schedule');
   };
@@ -232,6 +242,14 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('payment-deferral-requests');
   };
 
+  const handleNavigateToRequestSettings = () => {
+    setCurrentScreen('request-settings');
+  };
+
+  const handleBackToRequestsHubFromSettings = () => {
+    setCurrentScreen('requests-hub');
+  };
+
   const handleBranchSelected = (branch: BranchType) => {
     setSelectedBranch(branch);
     setCurrentScreen('login');
@@ -319,6 +337,14 @@ const AppNavigator: React.FC = () => {
             onBack={handleBackToHomeFromRequestsHub}
             onNavigateToPaymentDeferral={handleNavigateToPaymentDeferralRequests}
             onNavigateToFreeRequests={handleNavigateToStudentRequests}
+            onNavigateToSettings={handleNavigateToRequestSettings}
+          />
+        );
+        break;
+      case 'request-settings':
+        screenElement = (
+          <RequestSettingsScreen
+            onBack={handleBackToRequestsHubFromSettings}
           />
         );
         break;
@@ -406,6 +432,15 @@ const AppNavigator: React.FC = () => {
           <PaymentsScreen
             accessToken={userInfo.accessToken}
             onBack={handleBackToProfileFromPayments}
+            onNavigateToPaymentDueDates={handleNavigateToPaymentDueDates}
+          />
+        );
+        break;
+      case 'payment-due-dates':
+        screenElement = (
+          <PaymentDueDatesScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToPaymentsFromDueDates}
           />
         );
         break;

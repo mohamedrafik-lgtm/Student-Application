@@ -27,11 +27,13 @@ const { width, height } = Dimensions.get('window');
 interface PaymentsScreenProps {
   accessToken: string;
   onBack: () => void;
+  onNavigateToPaymentDueDates?: () => void;
 }
 
-const PaymentsScreen: React.FC<PaymentsScreenProps> = ({ 
-  accessToken, 
-  onBack 
+const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
+  accessToken,
+  onBack,
+  onNavigateToPaymentDueDates
 }) => {
   const [profile, setProfile] = useState<TraineeProfile | null>(null);
   const [payments, setPayments] = useState<TraineePayment[]>([]);
@@ -295,11 +297,22 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
               <View style={styles.headerUnderline} />
             </View>
             
-            <TouchableOpacity style={styles.historyButton} onPress={handlePaymentHistory}>
-              <View style={styles.historyButtonIcon}>
-                <Text style={styles.historyButtonText}>📊</Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={styles.dueDatesButton}
+                onPress={() => onNavigateToPaymentDueDates && onNavigateToPaymentDueDates()}
+              >
+                <View style={styles.dueDatesButtonIcon}>
+                  <Text style={styles.dueDatesButtonText}>📅</Text>
+                </View>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.historyButton} onPress={handlePaymentHistory}>
+                <View style={styles.historyButtonIcon}>
+                  <Text style={styles.historyButtonText}>📊</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Payment Summary & Stats Combined */}
@@ -679,6 +692,28 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: 2,
     marginTop: 8,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  dueDatesButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  dueDatesButtonIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dueDatesButtonText: {
+    fontSize: 16,
   },
   historyButton: {
     backgroundColor: Colors.accent,

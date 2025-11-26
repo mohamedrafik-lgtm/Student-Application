@@ -119,6 +119,18 @@ export class QuizService {
       fullResponse: response
     });
 
+    // التحقق من نوع الـ response
+    // في بعض الأحيان يرجع الـ API array مباشرة بدلاً من object
+    if (Array.isArray(response)) {
+      console.log('✅ Response is array directly, converting to expected format');
+      console.log('📊 Quizzes count:', response.length);
+      console.log('📝 Quizzes titles:', response.map((q: any) => q.title));
+      return {
+        success: true,
+        quizzes: response
+      };
+    }
+
     // التأكد من أن response.quizzes هو array
     if (response.quizzes && !Array.isArray(response.quizzes)) {
       console.warn('⚠️ response.quizzes is not an array:', typeof response.quizzes);
@@ -160,7 +172,7 @@ export class QuizService {
    * بدء اختبار جديد
    */
   async startQuiz(quizId: number, accessToken: string): Promise<StartQuizResponse> {
-    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.START_QUIZ}/${quizId}/start`;
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.START_QUIZ}`;
     
     console.log('🔍 Start Quiz API Request:', {
       url,
@@ -173,46 +185,82 @@ export class QuizService {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
+      body: JSON.stringify({ quizId }),
     });
 
     console.log('📡 Start Quiz API Response:', {
-      success: response.success,
-      attemptId: response.attemptId,
-      startedAt: response.startedAt
+      id: response.id,
+      quizId: response.quizId,
+      attemptNumber: response.attemptNumber,
+      status: response.status,
+      startedAt: response.startedAt,
+      questionsCount: response.quiz.questions.length
     });
 
     return response;
   }
 
   /**
-   * إرسال إجابات الاختبار
+   * الإجابة على سؤال
    */
-  async submitQuiz(
-    quizId: number,
-    submitData: SubmitQuizRequest,
+  async answerQuestion(
+    answerData: any,
     accessToken: string
-  ): Promise<SubmitQuizResponse> {
-    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SUBMIT_QUIZ}/${quizId}/submit`;
+  ): Promise<any> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ANSWER_QUESTION}`;
     
-    console.log('🔍 Submit Quiz API Request:', {
+    console.log('🔍 Answer Question API Request:', {
       url,
-      quizId,
-      answersCount: submitData.answers.length,
+      questionId: answerData.questionId,
       hasToken: !!accessToken
     });
 
-    const response = await QuizService.makeRequest<SubmitQuizResponse>(url, {
+    const response = await QuizService.makeRequest<any>(url, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
-      body: JSON.stringify(submitData),
+      body: JSON.stringify(answerData),
+    });
+
+    console.log('📡 Answer Question API Response:', {
+      id: response.id,
+      questionId: response.questionId,
+      isCorrect: response.isCorrect
+    });
+
+    return response;
+  }
+
+  /**
+   * إرسال (تسليم) الاختبار النهائي
+   */
+  async submitQuiz(
+    attemptId: string,
+    accessToken: string
+  ): Promise<any> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SUBMIT_QUIZ}`;
+    
+    console.log('🔍 Submit Quiz API Request:', {
+      url,
+      attemptId,
+      hasToken: !!accessToken
+    });
+
+    const response = await QuizService.makeRequest<any>(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ attemptId }),
     });
 
     console.log('📡 Submit Quiz API Response:', {
-      success: response.success,
-      percentage: response.result?.percentage,
-      passed: response.result?.passed
+      id: response.id,
+      score: response.score,
+      percentage: response.percentage,
+      passed: response.passed,
+      status: response.status
     });
 
     return response;
