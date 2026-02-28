@@ -24,6 +24,30 @@ interface TrainingContentsScreenProps {
   onBack: () => void;
 }
 
+interface TermGroup {
+  classNumber: number;
+  name: string;
+  contents: TrainingContent[];
+}
+
+const TERM_LABELS: Record<number, string> = {
+  1: 'الترم الأول',
+  2: 'الترم الثاني',
+  3: 'الترم الثالث',
+  4: 'الترم الرابع',
+  5: 'الترم الخامس',
+  6: 'الترم السادس',
+};
+
+const TERM_ICONS: Record<number, string> = {
+  1: '1️⃣',
+  2: '2️⃣',
+  3: '3️⃣',
+  4: '4️⃣',
+  5: '5️⃣',
+  6: '6️⃣',
+};
+
 const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
   accessToken,
   onBack,
@@ -36,6 +60,7 @@ const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
   const [contents, setContents] = useState<TrainingContent[]>([]);
   const [_userProgramId, setUserProgramId] = useState<number | null>(null);
   const [userProgramName, setUserProgramName] = useState<string>('');
+  const [selectedTerm, setSelectedTerm] = useState<number | null>(null);
 
   // Navigation state
   const [selectedContent, setSelectedContent] = useState<TrainingContent | null>(null);
@@ -101,6 +126,32 @@ const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
   const getTotalLectures = (content: TrainingContent): number => {
     return content.theorySessionsPerWeek + content.practicalSessionsPerWeek;
   };
+
+  // Group contents by classroom.classNumber (semester/term)
+  const termGroups: TermGroup[] = React.useMemo(() => {
+    const grouped = new Map<number, TermGroup>();
+    contents.forEach((c) => {
+      const num = c.classroom?.classNumber ?? 0;
+      if (!grouped.has(num)) {
+        grouped.set(num, {
+          classNumber: num,
+          name: c.classroom?.name || TERM_LABELS[num] || `ترم ${num}`,
+          contents: [],
+        });
+      }
+      grouped.get(num)!.contents.push(c);
+    });
+    // Sort groups by classNumber ascending
+    return Array.from(grouped.values()).sort((a, b) => a.classNumber - b.classNumber);
+  }, [contents]);
+
+  // Available term numbers for filter tabs
+  const availableTerms = termGroups.map((g) => g.classNumber);
+
+  // Filtered groups based on selected term
+  const visibleGroups = selectedTerm === null
+    ? termGroups
+    : termGroups.filter((g) => g.classNumber === selectedTerm);
 
   // Navigate to lectures screen if a content is selected
   if (showLectures && selectedContent) {
@@ -195,11 +246,73 @@ const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
           </View>
         )}
 
-        {/* Contents */}
+        {/* Term Filter Tabs */}
+        {!isLoading && !error && termGroups.length > 1 && (
+          <View style={s.termTabsWrapper}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.termTabsRow}
+            >
+              <TouchableOpacity
+                style={[s.termTab, selectedTerm === null && s.termTabActive]}
+                onPress={() => setSelectedTerm(null)}
+                activeOpacity={0.7}
+              >
+                <Text style={[s.termTabText, selectedTerm === null && s.termTabTextActive]}>الكل</Text>
+                <View style={[s.termTabCount, selectedTerm === null && s.termTabCountActive]}>
+                  <Text style={[s.termTabCountText, selectedTerm === null && s.termTabCountTextActive]}>
+                    {contents.length}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              {termGroups.map((group) => (
+                <TouchableOpacity
+                  key={group.classNumber}
+                  style={[s.termTab, selectedTerm === group.classNumber && s.termTabActive]}
+                  onPress={() => setSelectedTerm(group.classNumber)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[s.termTabText, selectedTerm === group.classNumber && s.termTabTextActive]}>
+                    {TERM_LABELS[group.classNumber] || `ترم ${group.classNumber}`}
+                  </Text>
+                  <View style={[s.termTabCount, selectedTerm === group.classNumber && s.termTabCountActive]}>
+                    <Text style={[s.termTabCountText, selectedTerm === group.classNumber && s.termTabCountTextActive]}>
+                      {group.contents.length}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Contents grouped by Term */}
         {!isLoading && !error && contents.length > 0 && (
-          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], gap: 14 }}>
-            <Text style={s.sectionTitle}>المقررات الدراسية ({contents.length})</Text>
-            {contents.map(renderContentCard)}
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+            {visibleGroups.map((group) => (
+              <View key={group.classNumber} style={s.termSection}>
+                {/* Term Section Header */}
+                <View style={s.termHeader}>
+                  <View style={s.termHeaderLeft}>
+                    <View style={s.termCountBadge}>
+                      <Text style={s.termCountBadgeText}>{group.contents.length} مادة</Text>
+                    </View>
+                  </View>
+                  <View style={s.termHeaderRight}>
+                    <Text style={s.termIcon}>{TERM_ICONS[group.classNumber] || '📋'}</Text>
+                    <View>
+                      <Text style={s.termTitle}>{TERM_LABELS[group.classNumber] || `ترم ${group.classNumber}`}</Text>
+                      <Text style={s.termSubtitle}>{group.name}</Text>
+                    </View>
+                  </View>
+                </View>
+                {/* Term Contents */}
+                <View style={s.termCards}>
+                  {group.contents.map(renderContentCard)}
+                </View>
+              </View>
+            ))}
           </Animated.View>
         )}
 
@@ -250,7 +363,115 @@ const s = StyleSheet.create({
   },
   bannerLabel: { fontSize: 12, color: 'rgba(255,255,255,0.8)', textAlign: 'right', marginBottom: 2 },
   bannerValue: { fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'right' },
-  // Section
+  // Term Tabs
+  termTabsWrapper: {
+    marginBottom: 16,
+  },
+  termTabsRow: {
+    flexDirection: 'row-reverse',
+    gap: 8,
+    paddingVertical: 2,
+  },
+  termTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#EEF2F6',
+    gap: 6,
+  },
+  termTabActive: {
+    backgroundColor: '#0D9488',
+    borderColor: '#0D9488',
+  },
+  termTabText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#6B7280',
+  },
+  termTabTextActive: {
+    color: '#FFF',
+  },
+  termTabCount: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 8,
+    minWidth: 24,
+    alignItems: 'center',
+  },
+  termTabCountActive: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  termTabCountText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#6B7280',
+  },
+  termTabCountTextActive: {
+    color: '#FFF',
+  },
+  // Term Section
+  termSection: {
+    marginBottom: 20,
+  },
+  termHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFF',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  termHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  termHeaderLeft: {
+    alignItems: 'flex-start',
+  },
+  termIcon: {
+    fontSize: 22,
+  },
+  termTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1F2937',
+    textAlign: 'right',
+  },
+  termSubtitle: {
+    fontSize: 11,
+    color: '#6B7280',
+    textAlign: 'right',
+    marginTop: 1,
+  },
+  termCountBadge: {
+    backgroundColor: '#E8F8F5',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  termCountBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0D9488',
+  },
+  termCards: {
+    gap: 12,
+  },
+  // Section (legacy)
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#1A1D26', textAlign: 'right', marginBottom: 10 },
   // Card
   card: {

@@ -74,6 +74,10 @@ export const API_CONFIG = {
     MY_DEFERRAL_REQUESTS: '/api/deferral-requests/my-requests',
     CREATE_TRAINEE_REQUEST: '/api/trainee-requests',
     REQUEST_DETAILS: '/api/trainee-auth/request',
+    GRADE_APPEALS: '/api/grade-appeals/my-appeals',
+    ACCESS_CHECK: '/api/trainee-platform/access-check',
+    VERIFY_ATTENDANCE_CODE: '/api/trainee-auth/verify-attendance-code',
+    TRAINEE_GRADES: '/api/grades/trainee', // + /{traineeId}
   },
   
   // Request timeout in milliseconds

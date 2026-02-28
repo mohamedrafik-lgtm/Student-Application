@@ -27,6 +27,8 @@ import PaymentDeferralRequestsScreen from '../screens/PaymentDeferralRequestsScr
 import CreatePaymentDeferralScreen from '../screens/CreatePaymentDeferralScreen';
 import RequestSettingsScreen from '../screens/RequestSettingsScreen';
 import PaymentDueDatesScreen from '../screens/PaymentDueDatesScreen';
+import RegisterAttendanceScreen from '../screens/RegisterAttendanceScreen';
+import AcademicResultsScreen from '../screens/AcademicResultsScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
 import { BranchType } from '../types/auth';
@@ -41,7 +43,7 @@ interface UserInfo {
   traineeId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates' | 'register-attendance' | 'academic-results';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -186,6 +188,22 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('home');
   };
 
+  const handleNavigateToRegisterAttendance = () => {
+    setCurrentScreen('register-attendance');
+  };
+
+  const handleBackToHomeFromRegisterAttendance = () => {
+    setCurrentScreen('home');
+  };
+
+  const handleNavigateToAcademicResults = () => {
+    setCurrentScreen('academic-results');
+  };
+
+  const handleBackToHomeFromAcademicResults = () => {
+    setCurrentScreen('home');
+  };
+
   const handleNavigateToTrainingContents = () => {
     setCurrentScreen('training-contents');
   };
@@ -306,6 +324,23 @@ const AppNavigator: React.FC = () => {
     let screenElement: React.ReactElement | null = null;
 
     switch (currentScreen) {
+      case 'academic-results':
+        screenElement = (
+          <AcademicResultsScreen
+            accessToken={userInfo.accessToken}
+            traineeId={userInfo.traineeId}
+            onBack={handleBackToHomeFromAcademicResults}
+          />
+        );
+        break;
+      case 'register-attendance':
+        screenElement = (
+          <RegisterAttendanceScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackToHomeFromRegisterAttendance}
+          />
+        );
+        break;
       case 'attendance':
         screenElement = (
           <AttendanceScreen
@@ -477,6 +512,8 @@ const AppNavigator: React.FC = () => {
             onNavigateToDocuments={handleNavigateToDocuments}
             onNavigateToPayments={handleNavigateToPayments}
             onNavigateToStudentRequests={handleNavigateToRequestsHub}
+            onNavigateToRegisterAttendance={handleNavigateToRegisterAttendance}
+            onNavigateToAcademicResults={handleNavigateToAcademicResults}
           />
         );
         break;
