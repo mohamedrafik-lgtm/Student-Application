@@ -1,9 +1,4 @@
-// SOLID Principles Applied:
-// 1. Single Responsibility: This screen only handles content lectures display
-// 2. Open/Closed: Can be extended with new features without modifying existing code
-// 3. Interface Segregation: Uses specific interfaces for content details
-// 4. Dependency Inversion: Depends on abstractions (services) not concretions
-
+// ContentLecturesScreen – lectures grouped by chapter for a selected course
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -16,7 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
-import { Colors } from '../styles/colors';
 import { trainingContentsService } from '../services/trainingContentsService';
 import { lecturesService } from '../services/lecturesService';
 import LectureViewScreen from './LectureViewScreen';
@@ -42,37 +36,24 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
   accessToken,
   onBack,
 }) => {
-  // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
-  // State
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [contentDetails, setContentDetails] = useState<TrainingContentDetails | null>(null);
   const [lectures, setLectures] = useState<Lecture[]>([]);
-  const [expandedChapter, setExpandedChapter] = useState<number | null>(1); // الباب الأول مفتوح افتراضياً
-  
+  const [expandedChapter, setExpandedChapter] = useState<number | null>(1);
+
   // Navigation state
   const [selectedLecture, setSelectedLecture] = useState<Lecture | null>(null);
   const [showLectureView, setShowLectureView] = useState(false);
 
   useEffect(() => {
-    // Start animations
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
     ]).start();
-
-    // Load content details
     loadContentDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -82,22 +63,13 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
       setIsLoading(true);
       setError(null);
 
-      console.log('🔍 Loading content details and lectures for:', contentId);
-      
-      // تحميل تفاصيل المادة
       const detailsResponse = await trainingContentsService.getTrainingContentDetails(contentId, accessToken);
-      console.log('✅ Content details loaded successfully!');
       setContentDetails(detailsResponse);
 
-      // تحميل المحاضرات
       const lecturesResponse = await lecturesService.getContentLectures(contentId, accessToken);
-      console.log('✅ Lectures loaded successfully!', lecturesResponse.length);
       setLectures(lecturesResponse);
-
     } catch (error) {
-      console.error('❌ Failed to load data:', error);
       const apiError = error as TrainingContentsError;
-      
       let errorMessage = 'حدث خطأ أثناء تحميل البيانات';
       if (apiError.statusCode === 401) {
         errorMessage = 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى';
@@ -106,7 +78,6 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
       } else if (apiError.message) {
         errorMessage = apiError.message;
       }
-      
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -129,123 +100,47 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
 
   const getLectureTypeText = (type: LectureType): string => {
     switch (type) {
-      case 'VIDEO':
-        return 'فيديو';
-      case 'PDF':
-        return 'ملف PDF';
-      case 'BOTH':
-        return 'فيديو وملف PDF';
-      default:
-        return type;
+      case 'VIDEO': return 'فيديو';
+      case 'PDF': return 'ملف PDF';
+      case 'BOTH': return 'فيديو وملف PDF';
+      default: return type;
     }
   };
 
   const getLectureTypeIcon = (type: LectureType): string => {
     switch (type) {
-      case 'VIDEO':
-        return '▶️';
-      case 'PDF':
-        return '📄';
-      case 'BOTH':
-        return '📚';
-      default:
-        return '📖';
+      case 'VIDEO': return '▶️';
+      case 'PDF': return '📄';
+      case 'BOTH': return '📚';
+      default: return '📖';
     }
   };
 
-  // الحصول على محاضرات باب معين
+  const getLectureTypeColor = (type: LectureType): string => {
+    switch (type) {
+      case 'VIDEO': return '#EF4444';
+      case 'PDF': return '#2563EB';
+      case 'BOTH': return '#8B5CF6';
+      default: return '#8E95A2';
+    }
+  };
+
+  const getLectureTypeBg = (type: LectureType): string => {
+    switch (type) {
+      case 'VIDEO': return '#FEF2F2';
+      case 'PDF': return '#EBF5FF';
+      case 'BOTH': return '#F3F0FF';
+      default: return '#F4F6FA';
+    }
+  };
+
   const getLecturesForChapter = (chapterNumber: number): Lecture[] => {
     return lectures
       .filter(lecture => lecture.chapter === chapterNumber)
       .sort((a, b) => a.order - b.order);
   };
 
-  const renderLecturesForChapter = (chapterNumber: number) => {
-    const chapterLectures = getLecturesForChapter(chapterNumber);
-
-    if (chapterLectures.length === 0) {
-      return (
-        <View style={styles.noLecturesContainer}>
-          <Text style={styles.noLecturesText}>لا توجد محاضرات في هذا الباب</Text>
-        </View>
-      );
-    }
-
-    return chapterLectures.map((lecture) => (
-      <View key={lecture.id} style={styles.lectureCard}>
-        <View style={styles.lectureHeader}>
-          {/* Lecture Number Badge */}
-          <View style={styles.lectureNumberBadge}>
-            <Text style={styles.lectureNumberText}>#{lecture.order}</Text>
-          </View>
-          
-          {/* Lecture Title */}
-          <View style={styles.lectureTitleContainer}>
-            <Text style={styles.lectureTitle}>{lecture.title}</Text>
-            {lecture.description && (
-              <Text style={styles.lectureDescription} numberOfLines={2}>
-                {lecture.description}
-              </Text>
-            )}
-          </View>
-        </View>
-
-        {/* Lecture Meta */}
-        <View style={styles.lectureMeta}>
-          <View style={styles.lectureTypeBadge}>
-            <Text style={styles.lectureTypeIcon}>{getLectureTypeIcon(lecture.type)}</Text>
-            <Text style={styles.lectureTypeText}>{getLectureTypeText(lecture.type)}</Text>
-          </View>
-        </View>
-
-        {/* View Lecture Button */}
-        <TouchableOpacity
-          style={styles.viewLectureButton}
-          onPress={() => handleViewLecture(lecture)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.viewLectureButtonIcon}>👁️</Text>
-          <Text style={styles.viewLectureButtonText}>عرض المحاضرة</Text>
-        </TouchableOpacity>
-      </View>
-    ));
-  };
-
-  const renderChapter = (chapterNumber: number) => {
-    const isExpanded = expandedChapter === chapterNumber;
-
-    return (
-      <View key={chapterNumber} style={styles.chapterContainer}>
-        {/* Chapter Header */}
-        <TouchableOpacity
-          style={styles.chapterHeader}
-          onPress={() => toggleChapter(chapterNumber)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.chapterTitleContainer}>
-            <Text style={styles.chapterTitle}>الباب {chapterNumber}</Text>
-            <Text style={styles.chapterLecturesCount}>
-              {getLecturesForChapter(chapterNumber).length} محاضرة متاحة
-            </Text>
-          </View>
-          <View style={[styles.chapterExpandIcon, isExpanded && styles.chapterExpandIconActive]}>
-            <Text style={styles.chapterExpandIconText}>
-              {isExpanded ? '▲' : '▼'}
-            </Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Chapter Lectures */}
-        {isExpanded && (
-          <Animated.View style={[styles.lecturesContainer, { opacity: fadeAnim }]}>
-            {renderLecturesForChapter(chapterNumber)}
-          </Animated.View>
-        )}
-      </View>
-    );
-  };
-
-  // إذا تم اختيار محاضرة، عرض شاشة المحاضرة
+  // Navigate to lecture view if selected
   if (showLectureView && selectedLecture) {
     return (
       <LectureViewScreen
@@ -259,399 +154,204 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={s.container}>
       {/* Header */}
-      <Animated.View
-        style={[
-          styles.header,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
-      >
-        <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
-          <View style={styles.backButtonContainer}>
-            <Text style={styles.backButtonText}>←</Text>
-          </View>
+      <View style={s.header}>
+        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
+          <Text style={s.backIcon}>→</Text>
         </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>محاضرات {contentName}</Text>
-          <Text style={styles.headerSubtitle}>
-            كود المقرر: {contentCode} • {contentDetails?._count.scheduleSlots || 0} محاضرة متاحة
+        <View style={{ flex: 1, marginRight: 14 }}>
+          <Text style={s.headerTitle} numberOfLines={1}>{contentName}</Text>
+          <Text style={s.headerSub}>
+            كود: {contentCode} • {contentDetails?._count.scheduleSlots || 0} محاضرة
           </Text>
         </View>
-        <View style={styles.headerSpacer} />
-      </Animated.View>
+        <View style={{ width: 38 }} />
+      </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Loading State */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        {/* Loading */}
         {isLoading && (
-          <Animated.View style={[styles.loadingContainer, { opacity: fadeAnim }]}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingText}>جاري تحميل المحاضرات...</Text>
-          </Animated.View>
+          <View style={s.center}>
+            <ActivityIndicator size="large" color="#2563EB" />
+            <Text style={s.loadingText}>جاري تحميل المحاضرات...</Text>
+          </View>
         )}
 
-        {/* Error State */}
+        {/* Error */}
         {error && !isLoading && (
-          <Animated.View
-            style={[
-              styles.errorContainer,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            <Text style={styles.errorEmoji}>⚠️</Text>
-            <Text style={styles.errorText}>{error}</Text>
-            <CustomButton
-              title="إعادة المحاولة"
-              onPress={loadContentDetails}
-              variant="outline"
-              size="medium"
-            />
-          </Animated.View>
+          <View style={s.center}>
+            <View style={s.errorCircle}><Text style={{ fontSize: 32 }}>⚠️</Text></View>
+            <Text style={s.errorText}>{error}</Text>
+            <CustomButton title="إعادة المحاولة" onPress={loadContentDetails} variant="outline" size="medium" />
+          </View>
         )}
 
-        {/* Chapters List */}
+        {/* Chapters */}
         {!isLoading && !error && contentDetails && (
-          <Animated.View
-            style={[
-              styles.chaptersContainer,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            {/* عرض الأبواب حسب عدد chaptersCount */}
-            {Array.from({ length: contentDetails.chaptersCount || 1 }, (_, i) =>
-              renderChapter(i + 1)
-            )}
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], gap: 14 }}>
+            {Array.from({ length: contentDetails.chaptersCount || 1 }, (_, i) => {
+              const chapterNum = i + 1;
+              const chapterLectures = getLecturesForChapter(chapterNum);
+              const isExpanded = expandedChapter === chapterNum;
+              return (
+                <View key={chapterNum} style={s.chapterCard}>
+                  {/* Chapter header */}
+                  <TouchableOpacity style={s.chapterHeader} onPress={() => toggleChapter(chapterNum)} activeOpacity={0.7}>
+                    <View style={s.chapterLeft}>
+                      <View style={s.chapterNum}>
+                        <Text style={s.chapterNumText}>{chapterNum}</Text>
+                      </View>
+                      <View>
+                        <Text style={s.chapterTitle}>الباب {chapterNum}</Text>
+                        <Text style={s.chapterCount}>{chapterLectures.length} محاضرة</Text>
+                      </View>
+                    </View>
+                    <View style={[s.expandIcon, isExpanded && s.expandIconActive]}>
+                      <Text style={{ fontSize: 12, color: isExpanded ? '#2563EB' : '#8E95A2' }}>
+                        {isExpanded ? '▲' : '▼'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Lectures */}
+                  {isExpanded && (
+                    <View style={s.lecturesList}>
+                      {chapterLectures.length === 0 ? (
+                        <Text style={s.noLectures}>لا توجد محاضرات في هذا الباب</Text>
+                      ) : (
+                        chapterLectures.map(lecture => (
+                          <TouchableOpacity
+                            key={lecture.id}
+                            style={s.lectureItem}
+                            onPress={() => handleViewLecture(lecture)}
+                            activeOpacity={0.7}
+                          >
+                            <View style={s.lectureRow}>
+                              <View style={s.lectureOrder}>
+                                <Text style={s.lectureOrderText}>{lecture.order}</Text>
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={s.lectureTitle}>{lecture.title}</Text>
+                                {lecture.description ? (
+                                  <Text style={s.lectureDesc} numberOfLines={2}>{lecture.description}</Text>
+                                ) : null}
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 6 }}>
+                                  <View style={[s.typeBadge, { backgroundColor: getLectureTypeBg(lecture.type) }]}>
+                                    <Text style={{ fontSize: 10 }}>{getLectureTypeIcon(lecture.type)}</Text>
+                                    <Text style={[s.typeBadgeText, { color: getLectureTypeColor(lecture.type) }]}>
+                                      {getLectureTypeText(lecture.type)}
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
+                              <Text style={{ fontSize: 14, color: '#C4C9D4', marginRight: 4 }}>←</Text>
+                            </View>
+                          </TouchableOpacity>
+                        ))
+                      )}
+                    </View>
+                  )}
+                </View>
+              );
+            })}
           </Animated.View>
         )}
 
-        {/* Empty State */}
+        {/* Empty */}
         {!isLoading && !error && !contentDetails && (
-          <Animated.View
-            style={[
-              styles.emptyContainer,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            <Text style={styles.emptyEmoji}>📚</Text>
-            <Text style={styles.emptyTitle}>لا توجد محاضرات</Text>
-            <Text style={styles.emptyDescription}>
-              لا توجد محاضرات متاحة لهذه المادة في الوقت الحالي
-            </Text>
-          </Animated.View>
+          <View style={s.center}>
+            <Text style={{ fontSize: 56, marginBottom: 16 }}>📚</Text>
+            <Text style={s.emptyTitle}>لا توجد محاضرات</Text>
+            <Text style={s.emptyDesc}>لا توجد محاضرات متاحة لهذه المادة في الوقت الحالي</Text>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F4F6FA' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: Colors.white,
+    backgroundColor: '#fff',
+    paddingHorizontal: 18,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 6,
+    borderBottomColor: '#EEF2F6',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
   },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+  backBtn: {
+    width: 38, height: 38, borderRadius: 19, backgroundColor: '#F0F4FF',
+    alignItems: 'center', justifyContent: 'center',
   },
-  backButtonContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: Colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: Colors.primary,
-    fontWeight: '800',
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 12,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 2,
-  },
-  headerSpacer: {
-    width: 44,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 32,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 80,
-  },
-  loadingText: {
-    marginTop: 20,
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  errorContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 20,
-  },
-  errorEmoji: {
-    fontSize: 72,
-    marginBottom: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    color: Colors.error,
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 20,
-  },
-  emptyEmoji: {
-    fontSize: 96,
-    marginBottom: 24,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  emptyDescription: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  chaptersContainer: {
-    gap: 16,
-  },
-  chapterContainer: {
-    backgroundColor: Colors.white,
+  backIcon: { fontSize: 18, color: '#2563EB', fontWeight: '700' },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
+  headerSub: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 2 },
+  scroll: { padding: 18, paddingBottom: 32 },
+  // Chapter
+  chapterCard: {
+    backgroundColor: '#fff',
     borderRadius: 16,
-    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    borderColor: '#EEF2F6',
+    overflow: 'hidden',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
   chapterHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 18,
-    backgroundColor: Colors.backgroundSoft,
-  },
-  chapterTitleContainer: {
-    flex: 1,
-  },
-  chapterTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 4,
-    textAlign: 'right',
-  },
-  chapterLecturesCount: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    fontWeight: '600',
-    textAlign: 'right',
-  },
-  chapterExpandIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: Colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-  },
-  chapterExpandIconActive: {
-    backgroundColor: Colors.primarySoft,
-    borderColor: Colors.primary,
-  },
-  chapterExpandIconText: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-    fontWeight: '700',
-  },
-  lecturesContainer: {
     padding: 16,
-    gap: 12,
-    backgroundColor: Colors.background,
   },
-  lectureCard: {
-    backgroundColor: Colors.white,
+  chapterLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  chapterNum: {
+    width: 36, height: 36, borderRadius: 10, backgroundColor: '#2563EB',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  chapterNumText: { fontSize: 15, fontWeight: '800', color: '#fff' },
+  chapterTitle: { fontSize: 15, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
+  chapterCount: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 2 },
+  expandIcon: {
+    width: 32, height: 32, borderRadius: 10,
+    backgroundColor: '#F4F6FA', alignItems: 'center', justifyContent: 'center',
+  },
+  expandIconActive: { backgroundColor: '#EBF5FF' },
+  lecturesList: { backgroundColor: '#FAFBFD', padding: 12, gap: 10, borderTopWidth: 1, borderTopColor: '#EEF2F6' },
+  noLectures: { fontSize: 13, color: '#8E95A2', textAlign: 'center', paddingVertical: 16 },
+  // Lecture item
+  lectureItem: {
+    backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    borderColor: '#EEF2F6',
   },
-  lectureHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 12,
+  lectureRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  lectureOrder: {
+    width: 32, height: 32, borderRadius: 16, backgroundColor: '#E8FAF0',
+    alignItems: 'center', justifyContent: 'center',
   },
-  lectureNumberBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#10B981',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+  lectureOrderText: { fontSize: 13, fontWeight: '700', color: '#10B981' },
+  lectureTitle: { fontSize: 14, fontWeight: '600', color: '#1A1D26', textAlign: 'right' },
+  lectureDesc: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 3, lineHeight: 18 },
+  typeBadge: {
+    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: 6, gap: 4,
   },
-  lectureNumberText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: Colors.white,
+  typeBadgeText: { fontSize: 11, fontWeight: '600' },
+  // States
+  center: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
+  loadingText: { marginTop: 16, fontSize: 14, color: '#8E95A2', fontWeight: '600' },
+  errorCircle: {
+    width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
-  lectureTitleContainer: {
-    flex: 1,
-  },
-  lectureTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    textAlign: 'right',
-  },
-  lectureMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    justifyContent: 'flex-end',
-  },
-  lectureTypeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEE2E2',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    gap: 4,
-  },
-  lectureTypeIcon: {
-    fontSize: 12,
-  },
-  lectureTypeText: {
-    fontSize: 12,
-    color: '#EF4444',
-    fontWeight: '700',
-  },
-  viewLectureButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#10B981',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    gap: 6,
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  viewLectureButtonIcon: {
-    fontSize: 14,
-  },
-  viewLectureButtonText: {
-    fontSize: 14,
-    color: Colors.white,
-    fontWeight: '700',
-  },
-  noLecturesContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  noLecturesText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  lectureDescription: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    textAlign: 'right',
-    marginTop: 4,
-    lineHeight: 18,
-  },
+  errorText: { fontSize: 15, color: '#EF4444', textAlign: 'center', marginBottom: 20, fontWeight: '600', lineHeight: 22 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1A1D26', textAlign: 'center', marginBottom: 8 },
+  emptyDesc: { fontSize: 14, color: '#8E95A2', textAlign: 'center', lineHeight: 22 },
 });
 
 export default ContentLecturesScreen;

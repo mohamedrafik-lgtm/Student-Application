@@ -1,115 +1,114 @@
-// نسخة مبسطة للتأكد من عمل التنقل
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../styles/colors';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 interface GradesScreenProps {
   accessToken: string;
   onBack: () => void;
 }
 
-const GradesScreenSimple: React.FC<GradesScreenProps> = ({ 
-  accessToken, 
-  onBack 
+const GradesScreenSimple: React.FC<GradesScreenProps> = ({
+  accessToken,
+  onBack,
 }) => {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={s.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={onBack}
-        >
-          <Text style={styles.backButtonText}>←</Text>
+      <View style={s.header}>
+        <TouchableOpacity style={s.backBtn} onPress={onBack}>
+          <Text style={s.backArrow}>→</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>الدرجات</Text>
-        <View style={styles.headerSpacer} />
+        <View style={s.headerCenter}>
+          <Text style={s.headerTitle}>الدرجات</Text>
+        </View>
+        <View style={{width: 38}} />
       </View>
 
       {/* Content */}
-      <View style={styles.content}>
-        <Text style={styles.emoji}>📊</Text>
-        <Text style={styles.title}>صفحة الدرجات</Text>
-        <Text style={styles.description}>
-          مرحباً بك في صفحة الدرجات!
-        </Text>
-        <Text style={styles.tokenInfo}>
-          Access Token: {accessToken ? 'موجود' : 'غير موجود'}
-        </Text>
+      <View style={s.content}>
+        <Text style={s.emoji}>📊</Text>
+        <Text style={s.title}>صفحة الدرجات</Text>
+        <Text style={s.desc}>مرحباً بك في صفحة الدرجات!</Text>
+        <View style={s.tokenBadge}>
+          <Text style={s.tokenText}>
+            Access Token: {accessToken ? 'موجود ✓' : 'غير موجود'}
+          </Text>
+        </View>
       </View>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F4F6FA',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: '#FFF',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: '#EEF2F6',
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#F0F4FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backButtonText: {
-    fontSize: 24,
-    color: Colors.primary,
-    fontWeight: 'bold',
+  backArrow: {
+    fontSize: 18,
+    color: '#2563EB',
+    fontWeight: '700',
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'flex-end',
+    marginRight: 12,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: 40,
+    fontWeight: '700',
+    color: '#1A1D26',
   },
   content: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
   },
   emoji: {
-    fontSize: 80,
+    fontSize: 64,
     marginBottom: 20,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 12,
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1A1D26',
+    marginBottom: 10,
   },
-  description: {
-    fontSize: 16,
-    color: '#6B7280',
+  desc: {
+    fontSize: 15,
+    color: '#8E95A2',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
-  tokenInfo: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    textAlign: 'center',
+  tokenBadge: {
+    backgroundColor: '#FFF',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EEF2F6',
+  },
+  tokenText: {
+    fontSize: 13,
+    color: '#8E95A2',
   },
 });
 

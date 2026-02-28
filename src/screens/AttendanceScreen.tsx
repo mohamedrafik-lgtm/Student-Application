@@ -13,16 +13,16 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
-  Alert,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
 import { Colors } from '../styles/colors';
 import { attendanceService } from '../services/attendanceService';
 import { API_CONFIG } from '../services/apiConfig';
-import { 
-  AttendanceResponse, 
+import {
+  AttendanceResponse,
   ContentGroup,
   AttendanceSession,
   AttendanceStatus,
@@ -31,7 +31,7 @@ import {
   ATTENDANCE_STATUS_INFO,
   SESSION_TYPE_INFO,
   DAY_OF_WEEK_INFO,
-  AttendanceError 
+  AttendanceError,
 } from '../types/attendance';
 
 const { width } = Dimensions.get('window');
@@ -41,9 +41,12 @@ interface AttendanceScreenProps {
   onBack: () => void;
 }
 
-const AttendanceScreen: React.FC<AttendanceScreenProps> = ({ 
-  accessToken, 
-  onBack 
+// Term filter type
+type TermFilter = 'term1' | 'term2' | 'practical';
+
+const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
+  accessToken,
+  onBack,
 }) => {
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -51,13 +54,13 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
 
   // State
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attendanceData, setAttendanceData] = useState<AttendanceResponse | null>(null);
   const [expandedContent, setExpandedContent] = useState<number | null>(null);
-  const [selectedFilter, setSelectedFilter] = useState<'all' | AttendanceStatus>('all');
+  const [selectedTerm, setSelectedTerm] = useState<TermFilter>('term2');
 
   useEffect(() => {
-    // Start animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -71,7 +74,6 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
       }),
     ]).start();
 
-    // Load attendance data
     loadAttendance();
   }, []);
 
@@ -81,41 +83,28 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
       setError(null);
 
       console.log('🔍 Loading attendance records...');
-      console.log('ℹ️ API_BASE_URL:', API_CONFIG.BASE_URL);
-      console.log('ℹ️ accessToken present:', !!accessToken, accessToken ? `${accessToken.substring(0,20)}...` : 'no-token');
-
       const response = await attendanceService.getAttendanceRecords(accessToken);
-      
+
       console.log('✅ Attendance records loaded successfully!');
-      console.log('📊 Response structure:', {
-        success: response.success,
-        hasData: !!response.data,
-        traineeName: response.data?.trainee?.nameAr,
-        attendanceRate: response.data?.stats?.attendanceRate,
-        contentGroupsCount: response.data?.contentGroups?.length || 0
-      });
-      
-      // التحقق من وجود البيانات قبل التعيين
+
       if (response.success && response.data) {
         setAttendanceData(response.data);
       } else if (response.success === false) {
-        // إذا كان response.success = false، عرض رسالة الخطأ من الـ API
         const errorMessage = response.message || 'فشل في تحميل سجلات الحضور';
         setError(errorMessage);
         setAttendanceData(null);
       } else {
-        console.warn('⚠️ Invalid response structure or no attendance records found');
+        console.warn('⚠️ Invalid response structure');
         setAttendanceData(null);
-        
       }
-
     } catch (error) {
       console.error('❌ Failed to load attendance records:', error);
       const apiError = error as AttendanceError;
 
-      // Surface BASE_URL missing clearly to the UI
       if (apiError && apiError.message && apiError.message.includes('BASE_URL')) {
-        setError('خطأ تكوين: لم يتم تعيين عنوان الخادم (BASE_URL). يرجى اختيار الفرع أو إعادة تهيئة التطبيق.');
+        setError(
+          'خطأ تكوين: لم يتم تعيين عنوان الخادم (BASE_URL). يرجى اختيار الفرع أو إعادة تهيئة التطبيق.',
+        );
         setAttendanceData(null);
         setIsLoading(false);
         return;
@@ -129,312 +118,256 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
       } else if (apiError.message) {
         errorMessage = apiError.message;
       }
-
-  setError(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
-  const getAttendanceColor = (rate: number) => {
-    if (rate >= 90) return '#10B981'; // أخضر
-    if (rate >= 80) return '#3B82F6'; // أزرق
-    if (rate >= 70) return '#F59E0B'; // برتقالي
-    if (rate >= 60) return '#EF4444'; // أحمر
-    return '#6B7280'; // رمادي
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    loadAttendance();
   };
 
-  const getAttendanceStatus = (rate: number) => {
-    if (rate >= 90) return 'ممتاز';
-    if (rate >= 80) return 'جيد جداً';
-    if (rate >= 70) return 'جيد';
-    if (rate >= 60) return 'مقبول';
-    return 'ضعيف';
+  const getAttendanceColor = (rate: number) => {
+    if (rate >= 90) return '#10B981';
+    if (rate >= 80) return '#3B82F6';
+    if (rate >= 70) return '#F59E0B';
+    if (rate >= 60) return '#EF4444';
+    return '#6B7280';
   };
 
   const formatDate = (date: Date) => {
     const d = new Date(date);
     return d.toLocaleDateString('ar-EG', {
       year: 'numeric',
-      month: 'short',
+      month: 'long',
       day: 'numeric',
     });
   };
 
   const formatPercentage = (rate: number) => {
-    return `${rate.toFixed(1)}%`;
+    return `${Math.round(rate)}%`;
   };
 
   const toggleContent = (contentId: number) => {
     setExpandedContent(expandedContent === contentId ? null : contentId);
   };
 
-  const getFilteredSessions = (sessions: AttendanceSession[]) => {
-    if (selectedFilter === 'all') {
-      return sessions;
-    }
-    return sessions.filter(session => session.status === selectedFilter);
+  // Get first letter of content name for the avatar circle
+  const getContentInitial = (name: string) => {
+    return name.charAt(0) || 'م';
   };
 
+  // ────────────────────────────────────────────────
+  // Render helpers
+  // ────────────────────────────────────────────────
+
+  /** Circular percentage indicator (matches the website's 0% circle) */
+  const renderCircularProgress = (percentage: number) => {
+    const color = getAttendanceColor(percentage);
+    return (
+      <View style={styles.circularProgressContainer}>
+        <View style={[styles.circularProgressOuter, { borderColor: '#E5E7EB' }]}>
+          <View style={styles.circularProgressInner}>
+            <Text style={[styles.circularProgressText, { color }]}>
+              {formatPercentage(percentage)}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  /** One coloured stat card inside the summary row */
+  const renderStatCard = (
+    label: string,
+    value: number,
+    iconText: string,
+    bgColor: string,
+    iconColor: string,
+  ) => (
+    <View style={[styles.statCard, { backgroundColor: bgColor }]}>
+      <View style={styles.statCardHeader}>
+        <Text style={[styles.statCardIcon, { color: iconColor }]}>{iconText}</Text>
+        <Text style={[styles.statCardLabel, { color: iconColor }]}>{label}</Text>
+      </View>
+      <Text style={styles.statCardValue}>{value}</Text>
+    </View>
+  );
+
+  /** A single session row inside an expanded subject card */
   const renderSessionCard = (session: AttendanceSession) => {
     const statusInfo = ATTENDANCE_STATUS_INFO[session.status];
-    const sessionTypeInfo = SESSION_TYPE_INFO[session.sessionType];
     const dayInfo = DAY_OF_WEEK_INFO[session.dayOfWeek];
 
     return (
-      <View key={session.id} style={styles.sessionCard}>
-        <View style={styles.sessionHeader}>
-          <View style={styles.sessionInfo}>
-            <Text style={styles.sessionDate}>{formatDate(session.date)}</Text>
-            <Text style={styles.sessionDay}>{dayInfo.labelAr}</Text>
-          </View>
-          <View style={[
-            styles.statusBadge,
-            { backgroundColor: statusInfo.backgroundColor }
-          ]}>
-            <Text style={styles.statusIcon}>{statusInfo.icon}</Text>
-            <Text style={[
-              styles.statusText,
-              { color: statusInfo.color }
+      <View key={session.id} style={styles.sessionRow}>
+        {/* Status badge – left side */}
+        <View style={styles.sessionLeft}>
+          <View
+            style={[
+              styles.sessionStatusBadge,
+              { backgroundColor: statusInfo.backgroundColor },
             ]}>
+            <Text style={[styles.sessionStatusText, { color: statusInfo.color }]}>
               {statusInfo.labelAr}
             </Text>
           </View>
         </View>
 
-        <View style={styles.sessionDetails}>
-          <View style={styles.sessionType}>
-            <Text style={styles.sessionTypeIcon}>{sessionTypeInfo.icon}</Text>
-            <Text style={styles.sessionTypeText}>{sessionTypeInfo.labelAr}</Text>
+        {/* Date info – right side */}
+        <View style={styles.sessionRight}>
+          <View style={styles.sessionDateRow}>
+            <Text style={styles.sessionDateIcon}>⏰</Text>
+            <Text style={styles.sessionDayText}>{dayInfo.labelAr}</Text>
+            <Text style={styles.sessionDateDot}>•</Text>
+            <Text style={styles.sessionDateText}>{formatDate(session.date)}</Text>
           </View>
-          
           {session.isCancelled && (
             <View style={styles.cancelledBadge}>
               <Text style={styles.cancelledText}>ملغاة</Text>
             </View>
           )}
+          {session.notes && <Text style={styles.sessionNotes}>{session.notes}</Text>}
         </View>
-
-        {session.notes && (
-          <View style={styles.notesContainer}>
-            <Text style={styles.notesLabel}>ملاحظات:</Text>
-            <Text style={styles.notesText}>{session.notes}</Text>
-          </View>
-        )}
       </View>
     );
   };
 
+  /** Subject / content group card (matches website layout) */
   const renderContentGroup = (contentGroup: ContentGroup) => {
     const isExpanded = expandedContent === contentGroup.content.id;
-    const filteredSessions = getFilteredSessions(contentGroup.sessions);
+    const { stats } = contentGroup;
 
     return (
-      <View key={contentGroup.content.id} style={styles.contentGroupCard}>
-        {/* Content Header */}
+      <View key={contentGroup.content.id} style={styles.contentCard}>
+        {/* ── Card header ── */}
         <TouchableOpacity
-          style={styles.contentHeader}
+          style={styles.contentCardHeader}
           onPress={() => toggleContent(contentGroup.content.id)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.contentInfo}>
-            <Text style={styles.contentName}>{contentGroup.content.nameAr}</Text>
-            <Text style={styles.contentStats}>
-              {contentGroup.stats.total} جلسة • {formatPercentage(contentGroup.stats.attendanceRate)}
-            </Text>
+          activeOpacity={0.7}>
+          {/* Left: expand arrow + mini attendance/absence counters */}
+          <View style={styles.contentCardLeft}>
+            <View style={styles.expandButton}>
+              <Text style={styles.expandIcon}>{isExpanded ? '∧' : '∨'}</Text>
+            </View>
+            <View style={styles.contentMiniStats}>
+              <View style={styles.miniStatItem}>
+                <Text style={styles.miniStatValue}>{stats.present}</Text>
+                <Text style={styles.miniStatLabelGreen}>حضور</Text>
+              </View>
+              <View style={styles.miniStatItem}>
+                <Text style={[styles.miniStatValue, { color: '#EF4444' }]}>
+                  {stats.absent}
+                </Text>
+                <Text style={styles.miniStatLabelRed}>غياب</Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.contentGrade}>
-            <Text style={[
-              styles.contentPercentage,
-              { color: getAttendanceColor(contentGroup.stats.attendanceRate) }
-            ]}>
-              {formatPercentage(contentGroup.stats.attendanceRate)}
-            </Text>
-            <Text style={styles.expandIcon}>
-              {isExpanded ? '▲' : '▼'}
-            </Text>
+
+          {/* Right: subject name + badges + avatar circle */}
+          <View style={styles.contentCardRight}>
+            <View style={styles.contentNameArea}>
+              <Text style={styles.contentName}>{contentGroup.content.nameAr}</Text>
+              <View style={styles.contentBadges}>
+                <View style={styles.attendanceBadge}>
+                  <Text style={styles.attendanceBadgeText}>
+                    {formatPercentage(stats.attendanceRate)} حضور
+                  </Text>
+                </View>
+                <View style={styles.lectureBadge}>
+                  <Text style={styles.lectureBadgeText}>
+                    {stats.total} محاضرة
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View style={styles.contentAvatar}>
+              <Text style={styles.contentAvatarText}>
+                {getContentInitial(contentGroup.content.nameAr)}
+              </Text>
+            </View>
           </View>
         </TouchableOpacity>
 
-        {/* Content Stats */}
-        <View style={styles.contentStatsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statIcon}>✅</Text>
-            <Text style={styles.statValue}>{contentGroup.stats.present}</Text>
-            <Text style={styles.statLabel}>حاضر</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statIcon}>❌</Text>
-            <Text style={styles.statValue}>{contentGroup.stats.absent}</Text>
-            <Text style={styles.statLabel}>غائب</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statIcon}>⏰</Text>
-            <Text style={styles.statValue}>{contentGroup.stats.late}</Text>
-            <Text style={styles.statLabel}>متأخر</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statIcon}>📝</Text>
-            <Text style={styles.statValue}>{contentGroup.stats.excused}</Text>
-            <Text style={styles.statLabel}>بعذر</Text>
-          </View>
-        </View>
-
-        {/* Expanded Sessions */}
+        {/* ── Expanded sessions list ── */}
         {isExpanded && (
-          <Animated.View style={[
-            styles.sessionsContainer,
-            { opacity: fadeAnim }
-          ]}>
-            <Text style={styles.sessionsTitle}>سجلات الحضور:</Text>
-            {filteredSessions.length > 0 ? (
-              filteredSessions.map(renderSessionCard)
+          <View style={styles.sessionsContainer}>
+            {contentGroup.sessions.length > 0 ? (
+              contentGroup.sessions.map(renderSessionCard)
             ) : (
               <View style={styles.noSessionsContainer}>
-                <Text style={styles.noSessionsText}>لا توجد جلسات تطابق الفلتر المحدد</Text>
+                <Text style={styles.noSessionsText}>
+                  لا توجد سجلات حضور لهذه المادة
+                </Text>
               </View>
             )}
-          </Animated.View>
+          </View>
         )}
       </View>
     );
   };
 
+  // ────────────────────────────────────────────────
+  // Main render
+  // ────────────────────────────────────────────────
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <Animated.View style={[
-        styles.header,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }]
-        }
-      ]}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={onBack}
-        >
-          <Text style={styles.backButtonText}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>الحضور والغياب</Text>
-        <View style={styles.headerSpacer} />
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      {/* ══════════ Header ══════════ */}
+      <Animated.View
+        style={[
+          styles.header,
+          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}>
+        <View style={styles.headerTop}>
+          {/* "سجل محدث" badge – left */}
+          <View style={styles.updatedBadge}>
+            <Text style={styles.updatedBadgeIcon}>📅</Text>
+            <Text style={styles.updatedBadgeText}>سجل محدث</Text>
+          </View>
+
+          {/* Title area – centre-right */}
+          <View style={styles.headerTitleArea}>
+            <Text style={styles.headerTitle}>سجل الحضور</Text>
+            <Text style={styles.headerSubtitle}>
+              متابعة حضورك في المحاضرات التدريبية
+            </Text>
+          </View>
+
+          {/* Back arrow – right */}
+          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <Text style={styles.backButtonText}>→</Text>
+          </TouchableOpacity>
+        </View>
       </Animated.View>
 
-      {/* Filter Tabs */}
-      {!isLoading && !error && attendanceData && attendanceData.contentGroups.length > 0 && (
-        <Animated.View style={[
-          styles.filterContainer,
-          { opacity: fadeAnim }
-        ]}>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterScrollContent}
-          >
-            <TouchableOpacity
-              style={[
-                styles.filterTab,
-                selectedFilter === 'all' && styles.filterTabActive
-              ]}
-              onPress={() => setSelectedFilter('all')}
-            >
-              <Text style={[
-                styles.filterTabText,
-                selectedFilter === 'all' && styles.filterTabTextActive
-              ]}>
-                الكل
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.filterTab,
-                selectedFilter === AttendanceStatus.PRESENT && styles.filterTabActive
-              ]}
-              onPress={() => setSelectedFilter(AttendanceStatus.PRESENT)}
-            >
-              <Text style={[
-                styles.filterTabText,
-                selectedFilter === AttendanceStatus.PRESENT && styles.filterTabTextActive
-              ]}>
-                حاضر
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.filterTab,
-                selectedFilter === AttendanceStatus.ABSENT && styles.filterTabActive
-              ]}
-              onPress={() => setSelectedFilter(AttendanceStatus.ABSENT)}
-            >
-              <Text style={[
-                styles.filterTabText,
-                selectedFilter === AttendanceStatus.ABSENT && styles.filterTabTextActive
-              ]}>
-                غائب
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.filterTab,
-                selectedFilter === AttendanceStatus.LATE && styles.filterTabActive
-              ]}
-              onPress={() => setSelectedFilter(AttendanceStatus.LATE)}
-            >
-              <Text style={[
-                styles.filterTabText,
-                selectedFilter === AttendanceStatus.LATE && styles.filterTabTextActive
-              ]}>
-                متأخر
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.filterTab,
-                selectedFilter === AttendanceStatus.EXCUSED && styles.filterTabActive
-              ]}
-              onPress={() => setSelectedFilter(AttendanceStatus.EXCUSED)}
-            >
-              <Text style={[
-                styles.filterTabText,
-                selectedFilter === AttendanceStatus.EXCUSED && styles.filterTabTextActive
-              ]}>
-                بعذر
-              </Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </Animated.View>
-      )}
-
-      <ScrollView 
+      {/* ══════════ Body ══════════ */}
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-      >
-        
-        {/* Loading State */}
-        {isLoading && (
-          <Animated.View style={[
-            styles.loadingContainer,
-            { opacity: fadeAnim }
-          ]}>
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }>
+        {/* Loading */}
+        {isLoading && !isRefreshing && (
+          <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={styles.loadingText}>جاري تحميل سجلات الحضور...</Text>
-          </Animated.View>
+          </View>
         )}
 
-        {/* Error State */}
+        {/* Error */}
         {error && !isLoading && (
-          <Animated.View style={[
-            styles.errorContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}>
+          <View style={styles.errorContainer}>
             <Text style={styles.errorEmoji}>⚠️</Text>
             <Text style={styles.errorText}>{error}</Text>
             <CustomButton
@@ -443,191 +376,240 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
               variant="outline"
               size="medium"
             />
-          </Animated.View>
+          </View>
         )}
 
-        {/* Attendance Data */}
+        {/* ══════════ Attendance Data ══════════ */}
         {!isLoading && !error && attendanceData && (
-          <Animated.View style={[
-            styles.attendanceContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}>
-            {/* Overall Stats */}
-            <View style={styles.overallStatsCard}>
-              <View style={styles.overallStatsHeader}>
-                <Text style={styles.overallStatsTitle}>إحصائيات الحضور</Text>
-                <Text style={styles.traineeName}>{attendanceData.trainee.nameAr}</Text>
-              </View>
-              
-              <View style={styles.overallStatsContent}>
-                <View style={styles.overallStatItem}>
-                  <Text style={styles.overallStatValue}>
-                    {formatPercentage(attendanceData.stats.attendanceRate)}
-                  </Text>
-                  <Text style={styles.overallStatLabel}>نسبة الحضور</Text>
-                </View>
-                
-                <View style={styles.overallStatItem}>
-                  <Text style={styles.overallStatValue}>
-                    {attendanceData.stats.total}
-                  </Text>
-                  <Text style={styles.overallStatLabel}>إجمالي الجلسات</Text>
-                </View>
-                
-                <View style={styles.overallStatItem}>
-                  <Text style={styles.overallStatValue}>
-                    {attendanceData.stats.present}
-                  </Text>
-                  <Text style={styles.overallStatLabel}>حاضر</Text>
-                </View>
-              </View>
+          <Animated.View
+            style={[
+              styles.attendanceContainer,
+              { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+            ]}>
+            {/* ── Overall Stats Summary ── */}
+            <View style={styles.summaryCard}>
+              <View style={styles.summaryRow}>
+                {renderStatCard(
+                  'تأخر',
+                  attendanceData.stats.late,
+                  '⏰',
+                  '#FEF9E7',
+                  '#D4A017',
+                )}
+                {renderStatCard(
+                  'غياب',
+                  attendanceData.stats.absent,
+                  '✕',
+                  '#FDEDEE',
+                  '#E74C3C',
+                )}
+                {renderStatCard(
+                  'حضور',
+                  attendanceData.stats.present,
+                  '✓',
+                  '#E8F8F5',
+                  '#27AE60',
+                )}
+                {renderStatCard(
+                  'إجمالي المحاضرات',
+                  attendanceData.stats.total,
+                  '📋',
+                  '#EBF5FB',
+                  '#2E86C1',
+                )}
 
-              <View style={[
-                styles.overallStatusBadge,
-                { backgroundColor: getAttendanceColor(attendanceData.stats.attendanceRate) + '20' }
-              ]}>
-                <Text style={[
-                  styles.overallStatusText,
-                  { color: getAttendanceColor(attendanceData.stats.attendanceRate) }
-                ]}>
-                  {getAttendanceStatus(attendanceData.stats.attendanceRate)}
-                </Text>
+                {/* Circular progress */}
+                {renderCircularProgress(attendanceData.stats.attendanceRate)}
               </View>
             </View>
 
-            {/* Content Groups */}
+            {/* ── Term Filter Tabs ── */}
+            <View style={styles.termFilterContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.termTab,
+                  selectedTerm === 'practical' && styles.termTabActive,
+                ]}
+                onPress={() => setSelectedTerm('practical')}>
+                <Text
+                  style={[
+                    styles.termTabText,
+                    selectedTerm === 'practical' && styles.termTabTextActive,
+                  ]}>
+                  التدريب العملي والتكليفات
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.termTab,
+                  selectedTerm === 'term2' && styles.termTabActive,
+                ]}
+                onPress={() => setSelectedTerm('term2')}>
+                <Text
+                  style={[
+                    styles.termTabText,
+                    selectedTerm === 'term2' && styles.termTabTextActive,
+                  ]}>
+                  الترم الثاني
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.termTab,
+                  selectedTerm === 'term1' && styles.termTabActive,
+                ]}
+                onPress={() => setSelectedTerm('term1')}>
+                <Text
+                  style={[
+                    styles.termTabText,
+                    selectedTerm === 'term1' && styles.termTabTextActive,
+                  ]}>
+                  الترم الأول
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* ── Section Title: سجل المواد ── */}
+            <View style={styles.sectionTitleRow}>
+              <TouchableOpacity onPress={onRefresh} style={styles.refreshButton}>
+                <Text style={styles.refreshIcon}>🔄</Text>
+              </TouchableOpacity>
+              <View style={styles.sectionTitleRight}>
+                <Text style={styles.sectionTitle}>سجل المواد</Text>
+              </View>
+            </View>
+
+            {/* ── Content / Subject Cards ── */}
             <View style={styles.contentGroupsContainer}>
-              <Text style={styles.contentGroupsTitle}>المواد الدراسية</Text>
               {attendanceData.contentGroups.map(renderContentGroup)}
             </View>
           </Animated.View>
         )}
 
-        {/* Empty State */}
+        {/* Empty */}
         {!isLoading && !error && !attendanceData && (
-          <Animated.View style={[
-            styles.emptyContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}>
+          <View style={styles.emptyContainer}>
             <Text style={styles.emptyEmoji}>📅</Text>
             <Text style={styles.emptyTitle}>لا توجد سجلات حضور</Text>
             <Text style={styles.emptyDescription}>
               لا توجد سجلات حضور متاحة لك في الوقت الحالي
             </Text>
-          </Animated.View>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
+// ────────────────────────────────────────────────────
+// Styles – matching the website design (light, clean)
+// ────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
+  /* ══════ Container ══════ */
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F4F6FA',
   },
+
+  /* ══════ Header ══════ */
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
     backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderBottomColor: '#EEF2F6',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  headerTitleArea: {
+    flex: 1,
+    alignItems: 'flex-end',
+    marginRight: 12,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1A1D26',
+    textAlign: 'right',
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    color: '#8E95A2',
+    marginTop: 4,
+    textAlign: 'right',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#F4F6FA',
     alignItems: 'center',
     justifyContent: 'center',
   },
   backButtonText: {
-    fontSize: 24,
-    color: Colors.primary,
-    fontWeight: 'bold',
-  },
-  headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  filterContainer: {
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    paddingVertical: 12,
-  },
-  filterScrollContent: {
-    paddingHorizontal: 20,
-    gap: 10,
-  },
-  filterTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  filterTabActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  filterTabText: {
-    fontSize: 14,
-    color: '#6B7280',
+    color: '#1A1D26',
     fontWeight: '600',
   },
-  filterTabTextActive: {
-    color: '#FFFFFF',
+  updatedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F4F6FA',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginTop: 4,
   },
+  updatedBadgeIcon: {
+    fontSize: 14,
+    marginRight: 4,
+  },
+  updatedBadgeText: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+
+  /* ══════ Scroll ══════ */
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
+    padding: 16,
+    paddingBottom: 32,
   },
+
+  /* ══════ Loading / Error / Empty ══════ */
   loadingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: 15,
+    color: '#8E95A2',
     textAlign: 'center',
   },
   errorContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
     paddingHorizontal: 20,
   },
   errorEmoji: {
-    fontSize: 64,
+    fontSize: 56,
     marginBottom: 16,
   },
   errorText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#EF4444',
     textAlign: 'center',
     marginBottom: 24,
@@ -636,268 +618,369 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
     paddingHorizontal: 20,
   },
   emptyEmoji: {
-    fontSize: 80,
+    fontSize: 72,
     marginBottom: 20,
   },
   emptyTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1A1D26',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   emptyDescription: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: 15,
+    color: '#8E95A2',
     textAlign: 'center',
     lineHeight: 24,
   },
+
+  /* ══════ Attendance Container ══════ */
   attendanceContainer: {
-    gap: 20,
+    gap: 16,
   },
-  overallStatsCard: {
+
+  /* ══════ Summary Card ══════ */
+  summaryCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
   },
-  overallStatsHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  overallStatsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  traineeName: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  overallStatsContent: {
+  summaryRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
-  },
-  overallStatItem: {
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
   },
-  overallStatValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  overallStatLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  overallStatusBadge: {
-    padding: 12,
+
+  /* ══════ Stat Card ══════ */
+  statCard: {
+    flex: 1,
     borderRadius: 12,
+    padding: 10,
     alignItems: 'center',
-    borderWidth: 1,
+    minWidth: 55,
+  },
+  statCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 4,
+  },
+  statCardIcon: {
+    fontSize: 12,
+  },
+  statCardLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  statCardValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1A1D26',
+  },
+
+  /* ══════ Circular Progress ══════ */
+  circularProgressContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+  },
+  circularProgressOuter: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circularProgressInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circularProgressText: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+
+  /* ══════ Term Filter Tabs ══════ */
+  termFilterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  termTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
     borderColor: '#E5E7EB',
   },
-  overallStatusText: {
+  termTabActive: {
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
+  },
+  termTabText: {
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  termTabTextActive: {
+    color: '#FFFFFF',
+  },
+
+  /* ══════ Section Title ══════ */
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  sectionTitleRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1A1D26',
+    textAlign: 'right',
+  },
+  refreshButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  refreshIcon: {
     fontSize: 16,
-    fontWeight: 'bold',
   },
+
+  /* ══════ Content Groups ══════ */
   contentGroupsContainer: {
-    gap: 16,
+    gap: 12,
   },
-  contentGroupsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  contentGroupCard: {
+
+  /* ══════ Content Card (Subject) ══════ */
+  contentCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
     overflow: 'hidden',
   },
-  contentHeader: {
+  contentCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
   },
-  contentInfo: {
+
+  // Right side — name + badges + blue avatar
+  contentCardRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  contentNameArea: {
+    alignItems: 'flex-end',
+    marginRight: 12,
     flex: 1,
   },
   contentName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1A1D26',
+    textAlign: 'right',
+    marginBottom: 6,
   },
-  contentStats: {
-    fontSize: 14,
-    color: '#6B7280',
+  contentBadges: {
+    flexDirection: 'row',
+    gap: 8,
   },
-  contentGrade: {
-    alignItems: 'flex-end',
+  attendanceBadge: {
+    backgroundColor: '#E8F8F0',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-  contentPercentage: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 4,
+  attendanceBadgeText: {
+    fontSize: 11,
+    color: '#27AE60',
+    fontWeight: '600',
+  },
+  lectureBadge: {
+    backgroundColor: '#EBF5FB',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  lectureBadgeText: {
+    fontSize: 11,
+    color: '#5DADE2',
+    fontWeight: '600',
+  },
+  contentAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#2563EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contentAvatarText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+
+  // Left side — expand arrow + mini stats
+  contentCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  expandButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F4F6FA',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   expandIcon: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#8E95A2',
+    fontWeight: '700',
   },
-  contentStatsRow: {
+  contentMiniStats: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    gap: 12,
   },
-  statItem: {
+  miniStatItem: {
     alignItems: 'center',
   },
-  statIcon: {
-    fontSize: 20,
-    marginBottom: 4,
+  miniStatValue: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1A1D26',
   },
-  statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 2,
+  miniStatLabelGreen: {
+    fontSize: 10,
+    color: '#27AE60',
+    fontWeight: '600',
+    marginTop: 2,
   },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
+  miniStatLabelRed: {
+    fontSize: 10,
+    color: '#EF4444',
+    fontWeight: '600',
+    marginTop: 2,
   },
+
+  /* ══════ Sessions (expanded) ══════ */
   sessionsContainer: {
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingTop: 16,
+    borderTopColor: '#F0F2F5',
+    paddingVertical: 8,
   },
-  sessionsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 12,
+  sessionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8F9FB',
   },
-  sessionCard: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  sessionHeader: {
+  sessionRight: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  sessionInfo: {
     flex: 1,
+    justifyContent: 'flex-end',
+    gap: 6,
   },
-  sessionDate: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  sessionDay: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    gap: 4,
-  },
-  statusIcon: {
-    fontSize: 14,
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  sessionDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sessionType: {
+  sessionDateRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  sessionTypeIcon: {
-    fontSize: 16,
-  },
-  sessionTypeText: {
+  sessionDateIcon: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#8E95A2',
+  },
+  sessionDayText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#4A5568',
+  },
+  sessionDateDot: {
+    fontSize: 10,
+    color: '#CBD5E1',
+  },
+  sessionDateText: {
+    fontSize: 13,
+    color: '#8E95A2',
+  },
+  sessionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sessionStatusBadge: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  sessionStatusText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   cancelledBadge: {
-    backgroundColor: '#EF444420',
+    backgroundColor: '#FDEDEE',
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 3,
     borderRadius: 6,
+    marginRight: 8,
   },
   cancelledText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#EF4444',
     fontWeight: '600',
   },
-  notesContainer: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
-  notesLabel: {
+  sessionNotes: {
     fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  notesText: {
-    fontSize: 14,
-    color: '#1F2937',
-    lineHeight: 20,
+    color: '#8E95A2',
+    marginTop: 4,
+    textAlign: 'right',
   },
   noSessionsContainer: {
     padding: 20,
     alignItems: 'center',
   },
   noSessionsText: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 13,
+    color: '#8E95A2',
     textAlign: 'center',
   },
 });

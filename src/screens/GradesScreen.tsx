@@ -1,134 +1,79 @@
-// SOLID Principles Applied:
-// 1. Single Responsibility: This screen only handles grades display and navigation
-// 2. Open/Closed: Can be extended with new grade types without modifying existing code
-// 3. Interface Segregation: Uses specific interfaces for grades
-// 4. Dependency Inversion: Depends on abstractions (components) not concretions
-
-import React, { useState, useRef, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Animated,
-  Dimensions,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import CustomButton from '../components/CustomButton';
-import { Colors } from '../styles/colors';
-import { gradesService } from '../services/gradesService';
-import { 
-  GradesResponse, 
-  ClassroomWithContents, 
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {gradesService} from '../services/gradesService';
+import {
+  GradesResponse,
+  MyGradesResponse,
+  ClassroomWithContents,
   ContentWithGrades,
   GradeType,
   GRADE_TYPE_INFO,
-  GradesError 
+  GradesError,
+  Grades,
+  MaxMarks,
 } from '../types/grades';
-
-const { width, height } = Dimensions.get('window');
 
 interface GradesScreenProps {
   accessToken: string;
   onBack: () => void;
 }
 
-const GradesScreen: React.FC<GradesScreenProps> = ({ 
-  accessToken, 
-  onBack 
-}) => {
-  // Animation values
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-
-  // State
-  const [isLoading, setIsLoading] = useState(false);
+const GradesScreen: React.FC<GradesScreenProps> = ({accessToken, onBack}) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [gradesData, setGradesData] = useState<GradesResponse | null>(null);
-  const [expandedClassroom, setExpandedClassroom] = useState<number | null>(null);
+  const [expandedClassroom, setExpandedClassroom] = useState<number | null>(
+    null,
+  );
   const [expandedContent, setExpandedContent] = useState<number | null>(null);
 
   useEffect(() => {
-    // Start animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Load grades data
     loadGrades();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadGrades = async () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      console.log('🔍 Loading grades...');
-      
-      const response = await gradesService.getMyGrades(accessToken);
-      
-      console.log('✅ Grades loaded successfully!');
-      console.log('📊 Response structure:', {
-        success: response.success,
-        hasData: !!response.data,
-        traineeName: response.data?.trainee?.nameAr,
-        overallPercentage: response.data?.overallStats?.percentage,
-        classroomsCount: response.data?.classrooms?.length || 0
-      });
-      
-      // التحقق من وجود البيانات قبل التعيين
-      if (response.success && response.data) {
+      const response: MyGradesResponse =
+        await gradesService.getMyGrades(accessToken);
+      if (response.success) {
         setGradesData(response.data);
-      } else if (response.success === false) {
-        // إذا كان response.success = false، عرض رسالة الخطأ من الـ API
-        const errorMessage = response.message || 'فشل في تحميل الدرجات';
-        setError(errorMessage);
-        setGradesData(null);
       } else {
-        console.warn('⚠️ Invalid response structure or no grades found');
-        setGradesData(null);
+        setError(response.message || 'فشل في تحميل الدرجات');
       }
-
-    } catch (error) {
-      console.error('❌ Failed to load grades:', error);
-      const apiError = error as GradesError;
-      
+    } catch (err) {
+      const apiError = err as GradesError;
       let errorMessage = 'حدث خطأ أثناء تحميل الدرجات';
       if (apiError.statusCode === 401) {
         errorMessage = 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى';
-      } else if (apiError.statusCode === 404) {
-        errorMessage = 'لم يتم العثور على درجات';
       } else if (apiError.message) {
         errorMessage = apiError.message;
       }
-      
       setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getGradeColor = (percentage: number) => {
-    if (percentage >= 90) return '#10B981'; // أخضر
-    if (percentage >= 80) return '#3B82F6'; // أزرق
-    if (percentage >= 70) return '#F59E0B'; // برتقالي
-    if (percentage >= 60) return '#EF4444'; // أحمر
-    return '#6B7280'; // رمادي
+  const getGradeColor = (percentage: number): string => {
+    if (percentage >= 90) return '#10B981';
+    if (percentage >= 80) return '#3B82F6';
+    if (percentage >= 70) return '#F59E0B';
+    if (percentage >= 60) return '#EF4444';
+    return '#6B7280';
   };
 
-  const getGradeStatus = (percentage: number) => {
+  const getGradeStatus = (percentage: number): string => {
     if (percentage >= 90) return 'ممتاز';
     if (percentage >= 80) return 'جيد جداً';
     if (percentage >= 70) return 'جيد';
@@ -136,1005 +81,629 @@ const GradesScreen: React.FC<GradesScreenProps> = ({
     return 'راسب';
   };
 
-  const formatGrade = (earned: number, max: number) => {
-    if (max === 0) return '0/0';
+  const formatGrade = (earned: number, max: number): string => {
     return `${earned}/${max}`;
   };
 
   const toggleClassroom = (classroomId: number) => {
-    setExpandedClassroom(expandedClassroom === classroomId ? null : classroomId);
-    setExpandedContent(null); // إغلاق أي محتوى مفتوح
+    setExpandedClassroom(prev => (prev === classroomId ? null : classroomId));
+    setExpandedContent(null);
   };
 
   const toggleContent = (contentId: number) => {
-    setExpandedContent(expandedContent === contentId ? null : contentId);
+    setExpandedContent(prev => (prev === contentId ? null : contentId));
   };
 
-  const renderProgressBar = (percentage: number, color: string) => {
-    const progressWidth = Math.min(Math.max(percentage, 0), 100);
-    
-    return (
-      <View style={styles.progressBarContainer}>
-        <View style={styles.progressBarBackground}>
-          <View
-            style={[
-              styles.progressBarFill,
-              {
-                width: `${progressWidth}%`,
-                backgroundColor: color,
-              }
-            ]}
-          />
-        </View>
-      </View>
-    );
-  };
+  const renderProgressBar = (percentage: number, color: string) => (
+    <View style={s.progressBarBg}>
+      <View
+        style={[
+          s.progressBarFill,
+          {width: `${Math.min(percentage, 100)}%`, backgroundColor: color},
+        ]}
+      />
+    </View>
+  );
 
-  const renderGradeBreakdown = (content: ContentWithGrades) => {
-    const gradeTypes = [
-      GradeType.YEAR_WORK,
-      GradeType.PRACTICAL,
-      GradeType.WRITTEN,
-      GradeType.ATTENDANCE,
-      GradeType.QUIZZES,
-      GradeType.FINAL_EXAM,
-    ];
+  const renderGradeBreakdown = (contentItem: ContentWithGrades) => {
+    const gradeTypes = Object.values(GradeType);
+    const grades: Grades = contentItem.grades;
+    const maxMarks: MaxMarks = contentItem.maxMarks;
 
     return (
-      <View style={styles.gradeBreakdown}>
-        <View style={styles.breakdownHeader}>
-          <Text style={styles.breakdownTitle}>تفاصيل الدرجات</Text>
-          <View style={styles.breakdownDivider} />
-        </View>
-        <View style={styles.gradeTypesContainer}>
-          {gradeTypes.map((gradeType, index) => {
-            const typeInfo = GRADE_TYPE_INFO[gradeType];
-            const earned = content.grades[gradeType];
-            const max = content.maxMarks[gradeType];
-            const percentage = max > 0 ? (earned / max) * 100 : 0;
-            const color = getGradeColor(percentage);
+      <View style={s.breakdownContainer}>
+        {gradeTypes.map(gradeType => {
+          const gradeInfo = GRADE_TYPE_INFO[gradeType];
+          const earned = grades[gradeType as keyof Grades] || 0;
+          const max = maxMarks[gradeType as keyof MaxMarks] || 0;
+          if (max === 0) return null;
 
-            return (
-              <View key={gradeType} style={styles.gradeTypeCard}>
-                <View style={styles.gradeTypeHeader}>
-                  <View style={[styles.gradeTypeIconContainer, { backgroundColor: color + '15' }]}>
-                    <Text style={styles.gradeTypeIcon}>{typeInfo.icon}</Text>
-                  </View>
-                  <View style={styles.gradeTypeInfo}>
-                    <Text style={styles.gradeTypeLabel}>{typeInfo.labelAr}</Text>
-                    <Text style={styles.gradeTypeMarks}>
-                      {formatGrade(earned, max)}
-                    </Text>
-                  </View>
-                  <View style={styles.gradeTypePercentageContainer}>
-                    <Text style={[
-                      styles.gradeTypePercentage,
-                      { color: color }
-                    ]}>
-                      {percentage.toFixed(1)}%
-                    </Text>
-                  </View>
+          const percentage = max > 0 ? (earned / max) * 100 : 0;
+          const color = getGradeColor(percentage);
+
+          return (
+            <View key={gradeType} style={s.gradeTypeRow}>
+              <View style={s.gradeTypeLeft}>
+                <Text style={s.gradeTypeEmoji}>{gradeInfo.icon}</Text>
+                <View style={s.gradeTypeInfo}>
+                  <Text style={s.gradeTypeLabel}>{gradeInfo.labelAr}</Text>
+                  <Text style={s.gradeTypeMarks}>
+                    {formatGrade(earned, max)}
+                  </Text>
                 </View>
-                {max > 0 && renderProgressBar(percentage, color)}
               </View>
-            );
-          })}
-        </View>
+              <View style={s.gradeTypeRight}>
+                <Text style={[s.gradeTypePct, {color}]}>
+                  {percentage.toFixed(0)}%
+                </Text>
+                {renderProgressBar(percentage, color)}
+              </View>
+            </View>
+          );
+        })}
       </View>
     );
   };
 
-  const renderContentCard = (content: ContentWithGrades, classroomId: number) => {
-    const isExpanded = expandedContent === content.content.id;
-    const gradeColor = getGradeColor(content.percentage);
-    
+  const renderContentCard = (
+    contentItem: ContentWithGrades,
+    classroomId: number,
+  ) => {
+    const isExpanded = expandedContent === contentItem.content.id;
+    const percentage = contentItem.percentage || 0;
+    const color = getGradeColor(percentage);
+
     return (
-      <TouchableOpacity
-        key={content.content.id}
-        style={[styles.contentCard, isExpanded && styles.contentCardExpanded]}
-        onPress={() => toggleContent(content.content.id)}
-        activeOpacity={0.8}
-      >
-        {/* Content Header with Gradient Effect */}
-        <View style={[styles.contentHeader, { borderLeftColor: gradeColor }]}>
-          <View style={styles.contentInfo}>
-            <View style={styles.contentCodeContainer}>
-              <Text style={styles.contentCode}>{content.content.code}</Text>
-            </View>
-            <Text style={styles.contentName} numberOfLines={2}>
-              {content.content.name}
-            </Text>
-          </View>
-          <View style={styles.contentGradeContainer}>
-            <View style={[styles.contentPercentageCircle, { borderColor: gradeColor }]}>
-              <Text style={[
-                styles.contentPercentage,
-                { color: gradeColor }
-              ]}>
-                {content.percentage.toFixed(0)}%
+      <View key={contentItem.content.id} style={s.contentCard}>
+        <TouchableOpacity
+          style={s.contentCardHeader}
+          onPress={() => toggleContent(contentItem.content.id)}
+          activeOpacity={0.7}>
+          <View style={s.contentCardLeft}>
+            <View style={[s.contentDot, {backgroundColor: color}]} />
+            <View style={{flex: 1}}>
+              <Text style={s.contentName} numberOfLines={1}>
+                {contentItem.content.name}
               </Text>
+              {contentItem.content.code && (
+                <Text style={s.contentCode}>{contentItem.content.code}</Text>
+              )}
             </View>
-            <Text style={styles.contentTotal}>
-              {formatGrade(content.grades.totalMarks, content.maxMarks.total)}
-            </Text>
           </View>
+          <View style={s.contentCardRight}>
+            <Text style={[s.contentPct, {color}]}>
+              {percentage.toFixed(0)}%
+            </Text>
+            <Text style={s.expandArrow}>{isExpanded ? '▲' : '▼'}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Mini Progress */}
+        <View style={s.contentProgress}>
+          {renderProgressBar(percentage, color)}
         </View>
 
-        {/* Progress Bar */}
-        <View style={styles.contentProgressContainer}>
-          {renderProgressBar(content.percentage, gradeColor)}
-        </View>
-
-        {/* Grade Status and Expand */}
-        <View style={styles.gradeStatusContainer}>
-          <View style={[
-            styles.gradeStatusBadge,
-            { backgroundColor: gradeColor + '15', borderColor: gradeColor + '40' }
-          ]}>
-            <View style={[styles.gradeStatusDot, { backgroundColor: gradeColor }]} />
-            <Text style={[
-              styles.gradeStatusText,
-              { color: gradeColor }
-            ]}>
-              {getGradeStatus(content.percentage)}
-            </Text>
-          </View>
-          <View style={[styles.expandButton, isExpanded && styles.expandButtonActive]}>
-            <Text style={styles.expandIcon}>
-              {isExpanded ? '▲' : '▼'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Expanded Details with Animation */}
-        {isExpanded && (
-          <Animated.View 
-            style={[
-              styles.expandedContent,
-              { opacity: fadeAnim }
-            ]}
-          >
-            {renderGradeBreakdown(content)}
-          </Animated.View>
-        )}
-      </TouchableOpacity>
+        {isExpanded && renderGradeBreakdown(contentItem)}
+      </View>
     );
   };
 
   const renderClassroomCard = (classroomData: ClassroomWithContents) => {
     const isExpanded = expandedClassroom === classroomData.classroom.id;
-    const gradeColor = getGradeColor(classroomData.stats.percentage);
-    
+
     return (
-      <View key={classroomData.classroom.id} style={[styles.classroomCard, isExpanded && styles.classroomCardExpanded]}>
-        {/* Classroom Header */}
+      <View key={classroomData.classroom.id} style={s.classroomCard}>
         <TouchableOpacity
-          style={[styles.classroomHeader, { borderLeftColor: gradeColor }]}
+          style={s.classroomHeader}
           onPress={() => toggleClassroom(classroomData.classroom.id)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.classroomHeaderContent}>
-            <View style={styles.classroomInfo}>
-              <View style={styles.classroomNameContainer}>
-                <Text style={styles.classroomName}>
-                  {classroomData.classroom.name}
-                </Text>
-                <View style={[styles.classroomIndicator, { backgroundColor: gradeColor }]} />
-              </View>
-              <View style={styles.classroomStatsContainer}>
-                <View style={styles.classroomStatItem}>
-                  <Text style={styles.classroomStatIcon}>📚</Text>
-                  <Text style={styles.classroomStats}>
-                    {classroomData.stats.contentCount} مادة
-                  </Text>
-                </View>
-                <View style={styles.classroomStatDivider} />
-                <View style={styles.classroomStatItem}>
-                  <Text style={styles.classroomStatIcon}>📊</Text>
-                  <Text style={styles.classroomStats}>
-                    {classroomData.stats.percentage.toFixed(1)}%
-                  </Text>
-                </View>
-              </View>
+          activeOpacity={0.7}>
+          <View style={s.classroomLeft}>
+            <View style={s.classroomIcon}>
+              <Text style={s.classroomIconText}>🎓</Text>
             </View>
-            <View style={styles.classroomGradeContainer}>
-              <View style={[styles.classroomPercentageCircle, { backgroundColor: gradeColor + '15', borderColor: gradeColor }]}>
-                <Text style={[
-                  styles.classroomPercentage,
-                  { color: gradeColor }
-                ]}>
-                  {classroomData.stats.percentage.toFixed(0)}%
-                </Text>
-              </View>
-              <Text style={styles.classroomTotal}>
-                {formatGrade(classroomData.stats.totalEarned, classroomData.stats.totalMax)}
+            <View style={{flex: 1}}>
+              <Text style={s.classroomName} numberOfLines={1}>
+                {classroomData.classroom.name}
               </Text>
-            </View>
-            <View style={[styles.classroomExpandButton, isExpanded && styles.classroomExpandButtonActive]}>
-              <Text style={styles.classroomExpandIcon}>
-                {isExpanded ? '▲' : '▼'}
+              <Text style={s.classroomSub}>
+                {classroomData.contents?.length || 0} مقرر
               </Text>
             </View>
           </View>
+          <Text style={s.classroomArrow}>{isExpanded ? '▲' : '▼'}</Text>
         </TouchableOpacity>
 
-        {/* Progress Bar for Classroom */}
-        <View style={styles.classroomProgressContainer}>
-          {renderProgressBar(classroomData.stats.percentage, gradeColor)}
-        </View>
-
-        {/* Classroom Contents */}
-        {isExpanded && (
-          <Animated.View style={[
-            styles.classroomContents,
-            { opacity: fadeAnim }
-          ]}>
-            {classroomData.contents.map((content) => 
-              renderContentCard(content, classroomData.classroom.id)
+        {isExpanded && classroomData.contents && (
+          <View style={s.classroomContents}>
+            {classroomData.contents.map((contentItem: ContentWithGrades) =>
+              renderContentCard(contentItem, classroomData.classroom.id),
             )}
-          </Animated.View>
+          </View>
         )}
       </View>
     );
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <Animated.View style={[
-        styles.header,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }]
-        }
-      ]}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={onBack}
-          activeOpacity={0.7}
-        >
-          <View style={styles.backButtonContainer}>
-            <Text style={styles.backButtonText}>←</Text>
-          </View>
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>الدرجات</Text>
-          <Text style={styles.headerSubtitle}>سجل الدرجات الأكاديمي</Text>
+  // Loading
+  if (isLoading) {
+    return (
+      <SafeAreaView style={s.container}>
+        <View style={s.centerBox}>
+          <ActivityIndicator size="large" color="#2563EB" />
+          <Text style={s.loadingText}>جاري تحميل الدرجات...</Text>
         </View>
-        <View style={styles.headerSpacer} />
-      </Animated.View>
+      </SafeAreaView>
+    );
+  }
 
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Loading State */}
-        {isLoading && (
-          <Animated.View style={[
-            styles.loadingContainer,
-            { opacity: fadeAnim }
-          ]}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingText}>جاري تحميل الدرجات...</Text>
-          </Animated.View>
-        )}
+  // Error
+  if (error) {
+    return (
+      <SafeAreaView style={s.container}>
+        <View style={s.centerBox}>
+          <Text style={s.errorEmoji}>⚠️</Text>
+          <Text style={s.errorTitle}>خطأ</Text>
+          <Text style={s.errorMsg}>{error}</Text>
+          <TouchableOpacity style={s.retryBtn} onPress={loadGrades}>
+            <Text style={s.retryBtnText}>إعادة المحاولة</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-        {/* Error State */}
-        {error && !isLoading && (
-          <Animated.View style={[
-            styles.errorContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}>
-            <Text style={styles.errorEmoji}>⚠️</Text>
-            <Text style={styles.errorText}>{error}</Text>
-            <CustomButton
-              title="إعادة المحاولة"
-              onPress={loadGrades}
-              variant="outline"
-              size="medium"
-            />
-          </Animated.View>
-        )}
+  const overallPercentage = gradesData?.overallStats?.percentage || 0;
+  const overallColor = getGradeColor(overallPercentage);
+  const overallStatus = getGradeStatus(overallPercentage);
 
-        {/* Grades Data */}
-        {!isLoading && !error && gradesData && (
-          <Animated.View style={[
-            styles.gradesContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}>
-            {/* Overall Stats */}
-            <View style={styles.overallStatsCard}>
-              {/* Header Section */}
-              <View style={styles.overallStatsHeader}>
-                <View style={styles.overallStatsHeaderLeft}>
-                  <View style={styles.overallStatsIconContainer}>
-                    <Text style={styles.overallStatsIcon}>📊</Text>
-                  </View>
-                  <View>
-                    <Text style={styles.overallStatsTitle}>الإحصائيات العامة</Text>
-                    <Text style={styles.traineeName}>{gradesData.trainee.nameAr}</Text>
-                  </View>
-                </View>
-                <View style={[styles.overallPercentageCircle, { 
-                  backgroundColor: getGradeColor(gradesData.overallStats.percentage) + '15',
-                  borderColor: getGradeColor(gradesData.overallStats.percentage)
-                }]}>
-                  <Text style={[
-                    styles.overallPercentageText,
-                    { color: getGradeColor(gradesData.overallStats.percentage) }
-                  ]}>
-                    {gradesData.overallStats.percentage.toFixed(0)}%
-                  </Text>
-                </View>
-              </View>
-              
-              {/* Progress Bar */}
-              <View style={styles.overallProgressContainer}>
-                {renderProgressBar(gradesData.overallStats.percentage, getGradeColor(gradesData.overallStats.percentage))}
-              </View>
+  return (
+    <SafeAreaView style={s.container}>
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.scrollContent}
+        showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={s.header}>
+          <TouchableOpacity style={s.backBtn} onPress={onBack}>
+            <Text style={s.backArrow}>→</Text>
+          </TouchableOpacity>
+          <View style={s.headerCenter}>
+            <Text style={s.headerTitle}>الدرجات</Text>
+            <Text style={s.headerSub}>نتائج المقررات الدراسية</Text>
+          </View>
+          <View style={{width: 38}} />
+        </View>
 
-              {/* Stats Grid */}
-              <View style={styles.overallStatsGrid}>
-                <View style={styles.overallStatCard}>
-                  <View style={[styles.overallStatIcon, { backgroundColor: Colors.primary + '15' }]}>
-                    <Text style={styles.overallStatIconText}>🎯</Text>
-                  </View>
-                  <Text style={styles.overallStatValue}>
-                    {gradesData.overallStats.percentage.toFixed(1)}%
-                  </Text>
-                  <Text style={styles.overallStatLabel}>النسبة الإجمالية</Text>
-                </View>
-                
-                <View style={styles.overallStatCard}>
-                  <View style={[styles.overallStatIcon, { backgroundColor: Colors.accent + '15' }]}>
-                    <Text style={styles.overallStatIconText}>⭐</Text>
-                  </View>
-                  <Text style={styles.overallStatValue}>
-                    {formatGrade(gradesData.overallStats.totalEarned, gradesData.overallStats.totalMax)}
-                  </Text>
-                  <Text style={styles.overallStatLabel}>إجمالي الدرجات</Text>
-                </View>
-                
-                <View style={styles.overallStatCard}>
-                  <View style={[styles.overallStatIcon, { backgroundColor: Colors.secondary + '15' }]}>
-                    <Text style={styles.overallStatIconText}>📚</Text>
-                  </View>
-                  <Text style={styles.overallStatValue}>
-                    {gradesData.overallStats.totalContents}
-                  </Text>
-                  <Text style={styles.overallStatLabel}>عدد المواد</Text>
-                </View>
-              </View>
+        {/* Overall Stats Card */}
+        {gradesData && (
+          <View style={s.overallCard}>
+            {/* Trainee Name */}
+            {gradesData.trainee?.nameAr && (
+              <Text style={s.traineeName}>{gradesData.trainee.nameAr}</Text>
+            )}
 
-              {/* Status Badge */}
-              <View style={[
-                styles.overallStatusBadge,
-                { 
-                  backgroundColor: getGradeColor(gradesData.overallStats.percentage) + '15',
-                  borderColor: getGradeColor(gradesData.overallStats.percentage) + '40'
-                }
-              ]}>
-                <View style={[styles.overallStatusDot, { backgroundColor: getGradeColor(gradesData.overallStats.percentage) }]} />
-                <Text style={[
-                  styles.overallStatusText,
-                  { color: getGradeColor(gradesData.overallStats.percentage) }
-                ]}>
-                  {getGradeStatus(gradesData.overallStats.percentage)}
+            {/* Percentage Circle */}
+            <View style={s.circleRow}>
+              <View style={[s.circle, {borderColor: overallColor}]}>
+                <Text style={[s.circlePct, {color: overallColor}]}>
+                  {overallPercentage.toFixed(0)}%
                 </Text>
+                <Text style={s.circleLabel}>المعدل العام</Text>
               </View>
             </View>
 
-            {/* Classrooms */}
-            <View style={styles.classroomsContainer}>
-              <Text style={styles.classroomsTitle}>الفصول الدراسية</Text>
-              {gradesData.classrooms.map(renderClassroomCard)}
+            {/* Stats Grid */}
+            <View style={s.statsGrid}>
+              <View style={s.statsGridItem}>
+                <Text style={[s.statsGridValue, {color: overallColor}]}>
+                  {overallPercentage.toFixed(1)}%
+                </Text>
+                <Text style={s.statsGridLabel}>النسبة المئوية</Text>
+              </View>
+              <View style={s.statsGridDivider} />
+              <View style={s.statsGridItem}>
+                <Text style={s.statsGridValue}>
+                  {gradesData.overallStats?.totalEarned || 0}/
+                  {gradesData.overallStats?.totalMax || 0}
+                </Text>
+                <Text style={s.statsGridLabel}>الدرجات</Text>
+              </View>
+              <View style={s.statsGridDivider} />
+              <View style={s.statsGridItem}>
+                <Text style={s.statsGridValue}>
+                  {gradesData.overallStats?.totalContents || 0}
+                </Text>
+                <Text style={s.statsGridLabel}>المقررات</Text>
+              </View>
             </View>
-          </Animated.View>
+
+            {/* Status Badge */}
+            <View
+              style={[s.statusBadge, {backgroundColor: overallColor + '18'}]}>
+              <Text style={[s.statusBadgeText, {color: overallColor}]}>
+                {overallStatus}
+              </Text>
+            </View>
+          </View>
         )}
 
-        {/* Empty State */}
-        {!isLoading && !error && !gradesData && (
-          <Animated.View style={[
-            styles.emptyContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}>
-            <Text style={styles.emptyEmoji}>📊</Text>
-            <Text style={styles.emptyTitle}>لا توجد درجات متاحة</Text>
-            <Text style={styles.emptyDescription}>
-              لا توجد درجات متاحة لك في الوقت الحالي
-            </Text>
-          </Animated.View>
+        {/* Classrooms */}
+        {gradesData?.classrooms && gradesData.classrooms.length > 0 ? (
+          <View style={s.classroomsList}>
+            {gradesData.classrooms.map(
+              (classroomData: ClassroomWithContents) =>
+                renderClassroomCard(classroomData),
+            )}
+          </View>
+        ) : (
+          <View style={s.emptyBox}>
+            <Text style={s.emptyEmoji}>📊</Text>
+            <Text style={s.emptyTitle}>لا توجد درجات</Text>
+            <Text style={s.emptyMsg}>لم يتم العثور على درجات مسجلة</Text>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#F4F6FA',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backButtonContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: Colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: Colors.primary,
-    fontWeight: '800',
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 12,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 2,
-  },
-  headerSpacer: {
-    width: 44,
-  },
-  scrollView: {
+  scroll: {
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
     paddingBottom: 32,
   },
-  loadingContainer: {
-    alignItems: 'center',
+  centerBox: {
+    flex: 1,
     justifyContent: 'center',
-    paddingVertical: 80,
+    alignItems: 'center',
+    padding: 24,
   },
   loadingText: {
-    marginTop: 20,
+    marginTop: 16,
     fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  errorContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 20,
+    color: '#8E95A2',
   },
   errorEmoji: {
-    fontSize: 72,
-    marginBottom: 20,
+    fontSize: 56,
+    marginBottom: 16,
   },
-  errorText: {
-    fontSize: 16,
-    color: Colors.error,
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1A1D26',
+    marginBottom: 8,
+  },
+  errorMsg: {
+    fontSize: 15,
+    color: '#8E95A2',
     textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 20,
-  },
-  emptyEmoji: {
-    fontSize: 96,
+    lineHeight: 22,
     marginBottom: 24,
   },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  emptyDescription: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  gradesContainer: {
-    gap: 24,
-  },
-  // Overall Stats Card
-  overallStatsCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  overallStatsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  overallStatsHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  overallStatsIconContainer: {
-    width: 50,
-    height: 50,
+  retryBtn: {
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: Colors.primarySoft,
+  },
+  retryBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  /* Header */
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEF2F6',
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#F0F4FF',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  backArrow: {
+    fontSize: 18,
+    color: '#2563EB',
+    fontWeight: '700',
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'flex-end',
     marginRight: 12,
   },
-  overallStatsIcon: {
-    fontSize: 24,
-  },
-  overallStatsTitle: {
+  headerTitle: {
     fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 4,
+    fontWeight: '700',
+    color: '#1A1D26',
+  },
+  headerSub: {
+    fontSize: 13,
+    color: '#8E95A2',
+    marginTop: 2,
+  },
+
+  /* Overall Card */
+  overallCard: {
+    backgroundColor: '#FFF',
+    marginHorizontal: 20,
+    marginTop: 16,
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#EEF2F6',
+    alignItems: 'center',
   },
   traineeName: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1A1D26',
+    marginBottom: 16,
+    textAlign: 'center',
   },
-  overallPercentageCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    borderWidth: 3,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  overallPercentageText: {
-    fontSize: 20,
-    fontWeight: '800',
-  },
-  overallProgressContainer: {
-    marginBottom: 24,
-  },
-  overallStatsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  circleRow: {
     marginBottom: 20,
-    gap: 12,
   },
-  overallStatCard: {
-    flex: 1,
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundSoft,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-  },
-  overallStatIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+  circle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    backgroundColor: '#FAFBFC',
   },
-  overallStatIconText: {
-    fontSize: 20,
-  },
-  overallStatValue: {
-    fontSize: 20,
+  circlePct: {
+    fontSize: 28,
     fontWeight: '800',
-    color: Colors.textPrimary,
+  },
+  circleLabel: {
+    fontSize: 11,
+    color: '#8E95A2',
+    marginTop: 2,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: 16,
+  },
+  statsGridItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statsGridValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1D26',
     marginBottom: 4,
   },
-  overallStatLabel: {
+  statsGridLabel: {
     fontSize: 12,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    fontWeight: '600',
+    color: '#8E95A2',
   },
-  overallStatusBadge: {
+  statsGridDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: '#EEF2F6',
+  },
+  statusBadge: {
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  statusBadgeText: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+
+  /* Classrooms */
+  classroomsList: {
+    marginTop: 16,
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  classroomCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#EEF2F6',
+    overflow: 'hidden',
+  },
+  classroomHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  classroomLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  classroomIcon: {
+    width: 42,
+    height: 42,
     borderRadius: 12,
-    borderWidth: 2,
+    backgroundColor: '#F0F4FF',
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  overallStatusDot: {
+  classroomIconText: {
+    fontSize: 20,
+  },
+  classroomName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1D26',
+  },
+  classroomSub: {
+    fontSize: 13,
+    color: '#8E95A2',
+    marginTop: 2,
+  },
+  classroomArrow: {
+    fontSize: 12,
+    color: '#8E95A2',
+    marginLeft: 8,
+  },
+  classroomContents: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 10,
+  },
+
+  /* Content Card */
+  contentCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EEF2F6',
+    overflow: 'hidden',
+  },
+  contentCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 14,
+  },
+  contentCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 10,
+  },
+  contentDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: 8,
   },
-  overallStatusText: {
+  contentName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A1D26',
+  },
+  contentCode: {
+    fontSize: 12,
+    color: '#8E95A2',
+    marginTop: 2,
+  },
+  contentCardRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  contentPct: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
   },
-  // Progress Bar
-  progressBarContainer: {
-    marginTop: 8,
+  expandArrow: {
+    fontSize: 10,
+    color: '#8E95A2',
   },
-  progressBarBackground: {
-    height: 8,
-    backgroundColor: Colors.backgroundSoft,
-    borderRadius: 4,
+  contentProgress: {
+    paddingHorizontal: 14,
+    paddingBottom: 12,
+  },
+
+  /* Progress Bar */
+  progressBarBg: {
+    height: 6,
+    backgroundColor: '#EEF2F6',
+    borderRadius: 3,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 4,
-  },
-  // Classrooms
-  classroomsContainer: {
-    gap: 20,
-  },
-  classroomsTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 4,
-    textAlign: 'right',
-  },
-  classroomCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
-    overflow: 'hidden',
-  },
-  classroomCardExpanded: {
-    borderColor: Colors.primary + '40',
-    shadowOpacity: 0.15,
-  },
-  classroomHeader: {
-    borderLeftWidth: 4,
-    padding: 20,
-  },
-  classroomHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  classroomInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  classroomNameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  classroomName: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginRight: 8,
-  },
-  classroomIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  classroomStatsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  classroomStatItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  classroomStatIcon: {
-    fontSize: 14,
-    marginRight: 4,
-  },
-  classroomStats: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    fontWeight: '600',
-  },
-  classroomStatDivider: {
-    width: 1,
-    height: 12,
-    backgroundColor: Colors.borderMedium,
-    marginHorizontal: 8,
-  },
-  classroomGradeContainer: {
-    alignItems: 'flex-end',
-    marginRight: 12,
-  },
-  classroomPercentageCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  classroomPercentage: {
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  classroomTotal: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    fontWeight: '600',
-  },
-  classroomExpandButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: Colors.backgroundSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  classroomExpandButtonActive: {
-    backgroundColor: Colors.primarySoft,
-  },
-  classroomExpandIcon: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-    fontWeight: '700',
-  },
-  classroomProgressContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  classroomContents: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.borderLight,
-    paddingTop: 20,
-    paddingBottom: 8,
-  },
-  // Content Card
-  contentCard: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  contentCardExpanded: {
-    borderColor: Colors.primary + '40',
-    shadowOpacity: 0.12,
-  },
-  contentHeader: {
-    borderLeftWidth: 4,
-    paddingLeft: 14,
-    marginBottom: 16,
-  },
-  contentInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  contentCodeContainer: {
-    alignSelf: 'flex-start',
-    backgroundColor: Colors.primarySoft,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginBottom: 6,
-  },
-  contentCode: {
-    fontSize: 12,
-    color: Colors.primary,
-    fontWeight: '700',
-  },
-  contentName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    lineHeight: 22,
-  },
-  contentGradeContainer: {
-    alignItems: 'flex-end',
-  },
-  contentPercentageCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  contentPercentage: {
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  contentTotal: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontWeight: '600',
-  },
-  contentProgressContainer: {
-    marginBottom: 12,
-    marginHorizontal: 2,
-  },
-  gradeStatusContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  gradeStatusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  gradeStatusDot: {
-    width: 6,
-    height: 6,
     borderRadius: 3,
-    marginRight: 6,
   },
-  gradeStatusText: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  expandButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: Colors.backgroundSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  expandButtonActive: {
-    backgroundColor: Colors.primarySoft,
-  },
-  expandIcon: {
-    fontSize: 12,
-    color: Colors.textPrimary,
-    fontWeight: '700',
-  },
-  expandedContent: {
-    marginTop: 16,
-    paddingTop: 16,
+
+  /* Grade Breakdown */
+  breakdownContainer: {
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+    gap: 10,
     borderTopWidth: 1,
-    borderTopColor: Colors.borderLight,
+    borderTopColor: '#EEF2F6',
+    paddingTop: 12,
   },
-  // Grade Breakdown
-  gradeBreakdown: {
-    marginTop: 4,
-  },
-  breakdownHeader: {
-    marginBottom: 16,
-  },
-  breakdownTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 8,
-    textAlign: 'right',
-  },
-  breakdownDivider: {
-    height: 2,
-    backgroundColor: Colors.primarySoft,
-    borderRadius: 1,
-    width: 40,
-    alignSelf: 'flex-end',
-  },
-  gradeTypesContainer: {
-    gap: 12,
-  },
-  gradeTypeCard: {
-    backgroundColor: Colors.backgroundSoft,
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-  },
-  gradeTypeHeader: {
+  gradeTypeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    justifyContent: 'space-between',
   },
-  gradeTypeIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+  gradeTypeLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
+    gap: 8,
+    flex: 1,
   },
-  gradeTypeIcon: {
+  gradeTypeEmoji: {
     fontSize: 18,
   },
   gradeTypeInfo: {
     flex: 1,
   },
   gradeTypeLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 4,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1A1D26',
   },
   gradeTypeMarks: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontWeight: '600',
+    fontSize: 11,
+    color: '#8E95A2',
+    marginTop: 1,
   },
-  gradeTypePercentageContainer: {
+  gradeTypeRight: {
     alignItems: 'flex-end',
+    width: 80,
   },
-  gradeTypePercentage: {
-    fontSize: 16,
-    fontWeight: '800',
+  gradeTypePct: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+
+  /* Empty */
+  emptyBox: {
+    alignItems: 'center',
+    paddingVertical: 48,
+    marginHorizontal: 20,
+    marginTop: 16,
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#EEF2F6',
+  },
+  emptyEmoji: {
+    fontSize: 56,
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1D26',
+    marginBottom: 8,
+  },
+  emptyMsg: {
+    fontSize: 14,
+    color: '#8E95A2',
   },
 });
 

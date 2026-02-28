@@ -1,14 +1,7 @@
 // Main hub for all requests (Payment Deferral & Free Requests)
-
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../styles/colors';
 
 interface RequestsHubScreenProps {
   accessToken: string;
@@ -22,187 +15,89 @@ const RequestsHubScreen: React.FC<RequestsHubScreenProps> = ({
   onBack,
   onNavigateToPaymentDeferral,
   onNavigateToFreeRequests,
-  onNavigateToSettings
+  onNavigateToSettings,
 }) => {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={s.container} edges={['bottom']}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <View style={styles.backButtonContainer}>
-            <Text style={styles.backButtonText}>←</Text>
+      <View style={s.header}>
+        <View style={s.headerRow}>
+          <TouchableOpacity style={s.settingsBtn} onPress={() => onNavigateToSettings?.()}>
+            <Text style={s.settingsBtnText}>⚙</Text>
+          </TouchableOpacity>
+          <View style={s.headerTitleArea}>
+            <Text style={s.headerTitle}>الطلبات</Text>
+            <Text style={s.headerSubtitle}>اختر نوع الطلب المراد تقديمه</Text>
           </View>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>الطلبات</Text>
-        <TouchableOpacity
-          style={styles.settingsButton}
-          onPress={() => onNavigateToSettings && onNavigateToSettings()}
-        >
-          <View style={styles.settingsButtonContainer}>
-            <Text style={styles.settingsButtonText}>⚙️</Text>
-          </View>
-        </TouchableOpacity>
+          <TouchableOpacity style={s.backBtn} onPress={onBack}><Text style={s.backBtnText}>→</Text></TouchableOpacity>
+        </View>
       </View>
 
-      {/* Main Content */}
-      <View style={styles.content}>
-        {/* Payment Deferral Button */}
+      {/* Content */}
+      <View style={s.content}>
+        {/* Payment Deferral */}
         <TouchableOpacity
-          style={[styles.categoryButton, styles.paymentButton]}
-          onPress={() => onNavigateToPaymentDeferral && onNavigateToPaymentDeferral()}
-          activeOpacity={0.8}
+          style={s.categoryCard}
+          onPress={() => onNavigateToPaymentDeferral?.()}
+          activeOpacity={0.7}
         >
-          <View style={styles.categoryIconContainer}>
-            <Text style={styles.categoryIcon}>💰</Text>
+          <View style={[s.categoryAccent, { backgroundColor: '#F59E0B' }]} />
+          <View style={s.categoryBody}>
+            <View style={s.categoryHeader}>
+              <Text style={s.categoryArrow}>←</Text>
+              <View style={[s.categoryIconCircle, { backgroundColor: '#FEF3C7' }]}>
+                <Text style={s.categoryIcon}>💰</Text>
+              </View>
+            </View>
+            <Text style={s.categoryTitle}>طلبات تأجيل السداد</Text>
+            <Text style={s.categoryDesc}>طلب تأجيل موعد سداد الرسوم الدراسية</Text>
           </View>
-          <Text style={styles.categoryTitle}>طلبات تأجيل السداد</Text>
-          <Text style={styles.categoryDescription}>
-            طلب تأجيل موعد سداد الرسوم الدراسية
-          </Text>
-          <Text style={styles.categoryArrow}>→</Text>
         </TouchableOpacity>
 
-        {/* Free Requests Button */}
+        {/* Free Requests */}
         <TouchableOpacity
-          style={[styles.categoryButton, styles.freeButton]}
-          onPress={() => onNavigateToFreeRequests && onNavigateToFreeRequests()}
-          activeOpacity={0.8}
+          style={s.categoryCard}
+          onPress={() => onNavigateToFreeRequests?.()}
+          activeOpacity={0.7}
         >
-          <View style={styles.categoryIconContainer}>
-            <Text style={styles.categoryIcon}>📋</Text>
+          <View style={[s.categoryAccent, { backgroundColor: '#2563EB' }]} />
+          <View style={s.categoryBody}>
+            <View style={s.categoryHeader}>
+              <Text style={s.categoryArrow}>←</Text>
+              <View style={[s.categoryIconCircle, { backgroundColor: '#DBEAFE' }]}>
+                <Text style={s.categoryIcon}>📋</Text>
+              </View>
+            </View>
+            <Text style={s.categoryTitle}>الطلبات المجانية</Text>
+            <Text style={s.categoryDesc}>إفادة، إثبات قيد، تأجيل اختبار، إجازة مرضية</Text>
           </View>
-          <Text style={styles.categoryTitle}>الطلبات المجانية</Text>
-          <Text style={styles.categoryDescription}>
-            إفادة، إثبات قيد، تأجيل اختبار، إجازة مرضية
-          </Text>
-          <Text style={styles.categoryArrow}>→</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backButtonContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: Colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: Colors.primary,
-    fontWeight: '800',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-  },
-  settingsButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  settingsButtonContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: Colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
-  },
-  settingsButtonText: {
-    fontSize: 20,
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    gap: 16,
-  },
-  categoryButton: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
-    position: 'relative',
-  },
-  paymentButton: {
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.warning,
-  },
-  freeButton: {
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.info,
-  },
-  categoryIconContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: Colors.backgroundSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  categoryIcon: {
-    fontSize: 36,
-  },
-  categoryTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 8,
-    textAlign: 'right',
-  },
-  categoryDescription: {
-    fontSize: 15,
-    color: Colors.textSecondary,
-    lineHeight: 22,
-    textAlign: 'right',
-  },
-  categoryArrow: {
-    position: 'absolute',
-    top: 24,
-    left: 24,
-    fontSize: 24,
-    color: Colors.primary,
-    fontWeight: '800',
-  },
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F4F6FA' },
+  header: { backgroundColor: '#FFF', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#EEF2F6' },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  headerTitleArea: { flex: 1, alignItems: 'flex-end', marginRight: 12 },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: '#1A1D26', textAlign: 'right' },
+  headerSubtitle: { fontSize: 13, color: '#8E95A2', marginTop: 4, textAlign: 'right' },
+  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F4F6FA', alignItems: 'center', justifyContent: 'center' },
+  backBtnText: { fontSize: 20, color: '#1A1D26', fontWeight: '600' },
+  settingsBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F4F6FA', alignItems: 'center', justifyContent: 'center' },
+  settingsBtnText: { fontSize: 18, color: '#6B7280' },
+  content: { flex: 1, padding: 16, gap: 14 },
+  categoryCard: { backgroundColor: '#FFF', borderRadius: 16, overflow: 'hidden', flexDirection: 'row', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
+  categoryAccent: { width: 5, borderTopLeftRadius: 16, borderBottomLeftRadius: 16 },
+  categoryBody: { flex: 1, padding: 20 },
+  categoryHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
+  categoryIconCircle: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  categoryIcon: { fontSize: 24 },
+  categoryTitle: { fontSize: 18, fontWeight: '800', color: '#1A1D26', textAlign: 'right', marginBottom: 6 },
+  categoryDesc: { fontSize: 14, color: '#8E95A2', lineHeight: 22, textAlign: 'right' },
+  categoryArrow: { fontSize: 20, color: '#2563EB', fontWeight: '700' },
 });
 
 export default RequestsHubScreen;

@@ -1,17 +1,9 @@
-// Screen for creating payment deferral request
-
+// CreatePaymentDeferralScreen – form to create a payment deferral request
 import React, { useState, useEffect } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../styles/colors';
 import { API_CONFIG } from '../services/apiConfig';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
@@ -23,9 +15,7 @@ interface CreatePaymentDeferralScreenProps {
 }
 
 const CreatePaymentDeferralScreen: React.FC<CreatePaymentDeferralScreenProps> = ({
-  accessToken,
-  traineeId,
-  onBack
+  accessToken, traineeId, onBack,
 }) => {
   const [payments, setPayments] = useState<any[]>([]);
   const [selectedPaymentId, setSelectedPaymentId] = useState('');
@@ -35,399 +25,158 @@ const CreatePaymentDeferralScreen: React.FC<CreatePaymentDeferralScreenProps> = 
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [showFeePicker, setShowFeePicker] = useState(false);
 
-  useEffect(() => {
-    loadPayments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => { loadPayments(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
   const loadPayments = async () => {
-    if (!traineeId) {
-      console.warn('⚠️ traineeId not provided');
-      return;
-    }
-
+    if (!traineeId) return;
     try {
       setIsLoadingPayments(true);
-      
       const url = `${API_CONFIG.BASE_URL}/api/finances/trainees/${traineeId}/payments`;
-      console.log('🔍 Loading trainee payments from:', url);
-      
       const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Payments loaded:', data.length);
-        setPayments(data);
-      } else {
-        console.error('❌ Failed to load payments:', response.status);
-        Alert.alert('خطأ', 'فشل في تحميل قائمة الرسوم');
-      }
-    } catch (error) {
-      console.error('❌ Error loading payments:', error);
-      Alert.alert('خطأ', 'حدث خطأ في تحميل البيانات');
-    } finally {
-      setIsLoadingPayments(false);
-    }
+      if (response.ok) { const data = await response.json(); setPayments(data); }
+      else Alert.alert('خطأ', 'فشل في تحميل قائمة الرسوم');
+    } catch { Alert.alert('خطأ', 'حدث خطأ في تحميل البيانات'); }
+    finally { setIsLoadingPayments(false); }
   };
 
   const handleSubmit = async () => {
-    // Validation
-    if (!selectedPaymentId) {
-      Alert.alert('خطأ', 'يرجى اختيار الرسم المطلوب تأجيله');
-      return;
-    }
-    if (!extensionDays || isNaN(Number(extensionDays))) {
-      Alert.alert('خطأ', 'يرجى إدخال عدد الأيام');
-      return;
-    }
+    if (!selectedPaymentId) { Alert.alert('خطأ', 'يرجى اختيار الرسم المطلوب تأجيله'); return; }
+    if (!extensionDays || isNaN(Number(extensionDays))) { Alert.alert('خطأ', 'يرجى إدخال عدد الأيام'); return; }
     const days = Number(extensionDays);
-    if (days < 1 || days > 90) {
-      Alert.alert('خطأ', 'عدد الأيام يجب أن يكون بين 1 و 90');
-      return;
-    }
-    if (!reason.trim()) {
-      Alert.alert('خطأ', 'يرجى كتابة سبب التأجيل');
-      return;
-    }
-
+    if (days < 1 || days > 90) { Alert.alert('خطأ', 'عدد الأيام يجب أن يكون بين 1 و 90'); return; }
+    if (!reason.trim()) { Alert.alert('خطأ', 'يرجى كتابة سبب التأجيل'); return; }
     try {
       setIsLoading(true);
-      // TODO: إرسال للـ API
-      // POST /api/deferral-requests
       Alert.alert('قريباً', 'سيتم إضافة الاتصال بالـ API');
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   };
 
   const selectedPayment = payments.find(p => p.id === selectedPaymentId);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={s.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <View style={styles.backButtonContainer}>
-            <Text style={styles.backButtonText}>←</Text>
-          </View>
+      <View style={s.header}>
+        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
+          <Text style={s.backIcon}>→</Text>
         </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>طلب تأجيل سداد</Text>
-          <Text style={styles.headerSubtitle}>قدم طلب تأجيل موعد سداد أحد الرسوم</Text>
+        <View style={{ flex: 1, marginRight: 14 }}>
+          <Text style={s.headerTitle}>طلب تأجيل سداد</Text>
+          <Text style={s.headerSub}>قدم طلب تأجيل موعد سداد أحد الرسوم</Text>
         </View>
-        <View style={styles.headerSpacer} />
+        <View style={{ width: 38 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.formCard}>
-          {/* Fee Select Box */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>الرسم المطلوب تأجيله *</Text>
-            <TouchableOpacity
-              style={styles.selectBox}
-              onPress={() => setShowFeePicker(!showFeePicker)}
-            >
-              <Text style={[styles.selectText, !selectedPaymentId && styles.selectPlaceholder]}>
-                {selectedPayment
-                  ? `${selectedPayment.fee.name} - ${selectedPayment.fee.amount} جنيه`
-                  : '-- اختر الرسم --'
-                }
-              </Text>
-              <Text style={styles.selectIcon}>▼</Text>
-            </TouchableOpacity>
-          </View>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll}>
+        <View style={s.formCard}>
+          {/* Fee Select */}
+          <Text style={s.label}>الرسم المطلوب تأجيله *</Text>
+          <TouchableOpacity style={s.selectBox} onPress={() => setShowFeePicker(!showFeePicker)}>
+            <Text style={[s.selectText, !selectedPaymentId && { color: '#8E95A2' }]}>
+              {selectedPayment ? `${selectedPayment.fee.name} - ${selectedPayment.fee.amount} جنيه` : '-- اختر الرسم --'}
+            </Text>
+            <Text style={{ fontSize: 12, color: '#8E95A2' }}>▼</Text>
+          </TouchableOpacity>
 
           {/* Picker List */}
           {showFeePicker && (
-            <ScrollView
-              style={styles.pickerSection}
-              showsVerticalScrollIndicator={true}
-              nestedScrollEnabled={true}
-            >
+            <ScrollView style={s.pickerList} showsVerticalScrollIndicator nestedScrollEnabled>
               {isLoadingPayments ? (
-                <ActivityIndicator color={Colors.primary} style={{ marginVertical: 20 }} />
+                <ActivityIndicator color="#2563EB" style={{ marginVertical: 20 }} />
               ) : (
-                payments.map((payment, index) => (
+                payments.map((p, i) => (
                   <TouchableOpacity
-                    key={payment.id}
-                    style={[
-                      styles.pickerItem,
-                      index === payments.length - 1 && styles.pickerItemLast
-                    ]}
-                    onPress={() => {
-                      setSelectedPaymentId(payment.id);
-                      setShowFeePicker(false);
-                    }}
+                    key={p.id}
+                    style={[s.pickerItem, i === payments.length - 1 && { borderBottomWidth: 0 }]}
+                    onPress={() => { setSelectedPaymentId(p.id); setShowFeePicker(false); }}
                   >
-                    <Text style={styles.pickerItemText}>
-                      {payment.fee.name}
-                    </Text>
-                    <Text style={styles.pickerItemAmount}>
-                      {payment.fee.amount} جنيه
-                    </Text>
+                    <Text style={s.pickerName}>{p.fee.name}</Text>
+                    <View style={s.pickerAmountBadge}>
+                      <Text style={s.pickerAmount}>{p.fee.amount} جنيه</Text>
+                    </View>
                   </TouchableOpacity>
                 ))
               )}
             </ScrollView>
           )}
 
-          {/* Extension Days */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>عدد الأيام المطلوب تأجيلها *</Text>
-            <CustomInput
-              value={extensionDays}
-              onChangeText={setExtensionDays}
-              placeholder="14"
-              keyboardType="numeric"
-            />
-            <Text style={styles.hint}>الحد الأقصى 90 يوم</Text>
-          </View>
+          {/* Days */}
+          <Text style={[s.label, { marginTop: 20 }]}>عدد الأيام المطلوب تأجيلها *</Text>
+          <CustomInput value={extensionDays} onChangeText={setExtensionDays} placeholder="14" keyboardType="numeric" />
+          <Text style={s.hint}>الحد الأقصى 90 يوم</Text>
 
           {/* Reason */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>سبب طلب التأجيل *</Text>
-            <CustomInput
-              value={reason}
-              onChangeText={setReason}
-              placeholder="اكتب سبب طلب التأجيل بوضوح (مثال: ظروف صحية، ظروف عائلية، ظروف مادية مؤقتة...)"
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-            />
-            <Text style={styles.hint}>يجب أن يكون السبب واضحاً ومحدداً</Text>
-          </View>
+          <Text style={[s.label, { marginTop: 20 }]}>سبب طلب التأجيل *</Text>
+          <CustomInput
+            value={reason} onChangeText={setReason}
+            placeholder="اكتب سبب طلب التأجيل بوضوح..."
+            multiline numberOfLines={6} textAlignVertical="top"
+          />
+          <Text style={s.hint}>يجب أن يكون السبب واضحاً ومحدداً</Text>
 
-          {/* Info Box */}
-          <View style={styles.infoBox}>
-            <Text style={styles.infoTitle}>ℹ️ ملاحظات هامة:</Text>
-            <View style={styles.infoList}>
-              <Text style={styles.infoItem}>• سيتم مراجعة طلبك من قبل الإدارة</Text>
-              <Text style={styles.infoItem}>• سيتطلب النتيجة المراجعة من قبل الماليات</Text>
-              <Text style={styles.infoItem}>• في حالة القبول، سيتم تأجيل الموعد تلقائياً</Text>
-              <Text style={styles.infoItem}>• بإمكانك متابعة حالة طلبك من صفحة الطلبات</Text>
-            </View>
+          {/* Info */}
+          <View style={s.infoBox}>
+            <Text style={s.infoTitle}>ℹ️ ملاحظات هامة:</Text>
+            <Text style={s.infoItem}>• سيتم مراجعة طلبك من قبل الإدارة</Text>
+            <Text style={s.infoItem}>• سيتطلب النتيجة المراجعة من قبل الماليات</Text>
+            <Text style={s.infoItem}>• في حالة القبول، سيتم تأجيل الموعد تلقائياً</Text>
+            <Text style={s.infoItem}>• بإمكانك متابعة حالة طلبك من صفحة الطلبات</Text>
           </View>
 
           {/* Buttons */}
-          <View style={styles.buttonsContainer}>
-            <CustomButton
-              title="إرسال الطلب"
-              onPress={handleSubmit}
-              loading={isLoading}
-              variant="primary"
-              size="large"
-            />
-            <View style={{ height: 12 }} />
-            <CustomButton
-              title="إلغاء"
-              onPress={onBack}
-              variant="outline"
-              size="large"
-            />
-          </View>
+          <CustomButton title="إرسال الطلب" onPress={handleSubmit} loading={isLoading} variant="primary" size="large" />
+          <View style={{ height: 12 }} />
+          <CustomButton title="إلغاء" onPress={onBack} variant="outline" size="large" />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F4F6FA' },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    paddingHorizontal: 18, paddingVertical: 14,
+    borderBottomWidth: 1, borderBottomColor: '#EEF2F6',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
   },
-  backButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backButtonContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: Colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: Colors.primary,
-    fontWeight: '800',
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 12,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 2,
-  },
-  headerSpacer: {
-    width: 44,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-  },
+  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F0F4FF', alignItems: 'center', justifyContent: 'center' },
+  backIcon: { fontSize: 18, color: '#2563EB', fontWeight: '700' },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
+  headerSub: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 2 },
+  scroll: { padding: 18, paddingBottom: 32 },
   formCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 6,
+    backgroundColor: '#fff', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#EEF2F6',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
-  fieldGroup: {
-    marginBottom: 20,
-  },
-  fieldLabel: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 12,
-    textAlign: 'right',
-  },
-  hint: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginTop: 6,
-    textAlign: 'right',
-    fontStyle: 'italic',
-  },
+  label: { fontSize: 14, fontWeight: '700', color: '#1A1D26', marginBottom: 10, textAlign: 'right' },
+  hint: { fontSize: 11, color: '#8E95A2', marginTop: 6, textAlign: 'right', fontStyle: 'italic' },
   selectBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#CBD5E1',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    minHeight: 54,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    borderWidth: 1.5, borderColor: '#EEF2F6', borderRadius: 12,
+    paddingVertical: 14, paddingHorizontal: 14, backgroundColor: '#FAFBFD',
   },
-  selectText: {
-    fontSize: 16,
-    color: '#1F2937',
-    fontWeight: '600',
-    flex: 1,
-    textAlign: 'right',
-  },
-  selectPlaceholder: {
-    color: '#9CA3AF',
-    fontWeight: '400',
-  },
-  selectIcon: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginLeft: 8,
-  },
-  pickerSection: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    marginBottom: 20,
-    maxHeight: 300,
-    overflow: 'hidden',
-  },
-  pickerLoading: {
-    padding: 20,
-    alignItems: 'center',
+  selectText: { fontSize: 14, color: '#1A1D26', fontWeight: '600', flex: 1, textAlign: 'right' },
+  pickerList: {
+    backgroundColor: '#fff', borderRadius: 12, borderWidth: 1.5, borderColor: '#2563EB',
+    marginTop: 8, marginBottom: 8, maxHeight: 260,
   },
   pickerItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingVertical: 14, paddingHorizontal: 14, borderBottomWidth: 1, borderBottomColor: '#F4F6FA',
   },
-  pickerItemLast: {
-    borderBottomWidth: 0,
-  },
-  pickerItemText: {
-    fontSize: 15,
-    color: '#1F2937',
-    fontWeight: '700',
-    flex: 1,
-    textAlign: 'right',
-  },
-  pickerItemAmount: {
-    fontSize: 14,
-    color: '#059669',
-    fontWeight: '800',
-    backgroundColor: '#D1FAE5',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  noDataText: {
-    padding: 20,
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
+  pickerName: { fontSize: 14, color: '#1A1D26', fontWeight: '600', flex: 1, textAlign: 'right' },
+  pickerAmountBadge: { backgroundColor: '#E8FAF0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  pickerAmount: { fontSize: 12, color: '#10B981', fontWeight: '700' },
   infoBox: {
-    backgroundColor: '#E0F2FE',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#BAE6FD',
+    backgroundColor: '#EBF5FF', borderRadius: 12, padding: 16, marginTop: 20, marginBottom: 20,
+    borderWidth: 1, borderColor: '#BFDBFE',
   },
-  infoTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#0369A1',
-    marginBottom: 12,
-    textAlign: 'right',
-  },
-  infoList: {
-    gap: 8,
-  },
-  infoItem: {
-    fontSize: 13,
-    color: '#0C4A6E',
-    textAlign: 'right',
-    lineHeight: 20,
-  },
-  buttonsContainer: {
-    marginTop: 8,
-  },
+  infoTitle: { fontSize: 14, fontWeight: '700', color: '#2563EB', marginBottom: 10, textAlign: 'right' },
+  infoItem: { fontSize: 12, color: '#1E40AF', textAlign: 'right', lineHeight: 20, marginBottom: 4 },
 });
 
 export default CreatePaymentDeferralScreen;

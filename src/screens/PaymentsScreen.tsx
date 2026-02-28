@@ -1,28 +1,21 @@
-// SOLID Principles Applied:
-// 1. Single Responsibility: This screen only handles payments display and management
-// 2. Open/Closed: Can be extended with new features without modifying existing code
-// 3. Interface Segregation: Uses specific interfaces for different concerns
-// 4. Dependency Inversion: Depends on abstractions (components) not concretions
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Animated,
-  Dimensions,
-  Alert,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthService } from '../services/authService';
-import { TraineeProfile, TraineePayment, PaymentStatus, FeeType } from '../types/auth';
-import { Colors } from '../styles/colors';
-import CustomButton from '../components/CustomButton';
-
-const { width, height } = Dimensions.get('window');
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {AuthService} from '../services/authService';
+import {
+  TraineeProfile,
+  TraineePayment,
+  PaymentStatus,
+  FeeType,
+} from '../types/auth';
 
 interface PaymentsScreenProps {
   accessToken: string;
@@ -33,71 +26,46 @@ interface PaymentsScreenProps {
 const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
   accessToken,
   onBack,
-  onNavigateToPaymentDueDates
+  onNavigateToPaymentDueDates,
 }) => {
   const [profile, setProfile] = useState<TraineeProfile | null>(null);
   const [payments, setPayments] = useState<TraineePayment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedFilter, setSelectedFilter] = useState<PaymentStatus | 'ALL'>('ALL');
-
-  // Animation values
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const [selectedFilter, setSelectedFilter] = useState<
+    PaymentStatus | 'ALL'
+  >('ALL');
 
   useEffect(() => {
     loadPayments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (payments.length > 0) {
-      // Start entrance animations
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          tension: 100,
-          friction: 8,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [payments]);
 
   const loadPayments = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       console.log('🔍 Loading payments...');
       const profileData = await AuthService.getProfile(accessToken);
       console.log('✅ Payments loaded successfully:', profileData);
-      
+
       setProfile(profileData);
       setPayments(profileData.trainee.traineePayments || []);
-    } catch (error) {
-      console.error('❌ Failed to load payments:', error);
-      const apiError = error as any;
-      
+    } catch (err) {
+      console.error('❌ Failed to load payments:', err);
+      const apiError = err as any;
+
       let errorMessage = 'حدث خطأ أثناء تحميل المدفوعات';
       if (apiError.statusCode === 401) {
-        errorMessage = 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى';
+        errorMessage =
+          'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى';
       } else if (apiError.statusCode === 0) {
         errorMessage = apiError.message;
       } else if (apiError.message) {
         errorMessage = apiError.message;
       }
-      
+
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -106,10 +74,6 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
 
   const handleMakePayment = (payment: TraineePayment) => {
     Alert.alert('دفع الرسوم', 'سيتم إضافة هذه الميزة قريباً');
-  };
-
-  const handleViewPaymentDetails = (payment: TraineePayment) => {
-    Alert.alert('تفاصيل الدفع', `تفاصيل الدفع لـ ${payment.fee.name}`);
   };
 
   const handlePaymentHistory = () => {
@@ -134,15 +98,15 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
   const getPaymentStatusColor = (status: PaymentStatus): string => {
     switch (status) {
       case 'PENDING':
-        return Colors.warning;
+        return '#F59E0B';
       case 'COMPLETED':
-        return Colors.success;
+        return '#10B981';
       case 'CANCELLED':
-        return Colors.error;
+        return '#EF4444';
       case 'REFUNDED':
-        return Colors.info;
+        return '#3B82F6';
       default:
-        return Colors.textSecondary;
+        return '#8E95A2';
     }
   };
 
@@ -185,7 +149,6 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
   };
 
   const formatCurrency = (amount: number): string => {
-    // إزالة الأصفار بعد العلامة العشرية
     return new Intl.NumberFormat('ar-EG', {
       style: 'currency',
       currency: 'EGP',
@@ -207,862 +170,678 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
     }
   };
 
-  const filteredPayments = selectedFilter === 'ALL' 
-    ? payments 
-    : payments.filter(payment => payment.status === selectedFilter);
+  const filteredPayments =
+    selectedFilter === 'ALL'
+      ? payments
+      : payments.filter(payment => payment.status === selectedFilter);
 
   const paymentStatuses: (PaymentStatus | 'ALL')[] = [
     'ALL',
     PaymentStatus.PENDING,
     PaymentStatus.COMPLETED,
     PaymentStatus.CANCELLED,
-    PaymentStatus.REFUNDED
+    PaymentStatus.REFUNDED,
   ];
 
   // Calculate totals
-  const totalAmount = payments.reduce((sum, payment) => sum + payment.amount, 0);
-  const paidAmount = payments.reduce((sum, payment) => sum + payment.paidAmount, 0);
+  const totalAmount = payments.reduce(
+    (sum, payment) => sum + payment.amount,
+    0,
+  );
+  const paidAmount = payments.reduce(
+    (sum, payment) => sum + payment.paidAmount,
+    0,
+  );
   const pendingAmount = totalAmount - paidAmount;
-  const completedPayments = payments.filter(p => p.status === 'COMPLETED').length;
-  const pendingPayments = payments.filter(p => p.status === 'PENDING').length;
+  const completedPayments = payments.filter(
+    p => p.status === 'COMPLETED',
+  ).length;
+  const pendingPaymentsCount = payments.filter(
+    p => p.status === 'PENDING',
+  ).length;
+  const paidPct = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
 
+  // Loading
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>جاري تحميل المدفوعات...</Text>
+      <SafeAreaView style={s.container}>
+        <View style={s.centerBox}>
+          <ActivityIndicator size="large" color="#2563EB" />
+          <Text style={s.loadingText}>جاري تحميل المدفوعات...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
+  // Error
   if (error) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>خطأ في تحميل المدفوعات</Text>
-          <Text style={styles.errorMessage}>{error}</Text>
-          <CustomButton
-            title="إعادة المحاولة"
-            onPress={loadPayments}
-            variant="primary"
-            size="large"
-          />
-          <CustomButton
-            title="العودة"
-            onPress={onBack}
-            variant="outline"
-            size="large"
-          />
+      <SafeAreaView style={s.container}>
+        <View style={s.centerBox}>
+          <Text style={s.errorEmoji}>⚠️</Text>
+          <Text style={s.errorTitle}>خطأ في تحميل المدفوعات</Text>
+          <Text style={s.errorMsg}>{error}</Text>
+          <TouchableOpacity style={s.retryBtn} onPress={loadPayments}>
+            <Text style={s.retryBtnText}>إعادة المحاولة</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.backLink} onPress={onBack}>
+            <Text style={s.backLinkText}>العودة</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Enhanced Background with Gradient */}
-      <View style={styles.backgroundContainer}>
-        <View style={styles.gradientOverlay} />
-        <View style={styles.decorativeCircles}>
-          <View style={[styles.circle, styles.circle1]} />
-          <View style={[styles.circle, styles.circle2]} />
-          <View style={[styles.circle, styles.circle3]} />
-        </View>
-      </View>
-
+    <SafeAreaView style={s.container}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Enhanced Header Section */}
-        <Animated.View style={[
-          styles.headerSection,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }]
-          }
-        ]}>
-          <View style={styles.headerTop}>
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
-              <View style={styles.backButtonIcon}>
-                <Text style={styles.backButtonText}>←</Text>
-              </View>
-              <Text style={styles.backButtonLabel}>العودة</Text>
-            </TouchableOpacity>
-            
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerTitle}>المدفوعات</Text>
-              <View style={styles.headerUnderline} />
-            </View>
-            
-            <View style={styles.headerActions}>
+        style={s.scroll}
+        contentContainerStyle={s.scrollContent}
+        showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={s.header}>
+          <TouchableOpacity style={s.backBtn} onPress={onBack}>
+            <Text style={s.backArrow}>→</Text>
+          </TouchableOpacity>
+          <View style={s.headerCenter}>
+            <Text style={s.headerTitle}>المدفوعات</Text>
+            <Text style={s.headerSub}>إدارة الرسوم والمدفوعات</Text>
+          </View>
+          <View style={s.headerActions}>
+            {onNavigateToPaymentDueDates && (
               <TouchableOpacity
-                style={styles.dueDatesButton}
-                onPress={() => onNavigateToPaymentDueDates && onNavigateToPaymentDueDates()}
-              >
-                <View style={styles.dueDatesButtonIcon}>
-                  <Text style={styles.dueDatesButtonText}>📅</Text>
-                </View>
+                style={s.headerActionBtn}
+                onPress={onNavigateToPaymentDueDates}>
+                <Text style={s.headerActionIcon}>📅</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.historyButton} onPress={handlePaymentHistory}>
-                <View style={styles.historyButtonIcon}>
-                  <Text style={styles.historyButtonText}>📊</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
+            )}
+            <TouchableOpacity
+              style={s.headerActionBtn}
+              onPress={handlePaymentHistory}>
+              <Text style={s.headerActionIcon}>📊</Text>
+            </TouchableOpacity>
           </View>
+        </View>
 
-          {/* Payment Summary & Stats Combined */}
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryHeader}>
-              <Text style={styles.summaryTitle}>ملخص المدفوعات</Text>
+        {/* Summary Card */}
+        <View style={s.summaryCard}>
+          <Text style={s.summaryTitle}>ملخص المدفوعات</Text>
+
+          <View style={s.summaryGrid}>
+            <View style={s.summaryItem}>
+              <Text style={s.summaryValue}>{formatCurrency(totalAmount)}</Text>
+              <Text style={s.summaryLabel}>إجمالي المطلوب</Text>
             </View>
-            
-            <View style={styles.summaryGrid}>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryNumber}>{formatCurrency(totalAmount)}</Text>
-                <Text style={styles.summaryLabel}>إجمالي المطلوب</Text>
-              </View>
-              
-              <View style={styles.summaryDivider} />
-              
-              <View style={styles.summaryItem}>
-                <Text style={[styles.summaryNumber, { color: Colors.success }]}>
-                  {formatCurrency(paidAmount)}
-                </Text>
-                <Text style={styles.summaryLabel}>المدفوع</Text>
-              </View>
-              
-              <View style={styles.summaryDivider} />
-              
-              <View style={styles.summaryItem}>
-                <Text style={[styles.summaryNumber, { color: Colors.warning }]}>
-                  {formatCurrency(pendingAmount)}
-                </Text>
-                <Text style={styles.summaryLabel}>المتبقي</Text>
-              </View>
-            </View>
-            
-            <View style={styles.progressContainer}>
-              <View style={styles.progressBar}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    { width: `${(paidAmount / totalAmount) * 100}%` }
-                  ]}
-                />
-              </View>
-              <Text style={styles.progressText}>
-                {Math.round((paidAmount / totalAmount) * 100)}% مكتمل
+            <View style={s.summaryDivider} />
+            <View style={s.summaryItem}>
+              <Text style={[s.summaryValue, {color: '#10B981'}]}>
+                {formatCurrency(paidAmount)}
               </Text>
+              <Text style={s.summaryLabel}>المدفوع</Text>
             </View>
-
-            {/* Stats integrated */}
-            <View style={styles.statsContent}>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{payments.length}</Text>
-                <Text style={styles.statLabel}>إجمالي المدفوعات</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { color: Colors.success }]}>
-                  {completedPayments}
-                </Text>
-                <Text style={styles.statLabel}>مكتملة</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { color: Colors.warning }]}>
-                  {pendingPayments}
-                </Text>
-                <Text style={styles.statLabel}>معلقة</Text>
-              </View>
+            <View style={s.summaryDivider} />
+            <View style={s.summaryItem}>
+              <Text style={[s.summaryValue, {color: '#F59E0B'}]}>
+                {formatCurrency(pendingAmount)}
+              </Text>
+              <Text style={s.summaryLabel}>المتبقي</Text>
             </View>
           </View>
-        </Animated.View>
 
-        {/* Filter Section */}
-        <Animated.View style={[
-          styles.filterSection,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }]
-          }
-        ]}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>تصفية المدفوعات</Text>
-            <View style={styles.sectionTitleUnderline} />
+          {/* Progress */}
+          <View style={s.progressRow}>
+            <View style={s.progressBarBg}>
+              <View
+                style={[s.progressBarFill, {width: `${paidPct}%`}]}
+              />
+            </View>
+            <Text style={s.progressText}>
+              {Math.round(paidPct)}% مكتمل
+            </Text>
           </View>
-          
-          <ScrollView 
-            horizontal 
+
+          {/* Stats Row */}
+          <View style={s.statsRow}>
+            <View style={s.statsItem}>
+              <Text style={s.statsNum}>{payments.length}</Text>
+              <Text style={s.statsLabel}>إجمالي</Text>
+            </View>
+            <View style={s.statsDivider} />
+            <View style={s.statsItem}>
+              <Text style={[s.statsNum, {color: '#10B981'}]}>
+                {completedPayments}
+              </Text>
+              <Text style={s.statsLabel}>مكتملة</Text>
+            </View>
+            <View style={s.statsDivider} />
+            <View style={s.statsItem}>
+              <Text style={[s.statsNum, {color: '#F59E0B'}]}>
+                {pendingPaymentsCount}
+              </Text>
+              <Text style={s.statsLabel}>معلقة</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Filter */}
+        <View style={s.filterSection}>
+          <Text style={s.sectionTitle}>تصفية المدفوعات</Text>
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterScrollContent}
-          >
-            {paymentStatuses.map((status) => (
+            contentContainerStyle={s.filterContent}>
+            {paymentStatuses.map(status => (
               <TouchableOpacity
                 key={status}
                 style={[
-                  styles.filterChip,
-                  selectedFilter === status && styles.filterChipActive
+                  s.filterChip,
+                  selectedFilter === status && s.filterChipActive,
                 ]}
-                onPress={() => setSelectedFilter(status)}
-              >
-                <Text style={[
-                  styles.filterChipText,
-                  selectedFilter === status && styles.filterChipTextActive
-                ]}>
-                  {status === 'ALL' ? 'الكل' : getPaymentStatusText(status as PaymentStatus)}
+                onPress={() => setSelectedFilter(status)}>
+                <Text
+                  style={[
+                    s.filterChipText,
+                    selectedFilter === status && s.filterChipTextActive,
+                  ]}>
+                  {status === 'ALL'
+                    ? 'الكل'
+                    : getPaymentStatusText(status as PaymentStatus)}
                 </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </Animated.View>
+        </View>
 
         {/* Payments List */}
-        <Animated.View style={[
-          styles.paymentsSection,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }]
-          }
-        ]}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              المدفوعات ({filteredPayments.length})
-            </Text>
-            <View style={styles.sectionTitleUnderline} />
-          </View>
-          
+        <View style={s.listSection}>
+          <Text style={s.sectionTitle}>
+            المدفوعات ({filteredPayments.length})
+          </Text>
+
           {filteredPayments.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateEmoji}>💰</Text>
-              <Text style={styles.emptyStateTitle}>لا توجد مدفوعات</Text>
-              <Text style={styles.emptyStateMessage}>
-                {selectedFilter === 'ALL' 
+            <View style={s.emptyBox}>
+              <Text style={s.emptyEmoji}>💰</Text>
+              <Text style={s.emptyTitle}>لا توجد مدفوعات</Text>
+              <Text style={s.emptyMsg}>
+                {selectedFilter === 'ALL'
                   ? 'لم يتم العثور على أي مدفوعات'
-                  : `لا توجد مدفوعات بحالة ${getPaymentStatusText(selectedFilter as PaymentStatus)}`
-                }
+                  : `لا توجد مدفوعات بحالة ${getPaymentStatusText(selectedFilter as PaymentStatus)}`}
               </Text>
             </View>
           ) : (
-            <View style={styles.paymentsGrid}>
-              {filteredPayments.map((payment, index) => (
-                <Animated.View
-                  key={payment.id}
-                  style={[
-                    styles.paymentCard,
-                    {
-                      opacity: fadeAnim,
-                      transform: [
-                        { translateY: slideAnim },
-                        { scale: scaleAnim }
-                      ]
-                    }
-                  ]}
-                >
-                  <View style={styles.paymentCardGradient} />
-                  
-                  <View style={styles.paymentHeader}>
-                    <View style={styles.paymentIcon}>
-                      <Text style={styles.paymentIconText}>
+            <View style={s.paymentsList}>
+              {filteredPayments.map(payment => (
+                <View key={payment.id} style={s.paymentCard}>
+                  {/* Card Header */}
+                  <View style={s.paymentHeader}>
+                    <View style={s.paymentIconBox}>
+                      <Text style={s.paymentIconText}>
                         {getFeeTypeIcon(payment.fee.type)}
                       </Text>
                     </View>
-                    
-                    <View style={styles.paymentStatus}>
-                      <View style={[
-                        styles.statusBadge,
-                        { backgroundColor: getPaymentStatusColor(payment.status) }
+                    <View
+                      style={[
+                        s.paymentStatusBadge,
+                        {
+                          backgroundColor:
+                            getPaymentStatusColor(payment.status) + '18',
+                        },
                       ]}>
-                        <Text style={styles.statusBadgeText}>
-                          {getPaymentStatusText(payment.status)}
-                        </Text>
-                      </View>
+                      <Text
+                        style={[
+                          s.paymentStatusText,
+                          {
+                            color: getPaymentStatusColor(payment.status),
+                          },
+                        ]}>
+                        {getPaymentStatusText(payment.status)}
+                      </Text>
                     </View>
                   </View>
-                  
-                  <View style={styles.paymentContent}>
-                    <Text style={styles.paymentTitle}>
-                      {payment.fee.name}
-                    </Text>
-                    
-                    <Text style={styles.paymentType}>
-                      {getFeeTypeText(payment.fee.type)}
-                    </Text>
-                    
-                    <View style={styles.paymentAmounts}>
-                      <View style={styles.amountRow}>
-                        <Text style={styles.amountLabel}>المبلغ المطلوب:</Text>
-                        <Text style={styles.amountValue}>
-                          {formatCurrency(payment.amount)}
-                        </Text>
-                      </View>
-                      
-                      <View style={styles.amountRow}>
-                        <Text style={styles.amountLabel}>المبلغ المدفوع:</Text>
-                        <Text style={[styles.amountValue, { color: Colors.success }]}>
-                          {formatCurrency(payment.paidAmount)}
-                        </Text>
-                      </View>
-                      
-                      {payment.amount > payment.paidAmount && (
-                        <View style={styles.amountRow}>
-                          <Text style={styles.amountLabel}>المتبقي:</Text>
-                          <Text style={[styles.amountValue, { color: Colors.warning }]}>
-                            {formatCurrency(payment.amount - payment.paidAmount)}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    
-                    <View style={styles.paymentDetails}>
-                      <Text style={styles.paymentDetail}>
-                        📅 {formatDate(payment.createdAt)}
-                      </Text>
-                      <Text style={styles.paymentDetail}>
-                        🎓 {payment.fee.academicYear}
+
+                  {/* Payment Info */}
+                  <Text style={s.paymentTitle}>{payment.fee.name}</Text>
+                  <Text style={s.paymentType}>
+                    {getFeeTypeText(payment.fee.type)}
+                  </Text>
+
+                  {/* Amounts */}
+                  <View style={s.amountsBox}>
+                    <View style={s.amountRow}>
+                      <Text style={s.amountLabel}>المبلغ المطلوب:</Text>
+                      <Text style={s.amountValue}>
+                        {formatCurrency(payment.amount)}
                       </Text>
                     </View>
-                    
-                    {payment.notes && (
-                      <Text style={styles.paymentNotes} numberOfLines={2}>
-                        {payment.notes}
+                    <View style={s.amountRow}>
+                      <Text style={s.amountLabel}>المبلغ المدفوع:</Text>
+                      <Text style={[s.amountValue, {color: '#10B981'}]}>
+                        {formatCurrency(payment.paidAmount)}
                       </Text>
+                    </View>
+                    {payment.amount > payment.paidAmount && (
+                      <View style={s.amountRow}>
+                        <Text style={s.amountLabel}>المتبقي:</Text>
+                        <Text
+                          style={[s.amountValue, {color: '#F59E0B'}]}>
+                          {formatCurrency(
+                            payment.amount - payment.paidAmount,
+                          )}
+                        </Text>
+                      </View>
                     )}
                   </View>
-                  
-                  {payment.status === 'PENDING' && payment.amount > payment.paidAmount && (
-                    <View style={styles.paymentActions}>
-                      <TouchableOpacity
-                        style={styles.payButton}
-                        onPress={() => handleMakePayment(payment)}
-                      >
-                        <Text style={styles.payButtonText}>💳 دفع الآن</Text>
-                      </TouchableOpacity>
-                    </View>
+
+                  {/* Details */}
+                  <View style={s.detailsRow}>
+                    <Text style={s.detailText}>
+                      📅 {formatDate(payment.createdAt)}
+                    </Text>
+                    <Text style={s.detailText}>
+                      🎓 {payment.fee.academicYear}
+                    </Text>
+                  </View>
+
+                  {payment.notes && (
+                    <Text style={s.paymentNotes} numberOfLines={2}>
+                      {payment.notes}
+                    </Text>
                   )}
-                </Animated.View>
+
+                  {/* Pay Button */}
+                  {payment.status === 'PENDING' &&
+                    payment.amount > payment.paidAmount && (
+                      <TouchableOpacity
+                        style={s.payBtn}
+                        onPress={() => handleMakePayment(payment)}>
+                        <Text style={s.payBtnText}>💳 دفع الآن</Text>
+                      </TouchableOpacity>
+                    )}
+                </View>
               ))}
             </View>
           )}
-        </Animated.View>
-
-        {/* Bottom Spacing */}
-        <View style={styles.bottomSpacing} />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#F4F6FA',
   },
-  backgroundContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+  scroll: {
+    flex: 1,
   },
-  gradientOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: Colors.background,
+  scrollContent: {
+    paddingBottom: 32,
   },
-  decorativeCircles: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 1000,
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
-  },
-  circle1: {
-    width: 200,
-    height: 200,
-    top: -100,
-    right: -100,
-  },
-  circle2: {
-    width: 150,
-    height: 150,
-    bottom: 100,
-    left: -75,
-  },
-  circle3: {
-    width: 100,
-    height: 100,
-    top: '30%',
-    right: 50,
-  },
-  loadingContainer: {
+  centerBox: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
   },
   loadingText: {
-    fontSize: 16,
-    color: Colors.textLight,
     marginTop: 16,
-    textAlign: 'center',
+    fontSize: 16,
+    color: '#8E95A2',
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+  errorEmoji: {
+    fontSize: 56,
+    marginBottom: 16,
   },
   errorTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.error,
+    color: '#1A1D26',
+    marginBottom: 8,
+  },
+  errorMsg: {
+    fontSize: 15,
+    color: '#8E95A2',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  retryBtn: {
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 12,
     marginBottom: 12,
-    textAlign: 'center',
   },
-  errorMessage: {
+  retryBtnText: {
+    color: '#FFF',
     fontSize: 16,
-    color: Colors.textLight,
-    marginBottom: 24,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 20,
-  },
-  headerSection: {
-    marginBottom: 32,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.cardBackground,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-  },
-  backButtonIcon: {
-    marginRight: 8,
-  },
-  backButtonText: {
-    fontSize: 18,
-    color: Colors.textPrimary,
     fontWeight: '700',
   },
-  backButtonLabel: {
-    fontSize: 14,
-    color: Colors.textPrimary,
+  backLink: {
+    paddingVertical: 8,
+  },
+  backLinkText: {
+    color: '#2563EB',
+    fontSize: 15,
     fontWeight: '600',
   },
-  headerTitleContainer: {
+
+  /* Header */
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#FFF',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEF2F6',
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#F0F4FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backArrow: {
+    fontSize: 18,
+    color: '#2563EB',
+    fontWeight: '700',
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'flex-end',
+    marginRight: 12,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-    letterSpacing: -0.5,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1A1D26',
   },
-  headerUnderline: {
-    width: 60,
-    height: 3,
-    backgroundColor: Colors.primary,
-    borderRadius: 2,
-    marginTop: 8,
+  headerSub: {
+    fontSize: 13,
+    color: '#8E95A2',
+    marginTop: 2,
   },
   headerActions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
   },
-  dueDatesButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  dueDatesButtonIcon: {
+  headerActionBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#F0F4FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dueDatesButtonText: {
-    fontSize: 16,
+  headerActionIcon: {
+    fontSize: 18,
   },
-  historyButton: {
-    backgroundColor: Colors.accent,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    shadowColor: Colors.info,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  historyButtonIcon: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  historyButtonText: {
-    fontSize: 16,
-  },
+
+  /* Summary */
   summaryCard: {
-    backgroundColor: Colors.cardBackground,
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 16,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
+    backgroundColor: '#FFF',
+    marginHorizontal: 20,
+    marginTop: 16,
+    borderRadius: 16,
+    padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  summaryHeader: {
-    marginBottom: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 2,
-    borderBottomColor: 'rgba(99, 102, 241, 0.1)',
+    borderColor: '#EEF2F6',
   },
   summaryTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: '#1A1D26',
     textAlign: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEF2F6',
   },
   summaryGrid: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   summaryItem: {
     alignItems: 'center',
   },
-  summaryNumber: {
-    fontSize: 18,
+  summaryValue: {
+    fontSize: 16,
     fontWeight: '800',
-    color: Colors.textPrimary,
+    color: '#1A1D26',
     marginBottom: 4,
   },
   summaryLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontWeight: '600',
+    fontSize: 11,
+    color: '#8E95A2',
+    fontWeight: '500',
   },
   summaryDivider: {
     width: 1,
-    height: 40,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    height: 36,
+    backgroundColor: '#EEF2F6',
   },
-  progressContainer: {
+  progressRow: {
+    marginBottom: 16,
     alignItems: 'center',
   },
-  progressBar: {
+  progressBarBg: {
     width: '100%',
-    height: 8,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    borderRadius: 4,
+    height: 6,
+    backgroundColor: '#EEF2F6',
+    borderRadius: 3,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  progressFill: {
+  progressBarFill: {
     height: '100%',
-    backgroundColor: Colors.primary,
-    borderRadius: 4,
+    backgroundColor: '#2563EB',
+    borderRadius: 3,
   },
   progressText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: '#8E95A2',
   },
-  statsCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  statsContent: {
+  statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 2,
-    borderTopColor: 'rgba(99, 102, 241, 0.1)',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#EEF2F6',
   },
-  statItem: {
+  statsItem: {
     alignItems: 'center',
   },
-  statNumber: {
-    fontSize: 24,
+  statsNum: {
+    fontSize: 20,
     fontWeight: '800',
-    color: Colors.primary,
-    marginBottom: 4,
+    color: '#2563EB',
+    marginBottom: 2,
   },
-  statLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '600',
+  statsLabel: {
+    fontSize: 12,
+    color: '#8E95A2',
+    fontWeight: '500',
   },
-  statDivider: {
+  statsDivider: {
     width: 1,
-    height: 40,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    height: 32,
+    backgroundColor: '#EEF2F6',
   },
+
+  /* Filter */
   filterSection: {
-    marginBottom: 32,
-  },
-  sectionHeader: {
-    marginBottom: 20,
+    marginTop: 20,
+    paddingHorizontal: 20,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textPrimary,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1A1D26',
     textAlign: 'right',
-    letterSpacing: -0.3,
+    marginBottom: 12,
   },
-  sectionTitleUnderline: {
-    width: 40,
-    height: 3,
-    backgroundColor: Colors.primary,
-    borderRadius: 2,
-    marginTop: 8,
-    alignSelf: 'flex-end',
-  },
-  filterScrollContent: {
-    paddingHorizontal: 4,
+  filterContent: {
+    gap: 8,
   },
   filterChip: {
-    backgroundColor: Colors.cardBackground,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 20,
-    marginRight: 12,
+    backgroundColor: '#FFF',
     borderWidth: 1,
-    borderColor: Colors.borderLight,
+    borderColor: '#EEF2F6',
   },
   filterChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
   },
   filterChipText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: Colors.textPrimary,
+    color: '#8E95A2',
   },
   filterChipTextActive: {
-    color: Colors.white,
+    color: '#FFF',
   },
-  paymentsSection: {
-    marginBottom: 32,
+
+  /* Payments List */
+  listSection: {
+    marginTop: 20,
+    paddingHorizontal: 20,
   },
-  emptyState: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  emptyStateEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyStateTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptyStateMessage: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  paymentsGrid: {
-    gap: 16,
+  paymentsList: {
+    gap: 12,
   },
   paymentCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  paymentCardGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 4,
-    backgroundColor: Colors.primary,
+    borderColor: '#EEF2F6',
   },
   paymentHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  paymentIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+  paymentIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#F0F4FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   paymentIconText: {
-    fontSize: 24,
+    fontSize: 22,
   },
-  paymentStatus: {
-    alignItems: 'center',
-  },
-  statusBadge: {
-    borderRadius: 12,
+  paymentStatusBadge: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
-  statusBadgeText: {
+  paymentStatusText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.white,
-  },
-  paymentContent: {
-    marginBottom: 16,
   },
   paymentTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 4,
+    color: '#1A1D26',
     textAlign: 'right',
+    marginBottom: 4,
   },
   paymentType: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 16,
+    fontSize: 13,
+    color: '#8E95A2',
     textAlign: 'right',
+    marginBottom: 14,
   },
-  paymentAmounts: {
-    marginBottom: 16,
+  amountsBox: {
+    marginBottom: 12,
+    gap: 6,
   },
   amountRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
   },
   amountLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '500',
+    fontSize: 13,
+    color: '#8E95A2',
   },
   amountValue: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: '#1A1D26',
   },
-  paymentDetails: {
+  detailsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#EEF2F6',
+    marginBottom: 4,
   },
-  paymentDetail: {
+  detailText: {
     fontSize: 12,
-    color: Colors.textLight,
-    fontWeight: '500',
+    color: '#8E95A2',
   },
   paymentNotes: {
-    fontSize: 13,
-    color: Colors.textSecondary,
+    fontSize: 12,
+    color: '#8E95A2',
     fontStyle: 'italic',
     textAlign: 'right',
+    marginTop: 8,
     lineHeight: 18,
   },
-  paymentActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  payButton: {
-    backgroundColor: Colors.success,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  payButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.white,
-  },
-  detailsButton: {
-    flex: 1,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+  payBtn: {
+    backgroundColor: '#10B981',
     paddingVertical: 12,
-    paddingHorizontal: 16,
     borderRadius: 12,
     alignItems: 'center',
+    marginTop: 12,
+  },
+  payBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFF',
+  },
+
+  /* Empty */
+  emptyBox: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    backgroundColor: '#FFF',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.2)',
+    borderColor: '#EEF2F6',
   },
-  detailsButtonText: {
+  emptyEmoji: {
+    fontSize: 56,
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1D26',
+    marginBottom: 8,
+  },
+  emptyMsg: {
     fontSize: 14,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  bottomSpacing: {
-    height: 20,
+    color: '#8E95A2',
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: 20,
   },
 });
 

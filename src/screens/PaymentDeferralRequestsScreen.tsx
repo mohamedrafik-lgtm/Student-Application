@@ -1,22 +1,12 @@
-// Payment Deferral Requests Screen - عرض طلبات تأجيل السداد فقط
-
+// PaymentDeferralRequestsScreen – payment deferral requests list
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  ActivityIndicator,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Animated, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../styles/colors';
 import { requestsService } from '../services/requestsService';
 import {
-  PaymentDeferralRequest,
-  PaymentDeferralStatus,
-  RequestError,
+  PaymentDeferralRequest, PaymentDeferralStatus, RequestError,
 } from '../types/requests';
 import CustomButton from '../components/CustomButton';
 
@@ -27,23 +17,15 @@ interface PaymentDeferralRequestsScreenProps {
 }
 
 const PaymentDeferralRequestsScreen: React.FC<PaymentDeferralRequestsScreenProps> = ({
-  accessToken,
-  onBack,
-  onNavigateToCreateDeferral
+  accessToken, onBack, onNavigateToCreateDeferral,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [requests, setRequests] = useState<PaymentDeferralRequest[]>([]);
-
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 600,
-      useNativeDriver: true,
-    }).start();
-
+    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
     loadRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -52,195 +34,140 @@ const PaymentDeferralRequestsScreen: React.FC<PaymentDeferralRequestsScreenProps
     try {
       setIsLoading(true);
       setError(null);
-      
       const response = await requestsService.getMyDeferralRequests(accessToken);
-      
-      if (Array.isArray(response)) {
-        setRequests(response as PaymentDeferralRequest[]);
-      } else {
-        setError('صيغة استجابة غير صحيحة من الخادم');
-      }
+      if (Array.isArray(response)) setRequests(response as PaymentDeferralRequest[]);
+      else setError('صيغة استجابة غير صحيحة من الخادم');
     } catch (err: any) {
       const apiError = err as RequestError;
-      
-      let errorMessage = 'حدث خطأ أثناء تحميل الطلبات';
-      if (apiError.statusCode === 401) {
-        errorMessage = 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى';
-      } else if (apiError.message) {
-        errorMessage = apiError.message;
-      }
-      
-      setError(errorMessage);
+      let msg = 'حدث خطأ أثناء تحميل الطلبات';
+      if (apiError.statusCode === 401) msg = 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى';
+      else if (apiError.message) msg = apiError.message;
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getStatusColor = (status: PaymentDeferralStatus) => {
+  const sc = (status: PaymentDeferralStatus) => {
     switch (status) {
-      case PaymentDeferralStatus.PENDING:
-        return Colors.warning;
-      case PaymentDeferralStatus.APPROVED:
-        return Colors.success;
-      case PaymentDeferralStatus.REJECTED:
-        return Colors.error;
-      default:
-        return Colors.textSecondary;
+      case PaymentDeferralStatus.PENDING: return '#F59E0B';
+      case PaymentDeferralStatus.APPROVED: return '#10B981';
+      case PaymentDeferralStatus.REJECTED: return '#EF4444';
+      default: return '#8E95A2';
     }
   };
-
-  const getStatusText = (status: PaymentDeferralStatus) => {
+  const sl = (status: PaymentDeferralStatus) => {
     switch (status) {
-      case PaymentDeferralStatus.PENDING:
-        return 'قيد المراجعة';
-      case PaymentDeferralStatus.APPROVED:
-        return 'مقبول';
-      case PaymentDeferralStatus.REJECTED:
-        return 'مرفوض';
-      default:
-        return status;
+      case PaymentDeferralStatus.PENDING: return 'قيد المراجعة';
+      case PaymentDeferralStatus.APPROVED: return 'مقبول';
+      case PaymentDeferralStatus.REJECTED: return 'مرفوض';
+      default: return status;
     }
   };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-EG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  const fmtDate = (d: string) => new Date(d).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={s.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <View style={styles.backButtonContainer}>
-            <Text style={styles.backButtonText}>←</Text>
-          </View>
+      <View style={s.header}>
+        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
+          <Text style={s.backIcon}>→</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>طلبات تأجيل السداد</Text>
-        <View style={styles.headerSpacer} />
+        <View style={{ flex: 1, alignItems: 'flex-end', marginRight: 14 }}>
+          <Text style={s.headerTitle}>طلبات تأجيل السداد</Text>
+        </View>
+        <View style={{ width: 38 }} />
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Create Button */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        {/* Create button */}
         {!isLoading && !error && (
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={() => onNavigateToCreateDeferral && onNavigateToCreateDeferral()}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.createButtonIcon}>➕</Text>
-            <Text style={styles.createButtonText}>إنشاء طلب تأجيل سداد جديد</Text>
-          </TouchableOpacity>
+          <Animated.View style={{ opacity: fadeAnim }}>
+            <TouchableOpacity
+              style={s.createBtn}
+              onPress={() => onNavigateToCreateDeferral && onNavigateToCreateDeferral()}
+              activeOpacity={0.8}
+            >
+              <Text style={{ fontSize: 18, color: '#fff' }}>➕</Text>
+              <Text style={s.createBtnText}>إنشاء طلب تأجيل سداد جديد</Text>
+            </TouchableOpacity>
+          </Animated.View>
         )}
 
         {/* Loading */}
         {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingText}>جاري تحميل الطلبات...</Text>
+          <View style={s.center}>
+            <ActivityIndicator size="large" color="#2563EB" />
+            <Text style={s.loadingText}>جاري تحميل الطلبات...</Text>
           </View>
         )}
 
         {/* Error */}
         {error && !isLoading && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorEmoji}>⚠️</Text>
-            <Text style={styles.errorText}>{error}</Text>
-            <CustomButton
-              title="إعادة المحاولة"
-              onPress={loadRequests}
-              variant="outline"
-              size="medium"
-            />
+          <View style={s.center}>
+            <View style={s.errorCircle}><Text style={{ fontSize: 32 }}>⚠️</Text></View>
+            <Text style={s.errorText}>{error}</Text>
+            <CustomButton title="إعادة المحاولة" onPress={loadRequests} variant="outline" size="medium" />
           </View>
         )}
 
-        {/* Requests List */}
+        {/* Requests */}
         {!isLoading && !error && requests.length > 0 && (
-          <View style={styles.requestsContainer}>
-            {requests.map((request) => {
-              const statusColor = getStatusColor(request.status);
-              
+          <Animated.View style={{ opacity: fadeAnim, gap: 12, marginTop: 16 }}>
+            {requests.map((req) => {
+              const color = sc(req.status);
               return (
-                <View key={request.id} style={styles.requestCard}>
-                  <View style={styles.requestHeader}>
-                    <View style={styles.requestInfo}>
-                      <View style={styles.iconContainer}>
-                        <Text style={styles.iconText}>💰</Text>
-                      </View>
-                      <View style={styles.requestTitleSection}>
-                        <Text style={styles.requestTitle}>
-                          {request.fee?.name || 'رسم غير محدد'}
-                        </Text>
-                        <Text style={styles.requestAmount}>
-                          {request.fee?.amount || 0} جنيه
-                        </Text>
+                <View key={req.id} style={s.card}>
+                  <View style={s.cardTop}>
+                    <View style={s.cardLeft}>
+                      <View style={s.cardIcon}><Text style={{ fontSize: 20 }}>💰</Text></View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={s.cardTitle}>{req.fee?.name || 'رسم غير محدد'}</Text>
+                        <Text style={s.cardAmount}>{req.fee?.amount || 0} جنيه</Text>
                       </View>
                     </View>
-                    <View style={[
-                      styles.statusBadge,
-                      { 
-                        backgroundColor: statusColor + '15',
-                        borderColor: statusColor
-                      }
-                    ]}>
-                      <Text style={[styles.statusText, { color: statusColor }]}>
-                        {getStatusText(request.status)}
-                      </Text>
+                    <View style={[s.statusBadge, { backgroundColor: color + '15', borderColor: color }]}>
+                      <Text style={[s.statusText, { color }]}>{sl(req.status)}</Text>
                     </View>
                   </View>
 
-                  <Text style={styles.reasonText}>
-                    📝 {request.reason}
-                  </Text>
+                  <Text style={s.reason}>📝 {req.reason}</Text>
 
-                  <View style={styles.statsRow}>
-                    <View style={styles.statBox}>
-                      <Text style={styles.statLabel}>⏰ الأيام</Text>
-                      <Text style={styles.statValue}>{request.requestedExtensionDays}</Text>
+                  <View style={s.statsRow}>
+                    <View style={s.statBox}>
+                      <Text style={s.statLabel}>الأيام</Text>
+                      <Text style={s.statVal}>{req.requestedExtensionDays}</Text>
                     </View>
-                    {request.requestedDeadline && (
-                      <View style={styles.statBox}>
-                        <Text style={styles.statLabel}>📅 الموعد</Text>
-                        <Text style={styles.statValue}>{formatDate(request.requestedDeadline)}</Text>
+                    {req.requestedDeadline && (
+                      <View style={s.statBox}>
+                        <Text style={s.statLabel}>الموعد</Text>
+                        <Text style={s.statVal}>{fmtDate(req.requestedDeadline)}</Text>
                       </View>
                     )}
                   </View>
 
-                  {request.adminResponse && (
-                    <View style={styles.adminResponse}>
-                      <Text style={styles.adminResponseLabel}>💬 الرد:</Text>
-                      <Text style={styles.adminResponseText}>{request.adminResponse}</Text>
+                  {req.adminResponse && (
+                    <View style={s.adminBox}>
+                      <Text style={s.adminLabel}>💬 الرد:</Text>
+                      <Text style={s.adminText}>{req.adminResponse}</Text>
                     </View>
                   )}
 
-                  <View style={styles.footer}>
-                    <Text style={styles.dateText}>
-                      📅 {formatDate(request.createdAt)}
-                    </Text>
+                  <View style={s.footer}>
+                    <Text style={s.footerDate}>📅 {fmtDate(req.createdAt)}</Text>
                   </View>
                 </View>
               );
             })}
-          </View>
+          </Animated.View>
         )}
 
-        {/* Empty State */}
+        {/* Empty */}
         {!isLoading && !error && requests.length === 0 && (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>💰</Text>
-            <Text style={styles.emptyTitle}>لا توجد طلبات</Text>
-            <Text style={styles.emptyDescription}>
-              لا توجد طلبات تأجيل سداد حالياً
-            </Text>
+          <View style={s.center}>
+            <Text style={{ fontSize: 56, marginBottom: 16 }}>💰</Text>
+            <Text style={s.emptyTitle}>لا توجد طلبات</Text>
+            <Text style={s.emptyDesc}>لا توجد طلبات تأجيل سداد حالياً</Text>
           </View>
         )}
       </ScrollView>
@@ -248,247 +175,53 @@ const PaymentDeferralRequestsScreen: React.FC<PaymentDeferralRequestsScreenProps
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F4F6FA' },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    paddingHorizontal: 18, paddingVertical: 14,
+    borderBottomWidth: 1, borderBottomColor: '#EEF2F6',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
   },
-  backButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
+  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F0F4FF', alignItems: 'center', justifyContent: 'center' },
+  backIcon: { fontSize: 18, color: '#2563EB', fontWeight: '700' },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
+  scroll: { padding: 18, paddingBottom: 32 },
+  createBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#2563EB', borderRadius: 14, paddingVertical: 15, gap: 10,
+    shadowColor: '#2563EB', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 4,
   },
-  backButtonContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: Colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
+  createBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  // Card
+  card: {
+    backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#EEF2F6',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
-  backButtonText: {
-    fontSize: 24,
-    color: Colors.primary,
-    fontWeight: '800',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: 44,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    paddingVertical: 80,
-  },
-  loadingText: {
-    marginTop: 20,
-    fontSize: 16,
-    color: Colors.textSecondary,
-  },
-  errorContainer: {
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  errorEmoji: {
-    fontSize: 72,
-    marginBottom: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    color: Colors.error,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  requestsContainer: {
-    gap: 16,
-  },
-  requestCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  requestHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-  },
-  requestInfo: {
-    flexDirection: 'row',
-    flex: 1,
-    marginRight: 12,
-  },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 12,
-    backgroundColor: '#FFF7ED',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  iconText: {
-    fontSize: 24,
-  },
-  requestTitleSection: {
-    flex: 1,
-  },
-  requestTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 4,
-    textAlign: 'right',
-  },
-  requestAmount: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '600',
-    textAlign: 'right',
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 2,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  reasonText: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-    marginBottom: 14,
-    textAlign: 'right',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  statBox: {
-    flex: 1,
-    backgroundColor: Colors.backgroundSoft,
-    borderRadius: 12,
-    padding: 12,
-    alignItems: 'center',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  adminResponse: {
-    backgroundColor: Colors.successSoft,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
-  },
-  adminResponseLabel: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: Colors.success,
-    marginBottom: 6,
-    textAlign: 'right',
-  },
-  adminResponseText: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-    textAlign: 'right',
-  },
-  footer: {
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: Colors.borderLight,
-  },
-  dateText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    textAlign: 'right',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 80,
-  },
-  emptyEmoji: {
-    fontSize: 96,
-    marginBottom: 24,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 12,
-  },
-  emptyDescription: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  createButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  createButtonIcon: {
-    fontSize: 20,
-    marginRight: 8,
-    color: Colors.white,
-  },
-  createButtonText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.white,
-  },
+  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#F4F6FA' },
+  cardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, marginLeft: 10, gap: 12 },
+  cardIcon: { width: 42, height: 42, borderRadius: 12, backgroundColor: '#FFF7ED', alignItems: 'center', justifyContent: 'center' },
+  cardTitle: { fontSize: 14, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
+  cardAmount: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 2 },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1.5 },
+  statusText: { fontSize: 11, fontWeight: '700' },
+  reason: { fontSize: 13, color: '#1A1D26', textAlign: 'right', marginBottom: 12, lineHeight: 20 },
+  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  statBox: { flex: 1, backgroundColor: '#FAFBFD', borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#EEF2F6' },
+  statLabel: { fontSize: 11, color: '#8E95A2', marginBottom: 4 },
+  statVal: { fontSize: 14, fontWeight: '700', color: '#1A1D26' },
+  adminBox: { backgroundColor: '#E8FAF0', borderRadius: 10, padding: 12, marginBottom: 10 },
+  adminLabel: { fontSize: 12, fontWeight: '700', color: '#10B981', marginBottom: 4, textAlign: 'right' },
+  adminText: { fontSize: 13, color: '#1A1D26', textAlign: 'right', lineHeight: 20 },
+  footer: { paddingTop: 10, borderTopWidth: 1, borderTopColor: '#F4F6FA' },
+  footerDate: { fontSize: 12, color: '#8E95A2', textAlign: 'right' },
+  // States
+  center: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
+  loadingText: { marginTop: 16, fontSize: 14, color: '#8E95A2', fontWeight: '600' },
+  errorCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  errorText: { fontSize: 15, color: '#EF4444', textAlign: 'center', marginBottom: 20, fontWeight: '600', lineHeight: 22 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1A1D26', textAlign: 'center', marginBottom: 8 },
+  emptyDesc: { fontSize: 14, color: '#8E95A2', textAlign: 'center', lineHeight: 22 },
 });
 
 export default PaymentDeferralRequestsScreen;

@@ -1,17 +1,7 @@
 // Screen for creating sick leave request
-
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  Platform,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../styles/colors';
 import { requestsService } from '../services/requestsService';
 import { RequestType, CreateTraineeRequestDto } from '../types/requests';
 import CustomInput from '../components/CustomInput';
@@ -22,170 +12,74 @@ interface SickLeaveScreenProps {
   onBack: () => void;
 }
 
-const SickLeaveScreen: React.FC<SickLeaveScreenProps> = ({
-  accessToken,
-  onBack
-}) => {
+const SickLeaveScreen: React.FC<SickLeaveScreenProps> = ({ accessToken, onBack }) => {
   const [reason, setReason] = useState('');
-  const [attachmentUrl, setAttachmentUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
 
-  const handleFileUpload = async () => {
-    try {
-      // طلب الإذن لفتح المعرض
-      if (Platform.OS === 'android') {
-        // في Android 13+ لا يحتاج permission
-        // في الإصدارات الأقدم، يمكن إضافة PermissionsAndroid
-      }
-
-      // استخدام launchImageLibrary من react-native-image-picker
-      // ملاحظة: يحتاج npm install react-native-image-picker
-      
-      // للتطوير السريع، سأستخدم طريقة بديلة
-      Alert.alert(
-        'اختيار صورة',
-        'هل تريد:',
-        [
-          {
-            text: 'من المعرض',
-            onPress: () => {
-              // TODO: فتح معرض الصور
-              // سيتطلب: npm install react-native-image-picker
-              Alert.alert('قريباً', 'يتطلب تثبيت react-native-image-picker\n\nسيتم إضافتها في التحديث القادم');
-            }
-          },
-          {
-            text: 'من الكاميرا',
-            onPress: () => {
-              Alert.alert('قريباً', 'يتطلب تثبيت react-native-image-picker');
-            }
-          },
-          {
-            text: 'إلغاء',
-            style: 'cancel'
-          }
-        ]
-      );
-    } catch (error) {
-      console.error('Error selecting image:', error);
-      Alert.alert('خطأ', 'فشل في اختيار الصورة');
-    }
+  const handleFileUpload = () => {
+    Alert.alert(
+      'رفع ملف',
+      'ميزة رفع الملفات ستكون متاحة قريباً. حالياً يمكنك إرسال الطلب بدون مرفقات.',
+      [{ text: 'حسناً' }]
+    );
   };
 
   const handleSubmit = async () => {
-    // Validation
-    if (!reason.trim()) {
-      Alert.alert('خطأ', 'يرجى كتابة سبب الإجازة المرضية');
-      return;
-    }
-
+    if (!reason.trim()) { Alert.alert('خطأ', 'يرجى كتابة سبب الطلب'); return; }
     try {
       setIsLoading(true);
-      
       const requestData: CreateTraineeRequestDto = {
         type: RequestType.SICK_LEAVE,
         reason: reason.trim(),
-        ...(attachmentUrl && { attachmentUrl })
+        ...(attachmentUrl && { attachmentUrl }),
       };
-      
-      console.log('📤 Submitting sick leave request:', requestData);
-      
       const response = await requestsService.createTraineeRequest(requestData, accessToken);
-      
       if (response.success) {
-        // تفريغ الحقول
         setReason('');
-        setAttachmentUrl('');
-        
-        // عرض رسالة نجاح والعودة
-        Alert.alert(
-          'نجح',
-          response.message || 'تم إرسال طلب الإجازة المرضية بنجاح',
-          [
-            {
-              text: 'موافق',
-              onPress: () => onBack()
-            }
-          ]
-        );
+        setAttachmentUrl(null);
+        Alert.alert('نجح', response.message || 'تم إرسال طلب الإجازة المرضية بنجاح', [{ text: 'موافق', onPress: () => onBack() }]);
       }
     } catch (error: any) {
-      console.error('❌ Failed to create request:', error);
       Alert.alert('خطأ', error.message || 'فشل في إرسال الطلب');
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <View style={styles.backButtonContainer}>
-            <Text style={styles.backButtonText}>←</Text>
+    <SafeAreaView style={s.container} edges={['bottom']}>
+      <View style={s.header}>
+        <View style={s.headerRow}>
+          <View style={s.headerSpacer} />
+          <View style={s.headerTitleArea}>
+            <Text style={s.headerTitle}>طلب إجازة مرضية</Text>
+            <Text style={s.headerSubtitle}>تقديم طلب إجازة مرضية مع المستندات</Text>
           </View>
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>🏥 طلب إجازة مرضية</Text>
+          <TouchableOpacity style={s.backBtn} onPress={onBack}><Text style={s.backBtnText}>→</Text></TouchableOpacity>
         </View>
-        <View style={styles.headerSpacer} />
       </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.formCard}>
-          {/* Reason */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>سبب الإجازة المرضية *</Text>
-            <CustomInput
-              value={reason}
-              onChangeText={setReason}
-              placeholder="اكتب السبب..."
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-            />
+      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={s.formCard}>
+          <View style={s.fieldGroup}>
+            <Text style={s.fieldLabel}>سبب الإجازة المرضية *</Text>
+            <CustomInput value={reason} onChangeText={setReason} placeholder="اكتب سبب الإجازة المرضية بالتفصيل..." multiline numberOfLines={6} textAlignVertical="top" />
           </View>
 
-          {/* File Upload */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>مرفق (اختياري)</Text>
-            <TouchableOpacity
-              style={styles.fileUploadButton}
-              onPress={handleFileUpload}
-            >
-              <Text style={styles.fileUploadText}>
-                {attachmentUrl || 'No file chosen'}
-              </Text>
-              <View style={styles.chooseFileButton}>
-                <Text style={styles.chooseFileText}>Choose File</Text>
+          <View style={s.fieldGroup}>
+            <Text style={s.fieldLabel}>المستندات الداعمة</Text>
+            <TouchableOpacity style={s.uploadBtn} onPress={handleFileUpload} activeOpacity={0.7}>
+              <View style={s.uploadIconCircle}>
+                <Text style={s.uploadIcon}>📎</Text>
+              </View>
+              <View style={s.uploadTextArea}>
+                <Text style={s.uploadTitle}>{attachmentUrl ? 'تم اختيار ملف' : 'رفع مستند'}</Text>
+                <Text style={s.uploadHint}>اضغط لاختيار صورة أو ملف PDF</Text>
               </View>
             </TouchableOpacity>
           </View>
 
-          {/* Buttons */}
-          <View style={styles.buttonsContainer}>
-            <View style={styles.buttonWrapper}>
-              <CustomButton
-                title="إرسال"
-                onPress={handleSubmit}
-                loading={isLoading}
-                variant="primary"
-                size="large"
-              />
-            </View>
-            <View style={styles.buttonWrapper}>
-              <CustomButton
-                title="إلغاء"
-                onPress={onBack}
-                variant="outline"
-                size="large"
-              />
-            </View>
+          <View style={s.buttonsRow}>
+            <View style={s.btnWrap}><CustomButton title="إرسال" onPress={handleSubmit} loading={isLoading} variant="primary" size="large" /></View>
+            <View style={s.btnWrap}><CustomButton title="إلغاء" onPress={onBack} variant="outline" size="large" /></View>
           </View>
         </View>
       </ScrollView>
@@ -193,120 +87,29 @@ const SickLeaveScreen: React.FC<SickLeaveScreenProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backButtonContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: Colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: Colors.primary,
-    fontWeight: '800',
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 12,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: 44,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  formCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  fieldGroup: {
-    marginBottom: 24,
-  },
-  fieldLabel: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 12,
-    textAlign: 'right',
-  },
-  fileUploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.white,
-    borderWidth: 2,
-    borderColor: Colors.borderMedium,
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  fileUploadText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    flex: 1,
-  },
-  chooseFileButton: {
-    backgroundColor: Colors.backgroundSoft,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-  },
-  chooseFileText: {
-    fontSize: 13,
-    color: Colors.textPrimary,
-    fontWeight: '600',
-  },
-  buttonsContainer: {
-    marginTop: 8,
-    gap: 12,
-  },
-  buttonWrapper: {
-    width: '100%',
-  },
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F4F6FA' },
+  header: { backgroundColor: '#FFF', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#EEF2F6' },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  headerTitleArea: { flex: 1, alignItems: 'flex-end', marginRight: 12 },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: '#1A1D26', textAlign: 'right' },
+  headerSubtitle: { fontSize: 13, color: '#8E95A2', marginTop: 4, textAlign: 'right' },
+  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F4F6FA', alignItems: 'center', justifyContent: 'center' },
+  backBtnText: { fontSize: 20, color: '#1A1D26', fontWeight: '600' },
+  headerSpacer: { width: 38 },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 32 },
+  formCard: { backgroundColor: '#FFF', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
+  fieldGroup: { marginBottom: 24 },
+  fieldLabel: { fontSize: 14, fontWeight: '700', color: '#1A1D26', marginBottom: 10, textAlign: 'right' },
+  uploadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: '#F4F6FA', borderRadius: 12, padding: 16, borderWidth: 1.5, borderColor: '#E2E8F0', borderStyle: 'dashed' },
+  uploadIconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#E0ECFF', alignItems: 'center', justifyContent: 'center', marginLeft: 12 },
+  uploadIcon: { fontSize: 18 },
+  uploadTextArea: { flex: 1, alignItems: 'flex-end' },
+  uploadTitle: { fontSize: 14, fontWeight: '700', color: '#2563EB', marginBottom: 2 },
+  uploadHint: { fontSize: 12, color: '#8E95A2' },
+  buttonsRow: { gap: 10, marginTop: 8 },
+  btnWrap: { marginBottom: 4 },
 });
 
 export default SickLeaveScreen;
