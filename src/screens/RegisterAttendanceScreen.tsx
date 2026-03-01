@@ -1,9 +1,15 @@
 // RegisterAttendanceScreen - 6-digit attendance code entry with QR option
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
   Animated, ActivityIndicator, ScrollView, Dimensions, Alert,
 } from 'react-native';
+import {
+  Camera,
+  useCameraDevice,
+  useCodeScanner,
+  useCameraPermission,
+} from 'react-native-vision-camera';
 import { HomeService } from '../services/homeService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -26,6 +32,26 @@ const RegisterAttendanceScreen: React.FC<RegisterAttendanceScreenProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [qrScanned, setQrScanned] = useState(false);
+
+  // Camera hooks
+  const { hasPermission, requestPermission } = useCameraPermission();
+  const device = useCameraDevice('back');
+
+  const codeScanner = useCodeScanner({
+    codeTypes: ['qr'],
+    onCodeScanned: useCallback((codes) => {
+      if (qrScanned || !isCameraActive) return;
+      const value = codes[0]?.value;
+      if (!value) return;
+      setQrScanned(true);
+      setIsCameraActive(false);
+      // استخدام قيمة الـ QR مباشرةً للتسجيل
+      handleQrSubmit(value);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [qrScanned, isCameraActive]),
+  });
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -122,6 +148,49 @@ const RegisterAttendanceScreen: React.FC<RegisterAttendanceScreenProps> = ({
     setErrorMessage(null);
     setSuccessMessage(null);
     inputRefs.current[0]?.focus();
+  };
+
+  const handleQrSubmit = async (code: string) => {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    try {
+      await HomeService.verifyAttendanceCode(accessToken, code);
+      setSuccessMessage('تم تسجيل الحضور بنجاح ✅');
+    } catch (err: any) {
+      const msg = err?.message || 'رمز QR غير صحيح أو منتهي الصلاحية';
+      setErrorMessage(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenCamera = async () => {
+    if (hasPermission) {
+      setQrScanned(false);
+      setErrorMessage(null);
+      setSuccessMessage(null);
+      setIsCameraActive(true);
+    } else {
+      const granted = await requestPermission();
+      if (granted) {
+        setQrScanned(false);
+        setErrorMessage(null);
+        setSuccessMessage(null);
+        setIsCameraActive(true);
+      } else {
+        Alert.alert(
+          'صلاحية الكاميرا',
+          'يرجى السماح للتطبيق بالوصول للكاميرا من إعدادات الهاتف لمسح QR Code',
+          [{ text: 'حسناً' }],
+        );
+      }
+    }
+  };
+
+  const handleCloseCamera = () => {
+    setIsCameraActive(false);
+    setQrScanned(false);
   };
 
   const isFilled = digits.every(d => d !== '');
@@ -254,14 +323,70 @@ const RegisterAttendanceScreen: React.FC<RegisterAttendanceScreenProps> = ({
         {/* ===== QR CODE SECTION ===== */}
         {activeTab === 'qr' && (
           <View style={s.qrSection}>
-            <View style={s.qrPlaceholder}>
-              <Text style={s.qrPlaceholderIcon}>📷</Text>
-              <Text style={s.qrPlaceholderTitle}>مسح QR Code</Text>
-              <Text style={s.qrPlaceholderSub}>وجّه الكاميرا نحو رمز QR المعروض في المحاضرة</Text>
-              <TouchableOpacity style={s.qrOpenCameraBtn}>
-                <Text style={s.qrOpenCameraText}>فتح الكاميرا</Text>
-              </TouchableOpacity>
-            </View>
+            {/* ===== حالة الكاميرا مفتوحة ===== */}
+            {isCameraActive && device ? (
+              <View style={s.cameraWrapper}>
+                <Camera
+                  style={s.camera}
+                  device={device}
+                  isActive={isCameraActive}
+                  codeScanner={codeScanner}
+                />
+                {/* إطار المسح */}
+                <View style={s.scanFrame}>
+                  <View style={[s.scanCorner, s.scanCornerTL]} />
+                  <View style={[s.scanCorner, s.scanCornerTR]} />
+                  <View style={[s.scanCorner, s.scanCornerBL]} />
+                  <View style={[s.scanCorner, s.scanCornerBR]} />
+                </View>
+                <Text style={s.scanHint}>وجّه الكاميرا نحو رمز QR</Text>
+                <TouchableOpacity style={s.closeCameraBtn} onPress={handleCloseCamera}>
+                  <Text style={s.closeCameraText}>✕  إغلاق الكاميرا</Text>
+                </TouchableOpacity>
+                {isSubmitting && (
+                  <View style={s.scanningOverlay}>
+                    <ActivityIndicator size="large" color="#FFF" />
+                    <Text style={s.scanningText}>جاري التحقق...</Text>
+                  </View>
+                )}
+              </View>
+            ) : (
+              /* ===== الواجهة الافتراضية ===== */
+              <View style={s.qrPlaceholder}>
+                <Text style={s.qrPlaceholderIcon}>📷</Text>
+                <Text style={s.qrPlaceholderTitle}>مسح QR Code</Text>
+                <Text style={s.qrPlaceholderSub}>وجّه الكاميرا نحو رمز QR المعروض في المحاضرة</Text>
+
+                {/* رسالة نجاح */}
+                {successMessage && (
+                  <View style={s.successBanner}>
+                    <Text style={s.successIcon}>✅</Text>
+                    <Text style={s.successText}>{successMessage}</Text>
+                  </View>
+                )}
+
+                {/* رسالة خطأ */}
+                {errorMessage && (
+                  <View style={s.errorBanner}>
+                    <Text style={s.errorIcon}>⚠</Text>
+                    <Text style={s.errorText}>{errorMessage}</Text>
+                  </View>
+                )}
+
+                <TouchableOpacity style={s.qrOpenCameraBtn} onPress={handleOpenCamera}>
+                  <Text style={s.qrOpenCameraText}>📷  فتح الكاميرا</Text>
+                </TouchableOpacity>
+
+                {qrScanned && !errorMessage && !successMessage && (
+                  <TouchableOpacity
+                    style={[s.qrOpenCameraBtn, { marginTop: 10, backgroundColor: '#6B7280' }]}
+                    onPress={() => { setQrScanned(false); handleOpenCamera(); }}
+                  >
+                    <Text style={s.qrOpenCameraText}>🔄  مسح مرة أخرى</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
           </View>
         )}
 
@@ -626,11 +751,78 @@ const s = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 24,
     paddingVertical: 12,
+    marginTop: 4,
   },
   qrOpenCameraText: {
     color: '#FFF',
     fontWeight: '700',
     fontSize: 14,
+  },
+
+  // ===== CAMERA =====
+  cameraWrapper: {
+    borderRadius: 18,
+    overflow: 'hidden',
+    height: 360,
+    backgroundColor: '#000',
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  camera: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  scanFrame: {
+    width: 220,
+    height: 220,
+    position: 'absolute',
+  },
+  scanCorner: {
+    position: 'absolute',
+    width: 28,
+    height: 28,
+    borderColor: '#0D9488',
+    borderWidth: 3,
+  },
+  scanCornerTL: { top: 0, left: 0, borderRightWidth: 0, borderBottomWidth: 0, borderTopLeftRadius: 6 },
+  scanCornerTR: { top: 0, right: 0, borderLeftWidth: 0, borderBottomWidth: 0, borderTopRightRadius: 6 },
+  scanCornerBL: { bottom: 0, left: 0, borderRightWidth: 0, borderTopWidth: 0, borderBottomLeftRadius: 6 },
+  scanCornerBR: { bottom: 0, right: 0, borderLeftWidth: 0, borderTopWidth: 0, borderBottomRightRadius: 6 },
+  scanHint: {
+    position: 'absolute',
+    bottom: 60,
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  closeCameraBtn: {
+    position: 'absolute',
+    bottom: 16,
+    backgroundColor: 'rgba(220,38,38,0.85)',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  closeCameraText: {
+    color: '#FFF',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  scanningOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  scanningText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 
   // ===== INSTRUCTIONS =====

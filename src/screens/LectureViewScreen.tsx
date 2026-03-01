@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 import { lecturesService } from '../services/lecturesService';
 import { API_CONFIG } from '../services/apiConfig';
 import {
@@ -132,7 +134,7 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Text style={s.backIcon}>→</Text>
+          <Icon name={AppIcons.forward} size={18} color={Colors.primary} />
         </TouchableOpacity>
         <View style={{ flex: 1, marginRight: 14 }}>
           <Text style={s.headerTitle} numberOfLines={1}>
@@ -155,7 +157,7 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
         {/* Loading */}
         {isLoading && (
           <View style={s.center}>
-            <ActivityIndicator size="large" color="#2563EB" />
+            <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={s.loadingText}>جاري تحميل المحاضرة...</Text>
           </View>
         )}
@@ -203,7 +205,7 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
             {lectureDetails.youtubeUrl && (
               <View style={s.card}>
                 <View style={s.cardHeadRow}>
-                  <View style={[s.cardHeadIcon, { backgroundColor: '#FEF2F2' }]}>
+                  <View style={[s.cardHeadIcon, { backgroundColor: Colors.errorLight }]}>
                     <Text style={{ fontSize: 18 }}>▶️</Text>
                   </View>
                   <View style={{ flex: 1 }}>
@@ -213,7 +215,7 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
                 </View>
                 <TouchableOpacity style={s.videoBtn} onPress={handleWatchVideo} activeOpacity={0.9}>
                   <View style={s.playCircle}>
-                    <Text style={{ fontSize: 28, color: '#fff', marginLeft: 3 }}>▶</Text>
+                    <Text style={{ fontSize: 28, color: Colors.white, marginLeft: 3 }}>▶</Text>
                   </View>
                   <Text style={s.videoBtnText}>مشاهدة الفيديو</Text>
                   <Text style={s.videoBtnHint}>سيتم فتح الفيديو في YouTube</Text>
@@ -225,7 +227,7 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
             {lectureDetails.pdfFile && (
               <View style={s.card}>
                 <View style={s.cardHeadRow}>
-                  <View style={[s.cardHeadIcon, { backgroundColor: '#EBF5FF' }]}>
+                  <View style={[s.cardHeadIcon, { backgroundColor: Colors.infoLight }]}>
                     <Text style={{ fontSize: 18 }}>📄</Text>
                   </View>
                   <View style={{ flex: 1 }}>
@@ -271,14 +273,14 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
                   <TouchableOpacity style={s.actionRow} onPress={onBackToAllLectures} activeOpacity={0.7}>
                     <Text style={{ fontSize: 16 }}>📚</Text>
                     <Text style={s.actionText}>جميع المحاضرات</Text>
-                    <Text style={{ fontSize: 14, color: '#C4C9D4' }}>←</Text>
+                    <Text style={{ fontSize: 14, color: Colors.textHint }}>←</Text>
                   </TouchableOpacity>
                 )}
                 {onBackToAllContents && (
                   <TouchableOpacity style={s.actionRow} onPress={onBackToAllContents} activeOpacity={0.7}>
                     <Text style={{ fontSize: 16 }}>📖</Text>
                     <Text style={s.actionText}>جميع المقررات</Text>
-                    <Text style={{ fontSize: 14, color: '#C4C9D4' }}>←</Text>
+                    <Text style={{ fontSize: 14, color: Colors.textHint }}>←</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -305,9 +307,9 @@ const InfoRow = ({ label, value, highlight }: { label: string; value: string; hi
 const AvailRow = ({ label, available }: { label: string; available: boolean }) => (
   <View style={s.availRow}>
     <Text style={s.infoLabel}>{label}</Text>
-    <View style={[s.availBadge, { backgroundColor: available ? '#E8FAF0' : '#FEF2F2' }]}>
+    <View style={[s.availBadge, { backgroundColor: available ? Colors.successLight : Colors.errorLight }]}>
       <Text style={{ fontSize: 10 }}>{available ? '✅' : '❌'}</Text>
-      <Text style={[s.availText, { color: available ? '#10B981' : '#EF4444' }]}>
+      <Text style={[s.availText, { color: available ? Colors.primaryLight : Colors.error }]}>
         {available ? 'متوفر' : 'غير متوفر'}
       </Text>
     </View>
@@ -315,45 +317,45 @@ const AvailRow = ({ label, available }: { label: string; available: boolean }) =
 );
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FA' },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     paddingHorizontal: 18,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
+    borderBottomColor: Colors.borderLight,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
   },
   backBtn: {
-    width: 38, height: 38, borderRadius: 19, backgroundColor: '#F0F4FF',
+    width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.primary50,
     alignItems: 'center', justifyContent: 'center',
   },
-  backIcon: { fontSize: 18, color: '#2563EB', fontWeight: '700' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
-  headerSub: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 2 },
+  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
+  headerSub: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
   orderBadge: {
-    backgroundColor: '#E8FAF0', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10,
+    backgroundColor: Colors.successLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10,
   },
-  orderBadgeText: { fontSize: 12, fontWeight: '700', color: '#10B981' },
+  orderBadgeText: { fontSize: 12, fontWeight: '700', color: Colors.primaryLight },
   scroll: { padding: 18, paddingBottom: 32 },
   // Card
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
   cardHeadRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 },
   cardHeadIcon: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  cardHeadTitle: { fontSize: 15, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
-  cardHeadSub: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 2 },
+  cardHeadTitle: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
+  cardHeadSub: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
   // Video button
   videoBtn: {
-    backgroundColor: '#1F2937',
+    backgroundColor: Colors.textPrimary,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -361,30 +363,30 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
   },
   playCircle: {
-    width: 64, height: 64, borderRadius: 32, backgroundColor: '#EF4444',
+    width: 64, height: 64, borderRadius: 32, backgroundColor: Colors.error,
     alignItems: 'center', justifyContent: 'center', marginBottom: 16,
-    shadowColor: '#EF4444', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 6,
+    shadowColor: Colors.error, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 6,
   },
-  videoBtnText: { fontSize: 15, fontWeight: '700', color: '#fff', marginBottom: 4 },
+  videoBtnText: { fontSize: 15, fontWeight: '700', color: Colors.white, marginBottom: 4 },
   videoBtnHint: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
   // PDF button
   pdfBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#2563EB', borderRadius: 12, paddingVertical: 13, gap: 8,
+    backgroundColor: Colors.primary, borderRadius: 12, paddingVertical: 13, gap: 8,
   },
-  pdfBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  pdfBtnText: { fontSize: 14, fontWeight: '700', color: Colors.white },
   // Info rows
-  sectionLabel: { fontSize: 15, fontWeight: '700', color: '#1A1D26', textAlign: 'right', marginBottom: 14 },
-  subLabel: { fontSize: 13, fontWeight: '600', color: '#1A1D26', textAlign: 'right', marginBottom: 10 },
+  sectionLabel: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right', marginBottom: 14 },
+  subLabel: { fontSize: 13, fontWeight: '600', color: Colors.textPrimary, textAlign: 'right', marginBottom: 10 },
   infoRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F4F6FA',
+    paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.background,
   },
-  infoLabel: { fontSize: 13, color: '#8E95A2', fontWeight: '600' },
-  infoValue: { fontSize: 13, color: '#1A1D26', fontWeight: '600' },
-  highlightBadge: { backgroundColor: '#E8FAF0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  highlightText: { fontSize: 12, color: '#10B981', fontWeight: '700' },
-  divider: { height: 1, backgroundColor: '#EEF2F6', marginVertical: 12 },
+  infoLabel: { fontSize: 13, color: Colors.textHint, fontWeight: '600' },
+  infoValue: { fontSize: 13, color: Colors.textPrimary, fontWeight: '600' },
+  highlightBadge: { backgroundColor: Colors.successLight, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  highlightText: { fontSize: 12, color: Colors.primaryLight, fontWeight: '700' },
+  divider: { height: 1, backgroundColor: Colors.borderLight, marginVertical: 12 },
   availRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8,
   },
@@ -393,40 +395,40 @@ const s = StyleSheet.create({
     borderRadius: 8, gap: 4,
   },
   availText: { fontSize: 12, fontWeight: '600' },
-  descText: { fontSize: 14, color: '#8E95A2', lineHeight: 22, textAlign: 'right' },
+  descText: { fontSize: 14, color: Colors.textHint, lineHeight: 22, textAlign: 'right' },
   // Quick actions
   actionRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#FAFBFD', borderRadius: 12, padding: 14, marginBottom: 8,
-    borderWidth: 1, borderColor: '#EEF2F6',
+    backgroundColor: Colors.backgroundAlt, borderRadius: 12, padding: 14, marginBottom: 8,
+    borderWidth: 1, borderColor: Colors.borderLight,
   },
-  actionText: { flex: 1, fontSize: 14, fontWeight: '600', color: '#1A1D26', textAlign: 'right' },
+  actionText: { flex: 1, fontSize: 14, fontWeight: '600', color: Colors.textPrimary, textAlign: 'right' },
   // States
   center: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
-  loadingText: { marginTop: 16, fontSize: 14, color: '#8E95A2', fontWeight: '600' },
+  loadingText: { marginTop: 16, fontSize: 14, color: Colors.textHint, fontWeight: '600' },
   errorCircle: {
-    width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2',
+    width: 64, height: 64, borderRadius: 32, backgroundColor: Colors.errorLight,
     alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
-  errorTitle: { fontSize: 17, fontWeight: '700', color: '#EF4444', textAlign: 'center', marginBottom: 8 },
-  errorText: { fontSize: 14, color: '#EF4444', textAlign: 'center', marginBottom: 16, lineHeight: 22 },
+  errorTitle: { fontSize: 17, fontWeight: '700', color: Colors.error, textAlign: 'center', marginBottom: 8 },
+  errorText: { fontSize: 14, color: Colors.error, textAlign: 'center', marginBottom: 16, lineHeight: 22 },
   errorDetails: {
-    backgroundColor: '#FAFBFD', borderRadius: 12, padding: 14, marginBottom: 20,
-    width: '100%', borderWidth: 1, borderColor: '#EEF2F6',
+    backgroundColor: Colors.backgroundAlt, borderRadius: 12, padding: 14, marginBottom: 20,
+    width: '100%', borderWidth: 1, borderColor: Colors.borderLight,
   },
-  errorDetailLabel: { fontSize: 13, fontWeight: '600', color: '#1A1D26', textAlign: 'right', marginBottom: 8 },
+  errorDetailLabel: { fontSize: 13, fontWeight: '600', color: Colors.textPrimary, textAlign: 'right', marginBottom: 8 },
   errorDetailVal: {
-    fontSize: 11, color: '#8E95A2', textAlign: 'right', marginBottom: 4,
+    fontSize: 11, color: Colors.textHint, textAlign: 'right', marginBottom: 4,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   // Debug
   debugPanel: {
-    backgroundColor: '#1F2937', borderRadius: 12, padding: 14,
-    borderWidth: 1, borderColor: '#10B981',
+    backgroundColor: Colors.textPrimary, borderRadius: 12, padding: 14,
+    borderWidth: 1, borderColor: Colors.primaryLight,
   },
-  debugTitle: { fontSize: 13, fontWeight: '700', color: '#10B981', marginBottom: 8, textAlign: 'right' },
+  debugTitle: { fontSize: 13, fontWeight: '700', color: Colors.primaryLight, marginBottom: 8, textAlign: 'right' },
   debugText: {
-    fontSize: 10, color: '#E5E7EB', marginBottom: 3, textAlign: 'right',
+    fontSize: 10, color: Colors.borderMedium, marginBottom: 3, textAlign: 'right',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
 });

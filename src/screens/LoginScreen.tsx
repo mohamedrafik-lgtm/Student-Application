@@ -1,12 +1,16 @@
-// Login Screen - handles login UI and validation
+// LoginScreen — Refactored (SOLID: components split into components/login/)
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Alert, Animated, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Logo from '../components/Logo';
-import CustomInput from '../components/CustomInput';
-import CustomButton from '../components/CustomButton';
+import {
+  View, ScrollView, StyleSheet, KeyboardAvoidingView,
+  Platform, TouchableOpacity, Text, Alert, Animated, Dimensions, StatusBar,
+} from 'react-native';
 import { TraineeLoginRequest, TraineeLoginError, BranchType } from '../types/auth';
 import { AuthService } from '../services/authService';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
+import { LoginHero } from '../components/login';
+import LoginForm from '../components/login/LoginForm';
+import LoginFooter from '../components/login/LoginFooter';
 
 const { height } = Dimensions.get('window');
 
@@ -17,147 +21,140 @@ interface LoginScreenProps {
   selectedBranch?: BranchType | null;
 }
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onNavigateToSignup, onChangeBranch, selectedBranch }) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({
+  onLoginSuccess, onNavigateToSignup, onChangeBranch, selectedBranch,
+}) => {
   const [credentials, setCredentials] = useState<TraineeLoginRequest>({ nationalId: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<TraineeLoginRequest>>({});
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Animations
+  const heroAnim    = useRef(new Animated.Value(0)).current;
+  const cardAnim    = useRef(new Animated.Value(60)).current;
+  const cardOpacity = useRef(new Animated.Value(0)).current;
+  const formAnim    = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+    Animated.sequence([
+      Animated.timing(heroAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.parallel([
+        Animated.spring(cardAnim, { toValue: 0, useNativeDriver: true, tension: 60, friction: 10 }),
+        Animated.timing(cardOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+      ]),
+      Animated.timing(formAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
+    ]).start();
   }, []);
 
+  // ── Validation ──
   const validateForm = (): boolean => {
-    const newErrors: Partial<TraineeLoginRequest> = {};
-    if (!credentials.nationalId.trim()) newErrors.nationalId = 'الرقم القومي مطلوب';
-    else if (credentials.nationalId.length !== 14) newErrors.nationalId = 'يجب إدخال 14 رقماً كما هو موجود في بطاقة الهوية';
-    if (!credentials.password.trim()) newErrors.password = 'كلمة المرور مطلوبة';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const e: Partial<TraineeLoginRequest> = {};
+    if (!credentials.nationalId.trim()) e.nationalId = 'الرقم القومي مطلوب';
+    else if (credentials.nationalId.length !== 14) e.nationalId = 'يجب إدخال 14 رقماً كما هو موجود في بطاقة الهوية';
+    if (!credentials.password.trim()) e.password = 'كلمة المرور مطلوبة';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
+  // ── Login handler ──
   const handleLogin = async () => {
     if (!validateForm()) return;
     setIsLoading(true);
     try {
       const response = await AuthService.login(credentials);
-      if (onLoginSuccess) {
-        onLoginSuccess(response);
-      } else {
-        Alert.alert('نجح تسجيل الدخول', `مرحباً ${response.trainee.nameAr}\nتم تسجيل الدخول بنجاح`);
-      }
+      onLoginSuccess
+        ? onLoginSuccess(response)
+        : Alert.alert('نجح تسجيل الدخول', `مرحباً ${response.trainee.nameAr}\nتم تسجيل الدخول بنجاح`);
     } catch (error) {
       const apiError = error as TraineeLoginError;
-      let errorMessage = 'حدث خطأ أثناء تسجيل الدخول';
-      let errorTitle = 'خطأ في تسجيل الدخول';
-      if (apiError.statusCode === 401) { errorMessage = 'الرقم القومي أو كلمة المرور غير صحيحة'; errorTitle = 'بيانات خاطئة'; }
-      else if (apiError.statusCode === 0) { errorMessage = apiError.message; errorTitle = 'خطأ في الاتصال'; }
-      else if (apiError.statusCode === 500) { errorMessage = 'خطأ في الخادم. حاول مرة أخرى لاحقاً'; errorTitle = 'خطأ في الخادم'; }
-      else if (apiError.statusCode === 404) { errorMessage = 'عنوان الخادم غير صحيح. تحقق من الإعدادات'; errorTitle = 'عنوان غير صحيح'; }
-      else if (apiError.message) errorMessage = apiError.message;
-      Alert.alert(errorTitle, errorMessage);
-    } finally { setIsLoading(false); }
+      let msg = 'حدث خطأ أثناء تسجيل الدخول';
+      let title = 'خطأ في تسجيل الدخول';
+      if (apiError.statusCode === 401) { msg = 'الرقم القومي أو كلمة المرور غير صحيحة'; title = 'بيانات خاطئة'; }
+      else if (apiError.statusCode === 0)   { msg = apiError.message; title = 'خطأ في الاتصال'; }
+      else if (apiError.statusCode === 500) { msg = 'خطأ في الخادم. حاول مرة أخرى لاحقاً'; title = 'خطأ في الخادم'; }
+      else if (apiError.statusCode === 404) { msg = 'عنوان الخادم غير صحيح. تحقق من الإعدادات'; title = 'عنوان غير صحيح'; }
+      else if (apiError.message) { msg = apiError.message; }
+      Alert.alert(title, msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleForgotPassword = () => { Alert.alert('نسيت كلمة المرور', 'سيتم إضافة هذه الميزة قريباً'); };
+  const handleForgotPassword = () => Alert.alert('نسيت كلمة المرور', 'سيتم إضافة هذه الميزة قريباً');
 
   return (
-    <SafeAreaView style={s.container}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.flex}>
-        <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          {/* Logo */}
-          <Animated.View style={[s.logoSection, { opacity: fadeAnim }]}>
-            <Logo size="large" showText={true} />
-          </Animated.View>
+    <View style={s.root}>
+      <StatusBar barStyle="light-content" backgroundColor={Colors.primaryDark} />
 
-          {/* Login Card */}
-          <Animated.View style={[s.loginCard, { opacity: fadeAnim }]}>
-            {/* Back to branch */}
-            <TouchableOpacity style={s.branchBtn} onPress={onChangeBranch || (() => {})} activeOpacity={0.7}>
-              <Text style={s.branchBtnText}>العودة لاختيار الفرع</Text>
-              <View style={s.branchIconCircle}><Text style={s.branchIconText}>🏛️</Text></View>
+      {/* ─── Hero ─── */}
+      <LoginHero opacity={heroAnim} />
+
+      {/* ─── Floating card ─── */}
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.kavFlex}>
+        <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <Animated.View style={[s.card, { opacity: cardOpacity, transform: [{ translateY: cardAnim }] }]}>
+            {/* Branch pill */}
+            <TouchableOpacity style={s.branchPill} onPress={onChangeBranch || (() => {})} activeOpacity={0.75}>
+              <Icon name="office-building-outline" size={15} color={Colors.primary} />
+              <Text style={s.branchPillText}>تغيير الفرع</Text>
             </TouchableOpacity>
 
-            {/* Welcome */}
-            <View style={s.welcomeSection}>
-              <Text style={s.welcomeTitle}>مرحباً بك</Text>
-              <Text style={s.welcomeSubtitle}>في منصة المتدربين</Text>
-              <Text style={s.loginInstruction}>أدخل بياناتك للوصول إلى حسابك</Text>
+            {/* Card header */}
+            <View style={s.cardHeader}>
+              <Text style={s.cardTitle}>تسجيل الدخول</Text>
+              <Text style={s.cardSub}>أدخل بياناتك للمتابعة</Text>
             </View>
 
-            {/* Form */}
-            <View style={s.formSection}>
-              <View style={s.inputGroup}>
-                <CustomInput
-                  label="الرقم القومي"
-                  placeholder="أدخل الرقم القومي (14 رقم)"
-                  value={credentials.nationalId}
-                  onChangeText={(text) => {
-                    setCredentials(prev => ({ ...prev, nationalId: text }));
-                    if (errors.nationalId) setErrors(prev => ({ ...prev, nationalId: undefined }));
-                  }}
-                  keyboardType="numeric"
-                  maxLength={14}
-                  error={errors.nationalId}
-                  required
-                />
-                <Text style={s.inputHint}>14 رقماً كما هو موجود في بطاقة الهوية</Text>
-              </View>
+            <View style={s.divider} />
 
-              <View style={s.inputGroup}>
-                <CustomInput
-                  label="كلمة المرور"
-                  placeholder="أدخل كلمة المرور"
-                  value={credentials.password}
-                  onChangeText={(text) => {
-                    setCredentials(prev => ({ ...prev, password: text }));
-                    if (errors.password) setErrors(prev => ({ ...prev, password: undefined }));
-                  }}
-                  secureTextEntry
-                  error={errors.password}
-                  required
-                />
-              </View>
-
-              <View style={s.btnGroup}>
-                <View style={s.btnWrap}><CustomButton title="تسجيل الدخول" onPress={handleLogin} loading={isLoading} variant="primary" size="large" /></View>
-                <View style={s.btnWrap}><CustomButton title="إنشاء حساب جديد" onPress={onNavigateToSignup} variant="outline" size="large" /></View>
-                <TouchableOpacity onPress={handleForgotPassword} style={s.forgotBtn}>
-                  <Text style={s.forgotBtnText}>نسيت كلمة المرور؟</Text>
-                </TouchableOpacity>
-              </View>
-
-              <Text style={s.additionalInfo}>يجب أن تكون مسجلاً في المركز مسبقاً</Text>
-            </View>
+            {/* Form + Footer */}
+            <Animated.View style={{ opacity: formAnim }}>
+              <LoginForm
+                nationalId={credentials.nationalId}
+                password={credentials.password}
+                errors={errors}
+                isLoading={isLoading}
+                onNationalIdChange={(text) => {
+                  setCredentials(prev => ({ ...prev, nationalId: text }));
+                  if (errors.nationalId) setErrors(prev => ({ ...prev, nationalId: undefined }));
+                }}
+                onPasswordChange={(text) => {
+                  setCredentials(prev => ({ ...prev, password: text }));
+                  if (errors.password) setErrors(prev => ({ ...prev, password: undefined }));
+                }}
+                onLogin={handleLogin}
+                onForgotPassword={handleForgotPassword}
+              />
+              <LoginFooter onNavigateToSignup={onNavigateToSignup} />
+            </Animated.View>
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FA' },
-  flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 20, minHeight: height },
-  logoSection: { alignItems: 'center', marginBottom: 28, paddingTop: 16 },
-  loginCard: { backgroundColor: '#FFF', borderRadius: 20, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 6 },
-  branchBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: '#F4F6FA', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12, marginBottom: 20 },
-  branchIconCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
-  branchIconText: { fontSize: 16 },
-  branchBtnText: { fontSize: 13, color: '#2563EB', fontWeight: '700' },
-  welcomeSection: { alignItems: 'center', marginBottom: 24 },
-  welcomeTitle: { fontSize: 28, fontWeight: '800', color: '#1A1D26', textAlign: 'center', marginBottom: 6 },
-  welcomeSubtitle: { fontSize: 18, fontWeight: '700', color: '#2563EB', textAlign: 'center', marginBottom: 10 },
-  loginInstruction: { fontSize: 14, color: '#8E95A2', textAlign: 'center', lineHeight: 20 },
-  formSection: { marginTop: 4 },
-  inputGroup: { marginBottom: 18 },
-  inputHint: { fontSize: 12, color: '#8E95A2', textAlign: 'right', backgroundColor: '#F4F6FA', padding: 10, borderRadius: 8, lineHeight: 18, marginTop: 6 },
-  btnGroup: { marginTop: 4 },
-  btnWrap: { marginBottom: 8 },
-  forgotBtn: { alignItems: 'center', paddingVertical: 12 },
-  forgotBtnText: { fontSize: 14, color: '#2563EB', fontWeight: '600', textAlign: 'center' },
-  additionalInfo: { fontSize: 12, color: '#8E95A2', textAlign: 'center', marginTop: 10, backgroundColor: '#F0FDF4', padding: 12, borderRadius: 10, lineHeight: 18, borderWidth: 1, borderColor: '#BBF7D0' },
+  root: { flex: 1, backgroundColor: Colors.primaryDark },
+  kavFlex: { flex: 1 },
+  scrollContent: { flexGrow: 1 },
+  card: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 32, borderTopRightRadius: 32,
+    paddingHorizontal: 24, paddingTop: 28, paddingBottom: 40,
+    minHeight: height * 0.62,
+    shadowColor: '#000', shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08, shadowRadius: 16, elevation: 10,
+  },
+  branchPill: {
+    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end',
+    backgroundColor: Colors.backgroundSoft, paddingVertical: 6, paddingHorizontal: 14,
+    borderRadius: 20, marginBottom: 22, gap: 6,
+  },
+  branchPillText: { fontSize: 13, color: Colors.primary, fontWeight: '700' },
+  cardHeader: { alignItems: 'flex-end', marginBottom: 6 },
+  cardTitle: { fontSize: 26, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right' },
+  cardSub: { fontSize: 14, color: Colors.textSecondary, textAlign: 'right', marginTop: 4 },
+  divider: { height: 1, backgroundColor: Colors.borderMedium, marginVertical: 20, borderRadius: 1 },
 });
 
 export default LoginScreen;

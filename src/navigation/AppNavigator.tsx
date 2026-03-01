@@ -29,6 +29,7 @@ import RequestSettingsScreen from '../screens/RequestSettingsScreen';
 import PaymentDueDatesScreen from '../screens/PaymentDueDatesScreen';
 import RegisterAttendanceScreen from '../screens/RegisterAttendanceScreen';
 import AcademicResultsScreen from '../screens/AcademicResultsScreen';
+import GradeAppealsScreen from '../screens/GradeAppealsScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
 import { BranchType } from '../types/auth';
@@ -43,7 +44,7 @@ interface UserInfo {
   traineeId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates' | 'register-attendance' | 'academic-results';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates' | 'register-attendance' | 'academic-results' | 'grade-appeals';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -204,6 +205,14 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('home');
   };
 
+  const handleNavigateToGradeAppeals = () => {
+    setCurrentScreen('grade-appeals');
+  };
+
+  const handleBackFromGradeAppeals = () => {
+    setCurrentScreen('home');
+  };
+
   const handleNavigateToTrainingContents = () => {
     setCurrentScreen('training-contents');
   };
@@ -324,6 +333,15 @@ const AppNavigator: React.FC = () => {
     let screenElement: React.ReactElement | null = null;
 
     switch (currentScreen) {
+      case 'grade-appeals':
+        screenElement = (
+          <GradeAppealsScreen
+            accessToken={userInfo.accessToken}
+            traineeId={userInfo.traineeId}
+            onBack={handleBackFromGradeAppeals}
+          />
+        );
+        break;
       case 'academic-results':
         screenElement = (
           <AcademicResultsScreen

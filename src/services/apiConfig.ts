@@ -75,6 +75,8 @@ export const API_CONFIG = {
     CREATE_TRAINEE_REQUEST: '/api/trainee-requests',
     REQUEST_DETAILS: '/api/trainee-auth/request',
     GRADE_APPEALS: '/api/grade-appeals/my-appeals',
+    CREATE_GRADE_APPEAL: '/api/grade-appeals',
+    GRADE_APPEALS_STATUS: '/api/grade-appeals/appeals-status',
     ACCESS_CHECK: '/api/trainee-platform/access-check',
     VERIFY_ATTENDANCE_CODE: '/api/trainee-auth/verify-attendance-code',
     TRAINEE_GRADES: '/api/grades/trainee', // + /{traineeId}

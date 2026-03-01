@@ -4,6 +4,8 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 
 interface PaymentDueDatesScreenProps {
   accessToken: string;
@@ -43,13 +45,13 @@ const PaymentDueDatesScreen: React.FC<PaymentDueDatesScreenProps> = ({ onBack })
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Text style={s.backIcon}>→</Text>
+          <Icon name={AppIcons.back} size={18} color={Colors.primary} />
         </TouchableOpacity>
         <View style={{ flex: 1, marginRight: 14 }}>
           <Text style={s.headerTitle}>مواعيد سداد الرسوم</Text>
           <Text style={s.headerSub}>إدارة مواعيد سداد الرسوم والإجراءات</Text>
         </View>
-        <View style={s.headerIcon}><Text style={{ fontSize: 18 }}>📅</Text></View>
+        <View style={s.headerIcon}><Icon name={AppIcons.schedule} size={18} color={Colors.primary} /></View>
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
@@ -68,8 +70,8 @@ const PaymentDueDatesScreen: React.FC<PaymentDueDatesScreenProps> = ({ onBack })
                   onPress={() => handleSelectProgram(p.id)}
                   activeOpacity={0.8}
                 >
-                  <View style={[s.programIcon, selected && { backgroundColor: '#2563EB' }]}>
-                    <Text style={{ fontSize: 22 }}>📘</Text>
+                  <View style={[s.programIcon, selected && { backgroundColor: Colors.primary }]}>
+                    <Icon name={AppIcons.book} size={22} color={selected ? Colors.white : Colors.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={s.programName}>{p.nameAr}</Text>
@@ -80,7 +82,7 @@ const PaymentDueDatesScreen: React.FC<PaymentDueDatesScreenProps> = ({ onBack })
                     </View>
                   </View>
                   {selected && (
-                    <View style={s.checkCircle}><Text style={{ fontSize: 14, color: '#fff' }}>✓</Text></View>
+                    <View style={s.checkCircle}><Icon name={AppIcons.check} size={14} color={Colors.white} /></View>
                   )}
                 </TouchableOpacity>
               );
@@ -97,7 +99,7 @@ const PaymentDueDatesScreen: React.FC<PaymentDueDatesScreenProps> = ({ onBack })
                 </Text>
               </View>
               <View style={s.comingSoon}>
-                <Text style={{ fontSize: 48, marginBottom: 12 }}>📅</Text>
+                <Text style={{ fontSize: 48, marginBottom: 12 }}><Icon name={AppIcons.schedule} size={48} color={Colors.primary} /></Text>
                 <Text style={s.comingSoonTitle}>قريباً...</Text>
                 <Text style={s.comingSoonDesc}>سيتم عرض مواعيد السداد التفصيلية هنا</Text>
               </View>
@@ -110,56 +112,54 @@ const PaymentDueDatesScreen: React.FC<PaymentDueDatesScreenProps> = ({ onBack })
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FA' },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
     paddingHorizontal: 18, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: '#EEF2F6',
+    borderBottomWidth: 1, borderBottomColor: Colors.borderLight,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
   },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F0F4FF', alignItems: 'center', justifyContent: 'center' },
-  backIcon: { fontSize: 18, color: '#2563EB', fontWeight: '700' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
-  headerSub: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 2 },
+  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.backgroundSoft, alignItems: 'center', justifyContent: 'center' },
+  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
+  headerSub: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
   headerIcon: {
-    width: 38, height: 38, borderRadius: 12, backgroundColor: '#F0F4FF',
+    width: 38, height: 38, borderRadius: 12, backgroundColor: Colors.backgroundSoft,
     alignItems: 'center', justifyContent: 'center',
   },
   scroll: { padding: 18, paddingBottom: 32 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#1A1D26', textAlign: 'right', marginBottom: 14 },
-  // Program card
+  sectionTitle: { fontSize: 17, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right', marginBottom: 14 },
   programCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-    borderRadius: 16, padding: 16, borderWidth: 1.5, borderColor: '#EEF2F6',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
+    borderRadius: 16, padding: 16, borderWidth: 1.5, borderColor: Colors.borderLight,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
-  programCardActive: { borderColor: '#2563EB', backgroundColor: '#F7F9FF' },
+  programCardActive: { borderColor: Colors.primary, backgroundColor: Colors.backgroundSoft },
   programIcon: {
-    width: 48, height: 48, borderRadius: 14, backgroundColor: '#F0F4FF',
+    width: 48, height: 48, borderRadius: 14, backgroundColor: Colors.backgroundSoft,
     alignItems: 'center', justifyContent: 'center', marginLeft: 14,
   },
-  programName: { fontSize: 15, fontWeight: '700', color: '#1A1D26', textAlign: 'right', marginBottom: 2 },
-  programNameEn: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginBottom: 6 },
+  programName: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right', marginBottom: 2 },
+  programNameEn: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginBottom: 6 },
   priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 },
-  priceLabel: { fontSize: 12, color: '#8E95A2' },
-  priceVal: { fontSize: 14, fontWeight: '700', color: '#10B981' },
+  priceLabel: { fontSize: 12, color: Colors.textHint },
+  priceVal: { fontSize: 14, fontWeight: '700', color: Colors.primaryLight },
   checkCircle: {
-    width: 28, height: 28, borderRadius: 14, backgroundColor: '#2563EB',
+    width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.primary,
     alignItems: 'center', justifyContent: 'center',
   },
-  // Due dates
   dueDatesHeader: {
-    backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12,
-    borderWidth: 1, borderColor: '#EEF2F6',
+    backgroundColor: Colors.white, borderRadius: 16, padding: 16, marginBottom: 12,
+    borderWidth: 1, borderColor: Colors.borderLight,
   },
-  dueDateTitle: { fontSize: 16, fontWeight: '700', color: '#1A1D26', textAlign: 'right', marginBottom: 4 },
-  dueDateSub: { fontSize: 13, color: '#8E95A2', textAlign: 'right' },
+  dueDateTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right', marginBottom: 4 },
+  dueDateSub: { fontSize: 13, color: Colors.textHint, textAlign: 'right' },
   comingSoon: {
-    backgroundColor: '#fff', borderRadius: 16, padding: 40, alignItems: 'center',
-    borderWidth: 1, borderColor: '#EEF2F6',
+    backgroundColor: Colors.white, borderRadius: 16, padding: 40, alignItems: 'center',
+    borderWidth: 1, borderColor: Colors.borderLight,
   },
-  comingSoonTitle: { fontSize: 18, fontWeight: '700', color: '#2563EB', marginBottom: 6 },
-  comingSoonDesc: { fontSize: 13, color: '#8E95A2', textAlign: 'center', lineHeight: 20 },
+  comingSoonTitle: { fontSize: 18, fontWeight: '700', color: Colors.primary, marginBottom: 6 },
+  comingSoonDesc: { fontSize: 13, color: Colors.textHint, textAlign: 'center', lineHeight: 20 },
 });
 
 export default PaymentDueDatesScreen;

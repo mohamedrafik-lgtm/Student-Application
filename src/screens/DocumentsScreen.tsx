@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as AuthServiceModule from '../services/authService';
 import { API_CONFIG } from '../services/apiConfig';
 import { TraineeDocument } from '../types/auth';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 
 interface Props {
   accessToken: string;
@@ -102,7 +104,7 @@ const DocumentsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
     return (
       <View style={s.card}>
         <View style={s.cardLeft}>
-          <View style={s.docIconCircle}><Text style={s.docIcon}>📄</Text></View>
+          <View style={s.docIconCircle}><Icon name={AppIcons.document} size={20} color={Colors.primary} /></View>
         </View>
         <View style={s.cardBody}>
           <Text style={s.cardTitle} numberOfLines={1}>{title}</Text>
@@ -130,13 +132,13 @@ const DocumentsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
             <Text style={s.headerTitle}>الوثائق</Text>
             <Text style={s.headerSubtitle}>مستنداتك الرسمية</Text>
           </View>
-          <TouchableOpacity style={s.backBtn} onPress={onBack}><Text style={s.backBtnText}>→</Text></TouchableOpacity>
+          <TouchableOpacity style={s.backBtn} onPress={onBack}><Icon name={AppIcons.back} size={20} color={Colors.primary} /></TouchableOpacity>
         </View>
       </View>
 
       {loading ? (
         <View style={s.center}>
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color={Colors.primary} />
           <Text style={s.centerText}>جاري تحميل الوثائق...</Text>
         </View>
       ) : error ? (
@@ -149,7 +151,7 @@ const DocumentsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
         </View>
       ) : docs.length === 0 ? (
         <View style={s.center}>
-          <View style={s.emptyIconCircle}><Text style={s.emptyIcon}>📄</Text></View>
+          <View style={s.emptyIconCircle}><Icon name={AppIcons.document} size={32} color={Colors.primary} /></View>
           <Text style={s.emptyTitle}>لا توجد وثائق</Text>
           <Text style={s.centerText}>لم يتم العثور على أي مستندات</Text>
           <TouchableOpacity style={s.retryBtn} onPress={fetchAndSetDocuments}>
@@ -171,36 +173,36 @@ const DocumentsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FA' },
-  header: { backgroundColor: '#FFF', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#EEF2F6' },
+  container: { flex: 1, backgroundColor: Colors.background },
+  header: { backgroundColor: Colors.white, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   headerTitleArea: { flex: 1, alignItems: 'flex-end', marginRight: 12 },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: '#1A1D26', textAlign: 'right' },
-  headerSubtitle: { fontSize: 13, color: '#8E95A2', marginTop: 4, textAlign: 'right' },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F4F6FA', alignItems: 'center', justifyContent: 'center' },
-  backBtnText: { fontSize: 20, color: '#1A1D26', fontWeight: '600' },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right' },
+  headerSubtitle: { fontSize: 13, color: Colors.textHint, marginTop: 4, textAlign: 'right' },
+  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' },
+  backBtnText: { fontSize: 20, color: Colors.textPrimary, fontWeight: '600' },
   headerSpacer: { width: 38 },
   listContent: { padding: 16, paddingBottom: 32 },
-  card: { backgroundColor: '#FFF', borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
+  card: { backgroundColor: Colors.white, borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
   cardLeft: { marginLeft: 14 },
-  docIconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center' },
+  docIconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary50, alignItems: 'center', justifyContent: 'center' },
   docIcon: { fontSize: 20 },
   cardBody: { flex: 1, alignItems: 'flex-end' },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
-  cardSub: { fontSize: 12, color: '#8E95A2', marginTop: 4, textAlign: 'right' },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
+  cardSub: { fontSize: 12, color: Colors.textHint, marginTop: 4, textAlign: 'right' },
   cardActions: { flexDirection: 'column', gap: 6 },
-  viewBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8, backgroundColor: '#EFF6FF' },
-  viewBtnText: { fontSize: 12, fontWeight: '700', color: '#2563EB' },
-  dlBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8, backgroundColor: '#F0FDF4' },
-  dlBtnText: { fontSize: 12, fontWeight: '700', color: '#10B981' },
+  viewBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8, backgroundColor: Colors.backgroundSoft },
+  viewBtnText: { fontSize: 12, fontWeight: '700', color: Colors.primary },
+  dlBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8, backgroundColor: Colors.successLight },
+  dlBtnText: { fontSize: 12, fontWeight: '700', color: Colors.primaryLight },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  centerText: { fontSize: 14, color: '#8E95A2', marginTop: 10, textAlign: 'center' },
-  errorTitle: { fontSize: 18, fontWeight: '800', color: '#EF4444', marginBottom: 4 },
-  retryBtn: { marginTop: 16, paddingHorizontal: 20, paddingVertical: 12, backgroundColor: '#2563EB', borderRadius: 12 },
-  retryBtnText: { color: '#FFF', fontWeight: '700', fontSize: 14 },
-  emptyIconCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
+  centerText: { fontSize: 14, color: Colors.textHint, marginTop: 10, textAlign: 'center' },
+  errorTitle: { fontSize: 18, fontWeight: '800', color: Colors.error, marginBottom: 4 },
+  retryBtn: { marginTop: 16, paddingHorizontal: 20, paddingVertical: 12, backgroundColor: Colors.primary, borderRadius: 12 },
+  retryBtnText: { color: Colors.white, fontWeight: '700', fontSize: 14 },
+  emptyIconCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: Colors.primary50, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   emptyIcon: { fontSize: 32 },
-  emptyTitle: { fontSize: 18, fontWeight: '800', color: '#1A1D26' },
+  emptyTitle: { fontSize: 18, fontWeight: '800', color: Colors.textPrimary },
 });
 
 export default DocumentsScreen;

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+﻿import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Dimensions,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 import {AuthService} from '../services/authService';
 import {
   TraineeProfile,
@@ -16,6 +19,8 @@ import {
   PaymentStatus,
   FeeType,
 } from '../types/auth';
+
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
 interface PaymentsScreenProps {
   accessToken: string;
@@ -32,9 +37,7 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
   const [payments, setPayments] = useState<TraineePayment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedFilter, setSelectedFilter] = useState<
-    PaymentStatus | 'ALL'
-  >('ALL');
+  const [selectedFilter, setSelectedFilter] = useState<PaymentStatus | 'ALL'>('ALL');
 
   useEffect(() => {
     loadPayments();
@@ -45,124 +48,72 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
     try {
       setIsLoading(true);
       setError(null);
-
-      console.log('🔍 Loading payments...');
       const profileData = await AuthService.getProfile(accessToken);
-      console.log('✅ Payments loaded successfully:', profileData);
-
       setProfile(profileData);
       setPayments(profileData.trainee.traineePayments || []);
     } catch (err) {
-      console.error('❌ Failed to load payments:', err);
       const apiError = err as any;
-
-      let errorMessage = 'حدث خطأ أثناء تحميل المدفوعات';
+      let errorMessage = 'Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª';
       if (apiError.statusCode === 401) {
-        errorMessage =
-          'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى';
-      } else if (apiError.statusCode === 0) {
-        errorMessage = apiError.message;
+        errorMessage = 'Ø§Ù†ØªÙ‡Øª ØµÙ„Ø§Ø­ÙŠØ© Ø§Ù„Ø¬Ù„Ø³Ø©. ÙŠØ±Ø¬Ù‰ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰';
       } else if (apiError.message) {
         errorMessage = apiError.message;
       }
-
       setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleMakePayment = (payment: TraineePayment) => {
-    Alert.alert('دفع الرسوم', 'سيتم إضافة هذه الميزة قريباً');
+  const handleMakePayment = (_payment: TraineePayment) => {
+    Alert.alert('Ø¯ÙØ¹ Ø§Ù„Ø±Ø³ÙˆÙ…', 'Ø³ÙŠØªÙ… Ø¥Ø¶Ø§ÙØ© Ù‡Ø°Ù‡ Ø§Ù„Ù…ÙŠØ²Ø© Ù‚Ø±ÙŠØ¨Ø§Ù‹');
   };
 
-  const handlePaymentHistory = () => {
-    Alert.alert('سجل المدفوعات', 'سيتم إضافة هذه الميزة قريباً');
-  };
-
-  const getPaymentStatusText = (status: PaymentStatus): string => {
+  const getStatusMeta = (status: PaymentStatus) => {
     switch (status) {
       case 'PENDING':
-        return 'معلق';
+        return {label: 'معلق', color: Colors.warning, bg: Colors.warningLight, icon: '⏳'};
       case 'COMPLETED':
-        return 'مكتمل';
+        return {label: 'مكتمل', color: Colors.primaryLight, bg: Colors.successLight, icon: '✅'};
       case 'CANCELLED':
-        return 'ملغي';
+        return {label: 'ملغي', color: Colors.error, bg: Colors.errorLight, icon: '✕'};
       case 'REFUNDED':
-        return 'مسترد';
+        return {label: 'مسترد', color: '#3B82F6', bg: Colors.infoLight, icon: '↩'};
       default:
-        return status;
+        return {label: status, color: Colors.textHint, bg: Colors.background, icon: '•'};
     }
   };
 
-  const getPaymentStatusColor = (status: PaymentStatus): string => {
-    switch (status) {
-      case 'PENDING':
-        return '#F59E0B';
-      case 'COMPLETED':
-        return '#10B981';
-      case 'CANCELLED':
-        return '#EF4444';
-      case 'REFUNDED':
-        return '#3B82F6';
-      default:
-        return '#8E95A2';
-    }
-  };
-
-  const getFeeTypeText = (type: FeeType): string => {
+  const getFeeTypeMeta = (type: FeeType) => {
     switch (type) {
       case 'REGISTRATION':
-        return 'رسوم التسجيل';
+        return {label: 'Ø±Ø³ÙˆÙ… Ø§Ù„ØªØ³Ø¬ÙŠÙ„', icon: 'ðŸ“', color: '#8B5CF6'};
       case 'TUITION':
-        return 'الرسوم الدراسية';
+        return {label: 'Ø§Ù„Ø±Ø³ÙˆÙ… Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ©', icon: 'ðŸŽ"', color: Colors.primary};
       case 'EXAM':
-        return 'رسوم الامتحان';
+        return {label: 'Ø±Ø³ÙˆÙ… Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†', icon: 'ðŸ“‹', color: '#0891B2'};
       case 'MATERIALS':
-        return 'رسوم المواد';
+        return {label: 'Ø±Ø³ÙˆÙ… Ø§Ù„Ù…ÙˆØ§Ø¯', icon: 'ðŸ"š', color: Colors.warning};
       case 'CERTIFICATE':
-        return 'رسوم الشهادة';
-      case 'OTHER':
-        return 'أخرى';
+        return {label: 'Ø±Ø³ÙˆÙ… Ø§Ù„Ø´Ù‡Ø§Ø¯Ø©', icon: 'ðŸ†', color: '#DB2777'};
       default:
-        return type;
+        return {label: 'Ø£Ø®Ø±Ù‰', icon: 'ðŸ'°', color: Colors.textLight};
     }
   };
 
-  const getFeeTypeIcon = (type: FeeType): string => {
-    switch (type) {
-      case 'REGISTRATION':
-        return '📝';
-      case 'TUITION':
-        return '🎓';
-      case 'EXAM':
-        return '📋';
-      case 'MATERIALS':
-        return '📚';
-      case 'CERTIFICATE':
-        return '🏆';
-      case 'OTHER':
-        return '💰';
-      default:
-        return '💰';
-    }
-  };
-
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('ar-EG', {
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('ar-EG', {
       style: 'currency',
       currency: 'EGP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
-  };
 
-  const formatDate = (dateString: string): string => {
+  const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('ar-EG', {
+      return new Date(dateString).toLocaleDateString('ar-EG', {
         year: 'numeric',
-        month: 'long',
+        month: 'short',
         day: 'numeric',
       });
     } catch {
@@ -173,59 +124,48 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
   const filteredPayments =
     selectedFilter === 'ALL'
       ? payments
-      : payments.filter(payment => payment.status === selectedFilter);
+      : payments.filter(p => p.status === selectedFilter);
 
-  const paymentStatuses: (PaymentStatus | 'ALL')[] = [
-    'ALL',
-    PaymentStatus.PENDING,
-    PaymentStatus.COMPLETED,
-    PaymentStatus.CANCELLED,
-    PaymentStatus.REFUNDED,
+  const paymentStatuses: {id: PaymentStatus | 'ALL'; label: string; emoji: string}[] = [
+    {id: 'ALL', label: 'Ø§Ù„ÙƒÙ„', emoji: 'ðŸ“‹'},
+    {id: PaymentStatus.PENDING, label: 'Ù…Ø¹Ù„Ù‚', emoji: 'â³'},
+    {id: PaymentStatus.COMPLETED, label: 'Ù…ÙƒØªÙ…Ù„', emoji: 'âœ…'},
+    {id: PaymentStatus.CANCELLED, label: 'Ù…Ù„ØºÙŠ', emoji: 'âœ•'},
+    {id: PaymentStatus.REFUNDED, label: 'Ù…Ø³ØªØ±Ø¯', emoji: 'â†©'},
   ];
 
-  // Calculate totals
-  const totalAmount = payments.reduce(
-    (sum, payment) => sum + payment.amount,
-    0,
-  );
-  const paidAmount = payments.reduce(
-    (sum, payment) => sum + payment.paidAmount,
-    0,
-  );
+  const totalAmount = payments.reduce((sum, p) => sum + p.amount, 0);
+  const paidAmount = payments.reduce((sum, p) => sum + p.paidAmount, 0);
   const pendingAmount = totalAmount - paidAmount;
-  const completedPayments = payments.filter(
-    p => p.status === 'COMPLETED',
-  ).length;
-  const pendingPaymentsCount = payments.filter(
-    p => p.status === 'PENDING',
-  ).length;
-  const paidPct = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
+  const completedCount = payments.filter(p => p.status === 'COMPLETED').length;
+  const pendingCount = payments.filter(p => p.status === 'PENDING').length;
+  const paidPct = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
 
-  // Loading
+  /* â”€â”€â”€ Loading â”€â”€â”€ */
   if (isLoading) {
     return (
       <SafeAreaView style={s.container}>
         <View style={s.centerBox}>
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text style={s.loadingText}>جاري تحميل المدفوعات...</Text>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={s.loadingText}>Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  // Error
+  /* â”€â”€â”€ Error â”€â”€â”€ */
   if (error) {
     return (
       <SafeAreaView style={s.container}>
         <View style={s.centerBox}>
-          <Text style={s.errorEmoji}>⚠️</Text>
-          <Text style={s.errorTitle}>خطأ في تحميل المدفوعات</Text>
+          <View style={s.errorIconBox}><Text style={s.errorIconTxt}>âš ï¸</Text></View>
+          <Text style={s.errorTitle}>Ø®Ø·Ø£ ÙÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª</Text>
           <Text style={s.errorMsg}>{error}</Text>
           <TouchableOpacity style={s.retryBtn} onPress={loadPayments}>
-            <Text style={s.retryBtnText}>إعادة المحاولة</Text>
+            <Text style={s.retryBtnText}>Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.backLink} onPress={onBack}>
-            <Text style={s.backLinkText}>العودة</Text>
+          <TouchableOpacity onPress={onBack} style={s.backLink}>
+            <Text style={s.backLinkText}>â† Ø§Ù„Ø¹ÙˆØ¯Ø©</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -238,610 +178,474 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={s.header}>
-          <TouchableOpacity style={s.backBtn} onPress={onBack}>
-            <Text style={s.backArrow}>→</Text>
-          </TouchableOpacity>
-          <View style={s.headerCenter}>
-            <Text style={s.headerTitle}>المدفوعات</Text>
-            <Text style={s.headerSub}>إدارة الرسوم والمدفوعات</Text>
-          </View>
-          <View style={s.headerActions}>
+
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â• HERO HEADER â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        <View style={s.hero}>
+          {/* Top bar */}
+          <View style={s.heroTopBar}>
+            <TouchableOpacity style={s.heroBackBtn} onPress={onBack}>
+              <Text style={s.heroBackArrow}>â†’</Text>
+            </TouchableOpacity>
+            <View style={s.heroTitleArea}>
+              <Text style={s.heroTitle}>Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª</Text>
+              <Text style={s.heroSub}>Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø±Ø³ÙˆÙ… ÙˆØ§Ù„Ù…Ø³ØªØ­Ù‚Ø§Øª Ø§Ù„Ù…Ø§Ù„ÙŠØ©</Text>
+            </View>
             {onNavigateToPaymentDueDates && (
               <TouchableOpacity
-                style={s.headerActionBtn}
+                style={s.heroDatesBtn}
                 onPress={onNavigateToPaymentDueDates}>
-                <Text style={s.headerActionIcon}>📅</Text>
+                <Text style={s.heroDatesIcon}>ðŸ“…</Text>
+                <Text style={s.heroDatesText}>Ø§Ù„Ù…ÙˆØ§Ø¹ÙŠØ¯</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity
-              style={s.headerActionBtn}
-              onPress={handlePaymentHistory}>
-              <Text style={s.headerActionIcon}>📊</Text>
-            </TouchableOpacity>
           </View>
-        </View>
 
-        {/* Summary Card */}
-        <View style={s.summaryCard}>
-          <Text style={s.summaryTitle}>ملخص المدفوعات</Text>
-
-          <View style={s.summaryGrid}>
-            <View style={s.summaryItem}>
-              <Text style={s.summaryValue}>{formatCurrency(totalAmount)}</Text>
-              <Text style={s.summaryLabel}>إجمالي المطلوب</Text>
+          {/* Hero amounts */}
+          <View style={s.heroAmounts}>
+            <View style={s.heroAmountItem}>
+              <Text style={s.heroAmountValue}>{formatCurrency(totalAmount)}</Text>
+              <Text style={s.heroAmountLabel}>Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨</Text>
             </View>
-            <View style={s.summaryDivider} />
-            <View style={s.summaryItem}>
-              <Text style={[s.summaryValue, {color: '#10B981'}]}>
+            <View style={s.heroAmountDivider} />
+            <View style={s.heroAmountItem}>
+              <Text style={[s.heroAmountValue, {color: '#34D399'}]}>
                 {formatCurrency(paidAmount)}
               </Text>
-              <Text style={s.summaryLabel}>المدفوع</Text>
+              <Text style={s.heroAmountLabel}>Ø§Ù„Ù…Ø¯ÙÙˆØ¹</Text>
             </View>
-            <View style={s.summaryDivider} />
-            <View style={s.summaryItem}>
-              <Text style={[s.summaryValue, {color: '#F59E0B'}]}>
+            <View style={s.heroAmountDivider} />
+            <View style={s.heroAmountItem}>
+              <Text style={[s.heroAmountValue, {color: '#FCD34D'}]}>
                 {formatCurrency(pendingAmount)}
               </Text>
-              <Text style={s.summaryLabel}>المتبقي</Text>
+              <Text style={s.heroAmountLabel}>Ø§Ù„Ù…ØªØ¨Ù‚ÙŠ</Text>
             </View>
           </View>
 
-          {/* Progress */}
-          <View style={s.progressRow}>
-            <View style={s.progressBarBg}>
-              <View
-                style={[s.progressBarFill, {width: `${paidPct}%`}]}
-              />
+          {/* Progress bar */}
+          <View style={s.heroProgressArea}>
+            <View style={s.heroProgressBg}>
+              <View style={[s.heroProgressFill, {width: `${paidPct}%`}]} />
             </View>
-            <Text style={s.progressText}>
-              {Math.round(paidPct)}% مكتمل
-            </Text>
-          </View>
-
-          {/* Stats Row */}
-          <View style={s.statsRow}>
-            <View style={s.statsItem}>
-              <Text style={s.statsNum}>{payments.length}</Text>
-              <Text style={s.statsLabel}>إجمالي</Text>
-            </View>
-            <View style={s.statsDivider} />
-            <View style={s.statsItem}>
-              <Text style={[s.statsNum, {color: '#10B981'}]}>
-                {completedPayments}
-              </Text>
-              <Text style={s.statsLabel}>مكتملة</Text>
-            </View>
-            <View style={s.statsDivider} />
-            <View style={s.statsItem}>
-              <Text style={[s.statsNum, {color: '#F59E0B'}]}>
-                {pendingPaymentsCount}
-              </Text>
-              <Text style={s.statsLabel}>معلقة</Text>
+            <View style={s.heroProgressLabels}>
+              <Text style={s.heroProgressPct}>{paidPct}% Ù…Ø¯ÙÙˆØ¹</Text>
+              <Text style={s.heroProgressPct}>{100 - paidPct}% Ù…ØªØ¨Ù‚ÙŠ</Text>
             </View>
           </View>
         </View>
 
-        {/* Filter */}
-        <View style={s.filterSection}>
-          <Text style={s.sectionTitle}>تصفية المدفوعات</Text>
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â• STATS ROW â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        <View style={s.statsRow}>
+          {[
+            {num: payments.length, label: 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ', color: Colors.primary, bg: Colors.infoLight},
+            {num: completedCount, label: 'Ù…ÙƒØªÙ…Ù„', color: Colors.primaryLight, bg: Colors.successLight},
+            {num: pendingCount, label: 'Ù…Ø¹Ù„Ù‚', color: Colors.warning, bg: Colors.warningLight},
+            {num: payments.filter(p => p.status === 'CANCELLED').length, label: 'Ù…Ù„ØºÙŠ', color: Colors.error, bg: Colors.errorLight},
+          ].map((item, i) => (
+            <View key={i} style={[s.statCard, {backgroundColor: item.bg}]}>
+              <Text style={[s.statNum, {color: item.color}]}>{item.num}</Text>
+              <Text style={[s.statLabel, {color: item.color}]}>{item.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â• FILTER CHIPS â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        <View style={s.filterWrap}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={s.filterContent}>
-            {paymentStatuses.map(status => (
-              <TouchableOpacity
-                key={status}
-                style={[
-                  s.filterChip,
-                  selectedFilter === status && s.filterChipActive,
-                ]}
-                onPress={() => setSelectedFilter(status)}>
-                <Text
-                  style={[
-                    s.filterChipText,
-                    selectedFilter === status && s.filterChipTextActive,
-                  ]}>
-                  {status === 'ALL'
-                    ? 'الكل'
-                    : getPaymentStatusText(status as PaymentStatus)}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {paymentStatuses.map(st => {
+              const isActive = selectedFilter === st.id;
+              return (
+                <TouchableOpacity
+                  key={st.id}
+                  style={[s.chip, isActive && s.chipActive]}
+                  onPress={() => setSelectedFilter(st.id)}>
+                  <Text style={s.chipEmoji}>{st.emoji}</Text>
+                  <Text style={[s.chipText, isActive && s.chipTextActive]}>
+                    {st.label}
+                  </Text>
+                  {isActive && (
+                    <View style={s.chipCount}>
+                      <Text style={s.chipCountText}>
+                        {st.id === 'ALL'
+                          ? payments.length
+                          : payments.filter(p => p.status === st.id).length}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
 
-        {/* Payments List */}
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â• PAYMENTS LIST â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
         <View style={s.listSection}>
-          <Text style={s.sectionTitle}>
-            المدفوعات ({filteredPayments.length})
-          </Text>
+          <View style={s.listHeader}>
+            <Text style={s.listHeaderCount}>
+              {filteredPayments.length} Ø¯ÙØ¹Ø©
+            </Text>
+            <Text style={s.listHeaderTitle}>Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª</Text>
+          </View>
 
           {filteredPayments.length === 0 ? (
             <View style={s.emptyBox}>
-              <Text style={s.emptyEmoji}>💰</Text>
-              <Text style={s.emptyTitle}>لا توجد مدفوعات</Text>
+              <Text style={s.emptyEmoji}>ðŸ’³</Text>
+              <Text style={s.emptyTitle}>Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø¯ÙÙˆØ¹Ø§Øª</Text>
               <Text style={s.emptyMsg}>
                 {selectedFilter === 'ALL'
-                  ? 'لم يتم العثور على أي مدفوعات'
-                  : `لا توجد مدفوعات بحالة ${getPaymentStatusText(selectedFilter as PaymentStatus)}`}
+                  ? 'Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø£ÙŠ Ù…Ø¯ÙÙˆØ¹Ø§Øª'
+                  : `Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø¯ÙÙˆØ¹Ø§Øª Ø¨Ø­Ø§Ù„Ø© "${getStatusMeta(selectedFilter as PaymentStatus).label}"`}
               </Text>
             </View>
           ) : (
             <View style={s.paymentsList}>
-              {filteredPayments.map(payment => (
-                <View key={payment.id} style={s.paymentCard}>
-                  {/* Card Header */}
-                  <View style={s.paymentHeader}>
-                    <View style={s.paymentIconBox}>
-                      <Text style={s.paymentIconText}>
-                        {getFeeTypeIcon(payment.fee.type)}
-                      </Text>
-                    </View>
-                    <View
-                      style={[
-                        s.paymentStatusBadge,
-                        {
-                          backgroundColor:
-                            getPaymentStatusColor(payment.status) + '18',
-                        },
-                      ]}>
-                      <Text
-                        style={[
-                          s.paymentStatusText,
-                          {
-                            color: getPaymentStatusColor(payment.status),
-                          },
-                        ]}>
-                        {getPaymentStatusText(payment.status)}
-                      </Text>
-                    </View>
-                  </View>
+              {filteredPayments.map(payment => {
+                const statusMeta = getStatusMeta(payment.status);
+                const feeMeta = getFeeTypeMeta(payment.fee.type);
+                const remaining = payment.amount - payment.paidAmount;
+                const payPct =
+                  payment.amount > 0
+                    ? Math.round((payment.paidAmount / payment.amount) * 100)
+                    : 0;
 
-                  {/* Payment Info */}
-                  <Text style={s.paymentTitle}>{payment.fee.name}</Text>
-                  <Text style={s.paymentType}>
-                    {getFeeTypeText(payment.fee.type)}
-                  </Text>
+                return (
+                  <View
+                    key={payment.id}
+                    style={[s.payCard, {borderLeftColor: statusMeta.color}]}>
 
-                  {/* Amounts */}
-                  <View style={s.amountsBox}>
-                    <View style={s.amountRow}>
-                      <Text style={s.amountLabel}>المبلغ المطلوب:</Text>
-                      <Text style={s.amountValue}>
-                        {formatCurrency(payment.amount)}
-                      </Text>
+                    {/* Row 1: icon + title + status */}
+                    <View style={s.payCardTop}>
+                      <View style={[s.payTypeCircle, {backgroundColor: feeMeta.color + '18'}]}>
+                        <Text style={s.payTypeIcon}>{feeMeta.icon}</Text>
+                      </View>
+                      <View style={s.payTitleArea}>
+                        <Text style={s.payName} numberOfLines={1}>
+                          {payment.fee.name}
+                        </Text>
+                        <Text style={[s.payFeeType, {color: feeMeta.color}]}>
+                          {feeMeta.label}
+                        </Text>
+                      </View>
+                      <View style={[s.statusBadge, {backgroundColor: statusMeta.bg}]}>
+                        <Text style={s.statusBadgeEmoji}>{statusMeta.icon}</Text>
+                        <Text style={[s.statusBadgeText, {color: statusMeta.color}]}>
+                          {statusMeta.label}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={s.amountRow}>
-                      <Text style={s.amountLabel}>المبلغ المدفوع:</Text>
-                      <Text style={[s.amountValue, {color: '#10B981'}]}>
-                        {formatCurrency(payment.paidAmount)}
-                      </Text>
+
+                    {/* Row 2: amounts */}
+                    <View style={s.payAmountsRow}>
+                      <View style={s.payAmountItem}>
+                        <Text style={s.payAmountLbl}>Ø§Ù„Ù…Ø·Ù„ÙˆØ¨</Text>
+                        <Text style={s.payAmountVal}>
+                          {formatCurrency(payment.amount)}
+                        </Text>
+                      </View>
+                      <View style={s.payAmountSep} />
+                      <View style={s.payAmountItem}>
+                        <Text style={s.payAmountLbl}>Ø§Ù„Ù…Ø¯ÙÙˆØ¹</Text>
+                        <Text style={[s.payAmountVal, {color: Colors.primaryLight}]}>
+                          {formatCurrency(payment.paidAmount)}
+                        </Text>
+                      </View>
+                      {remaining > 0 && (
+                        <>
+                          <View style={s.payAmountSep} />
+                          <View style={s.payAmountItem}>
+                            <Text style={s.payAmountLbl}>Ø§Ù„Ù…ØªØ¨Ù‚ÙŠ</Text>
+                            <Text style={[s.payAmountVal, {color: Colors.warning}]}>
+                              {formatCurrency(remaining)}
+                            </Text>
+                          </View>
+                        </>
+                      )}
                     </View>
-                    {payment.amount > payment.paidAmount && (
-                      <View style={s.amountRow}>
-                        <Text style={s.amountLabel}>المتبقي:</Text>
-                        <Text
-                          style={[s.amountValue, {color: '#F59E0B'}]}>
-                          {formatCurrency(
-                            payment.amount - payment.paidAmount,
-                          )}
+
+                    {/* Mini progress */}
+                    {payment.amount > 0 && (
+                      <View style={s.miniProgressWrap}>
+                        <View style={s.miniProgressBg}>
+                          <View
+                            style={[
+                              s.miniProgressFill,
+                              {
+                                width: `${payPct}%`,
+                                backgroundColor: statusMeta.color,
+                              },
+                            ]}
+                          />
+                        </View>
+                        <Text style={[s.miniProgressTxt, {color: statusMeta.color}]}>
+                          {payPct}%
                         </Text>
                       </View>
                     )}
-                  </View>
 
-                  {/* Details */}
-                  <View style={s.detailsRow}>
-                    <Text style={s.detailText}>
-                      📅 {formatDate(payment.createdAt)}
-                    </Text>
-                    <Text style={s.detailText}>
-                      🎓 {payment.fee.academicYear}
-                    </Text>
-                  </View>
+                    {/* Row 3: date + academic year */}
+                    <View style={s.payMeta}>
+                      <View style={s.payMetaChip}>
+                        <Text style={s.payMetaChipTxt}>
+                          ðŸŽ“ {payment.fee.academicYear}
+                        </Text>
+                      </View>
+                      <Text style={s.payMetaDate}>
+                        ðŸ“… {formatDate(payment.createdAt)}
+                      </Text>
+                    </View>
 
-                  {payment.notes && (
-                    <Text style={s.paymentNotes} numberOfLines={2}>
-                      {payment.notes}
-                    </Text>
-                  )}
+                    {/* Notes */}
+                    {payment.notes ? (
+                      <Text style={s.payNotes} numberOfLines={2}>
+                        ðŸ’¬ {payment.notes}
+                      </Text>
+                    ) : null}
 
-                  {/* Pay Button */}
-                  {payment.status === 'PENDING' &&
-                    payment.amount > payment.paidAmount && (
+                    {/* Pay button */}
+                    {payment.status === 'PENDING' && remaining > 0 && (
                       <TouchableOpacity
-                        style={s.payBtn}
-                        onPress={() => handleMakePayment(payment)}>
-                        <Text style={s.payBtnText}>💳 دفع الآن</Text>
+                        style={s.payNowBtn}
+                        onPress={() => handleMakePayment(payment)}
+                        activeOpacity={0.8}>
+                        <Text style={s.payNowBtnText}>ðŸ’³  Ø¯ÙØ¹ Ø§Ù„Ø¢Ù†</Text>
+                        <Text style={s.payNowBtnAmount}>
+                          {formatCurrency(remaining)}
+                        </Text>
                       </TouchableOpacity>
                     )}
-                </View>
-              ))}
+                  </View>
+                );
+              })}
             </View>
           )}
         </View>
+
+        <View style={{height: 40}} />
       </ScrollView>
     </SafeAreaView>
   );
 };
 
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   STYLES
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const s = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F4F6FA',
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 32,
-  },
-  centerBox: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#8E95A2',
-  },
-  errorEmoji: {
-    fontSize: 56,
+  container: {flex: 1, backgroundColor: Colors.background},
+  scroll: {flex: 1},
+  scrollContent: {paddingBottom: 32},
+
+  /* Loading / Error */
+  centerBox: {flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32},
+  loadingText: {marginTop: 14, fontSize: 15, color: Colors.textLight},
+  errorIconBox: {
+    width: 72, height: 72, borderRadius: 36,
+    backgroundColor: Colors.errorLight, alignItems: 'center', justifyContent: 'center',
     marginBottom: 16,
   },
-  errorTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1D26',
-    marginBottom: 8,
+  errorIconTxt: {fontSize: 32},
+  errorTitle: {fontSize: 20, fontWeight: '700', color: Colors.textPrimary, marginBottom: 8},
+  errorMsg: {fontSize: 14, color: Colors.textLight, textAlign: 'center', lineHeight: 22, marginBottom: 24},
+  retryBtn: {
+    backgroundColor: Colors.primary, paddingHorizontal: 32, paddingVertical: 14,
+    borderRadius: 14, marginBottom: 12,
+    shadowColor: Colors.primary, shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.3, shadowRadius: 8, elevation: 4,
   },
-  errorMsg: {
-    fontSize: 15,
-    color: '#8E95A2',
-    textAlign: 'center',
-    lineHeight: 22,
+  retryBtnText: {color: Colors.white, fontSize: 15, fontWeight: '700'},
+  backLink: {paddingVertical: 8},
+  backLinkText: {color: Colors.primary, fontSize: 14, fontWeight: '600'},
+
+  /* â”€â”€ Hero â”€â”€ */
+  hero: {
+    backgroundColor: Colors.primaryDark,
+    paddingTop: 20,
+    paddingBottom: 28,
+    paddingHorizontal: 20,
+  },
+  heroTopBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 24,
   },
-  retryBtn: {
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 12,
+  heroBackBtn: {
+    width: 40, height: 40, borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  retryBtnText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '700',
+  heroBackArrow: {fontSize: 18, color: Colors.white, fontWeight: '700'},
+  heroTitleArea: {flex: 1, alignItems: 'flex-end', marginRight: 12},
+  heroTitle: {fontSize: 22, fontWeight: '800', color: Colors.white},
+  heroSub: {fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 2},
+  heroDatesBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10,
   },
-  backLink: {
-    paddingVertical: 8,
-  },
-  backLinkText: {
-    color: '#2563EB',
-    fontSize: 15,
-    fontWeight: '600',
-  },
+  heroDatesIcon: {fontSize: 16},
+  heroDatesText: {fontSize: 12, color: Colors.white, fontWeight: '600'},
 
-  /* Header */
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
+  heroAmounts: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 16, padding: 16, marginBottom: 16,
   },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#F0F4FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backArrow: {
-    fontSize: 18,
-    color: '#2563EB',
-    fontWeight: '700',
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'flex-end',
-    marginRight: 12,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1D26',
-  },
-  headerSub: {
-    fontSize: 13,
-    color: '#8E95A2',
-    marginTop: 2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  headerActionBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#F0F4FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerActionIcon: {
-    fontSize: 18,
-  },
+  heroAmountItem: {flex: 1, alignItems: 'center'},
+  heroAmountValue: {fontSize: 15, fontWeight: '800', color: Colors.white, marginBottom: 4},
+  heroAmountLabel: {fontSize: 11, color: 'rgba(255,255,255,0.65)', fontWeight: '500'},
+  heroAmountDivider: {width: 1, height: 36, backgroundColor: 'rgba(255,255,255,0.2)'},
 
-  /* Summary */
-  summaryCard: {
-    backgroundColor: '#FFF',
-    marginHorizontal: 20,
-    marginTop: 16,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#EEF2F6',
+  heroProgressArea: {gap: 6},
+  heroProgressBg: {
+    height: 8, backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 4, overflow: 'hidden',
   },
-  summaryTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1D26',
-    textAlign: 'center',
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
+  heroProgressFill: {
+    height: '100%', backgroundColor: '#34D399', borderRadius: 4,
   },
-  summaryGrid: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    marginBottom: 16,
-  },
-  summaryItem: {
-    alignItems: 'center',
-  },
-  summaryValue: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#1A1D26',
-    marginBottom: 4,
-  },
-  summaryLabel: {
-    fontSize: 11,
-    color: '#8E95A2',
-    fontWeight: '500',
-  },
-  summaryDivider: {
-    width: 1,
-    height: 36,
-    backgroundColor: '#EEF2F6',
-  },
-  progressRow: {
-    marginBottom: 16,
-    alignItems: 'center',
-  },
-  progressBarBg: {
-    width: '100%',
-    height: 6,
-    backgroundColor: '#EEF2F6',
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginBottom: 6,
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#2563EB',
-    borderRadius: 3,
-  },
-  progressText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#8E95A2',
-  },
+  heroProgressLabels: {flexDirection: 'row', justifyContent: 'space-between'},
+  heroProgressPct: {fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: '600'},
+
+  /* â”€â”€ Stats Row â”€â”€ */
   statsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
-  },
-  statsItem: {
-    alignItems: 'center',
-  },
-  statsNum: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#2563EB',
-    marginBottom: 2,
-  },
-  statsLabel: {
-    fontSize: 12,
-    color: '#8E95A2',
-    fontWeight: '500',
-  },
-  statsDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: '#EEF2F6',
-  },
-
-  /* Filter */
-  filterSection: {
-    marginTop: 20,
-    paddingHorizontal: 20,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#1A1D26',
-    textAlign: 'right',
-    marginBottom: 12,
-  },
-  filterContent: {
-    gap: 8,
-  },
-  filterChip: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#EEF2F6',
-  },
-  filterChipActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
-  },
-  filterChipText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#8E95A2',
-  },
-  filterChipTextActive: {
-    color: '#FFF',
-  },
-
-  /* Payments List */
-  listSection: {
-    marginTop: 20,
-    paddingHorizontal: 20,
-  },
-  paymentsList: {
-    gap: 12,
-  },
-  paymentCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#EEF2F6',
-  },
-  paymentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  paymentIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#F0F4FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  paymentIconText: {
-    fontSize: 22,
-  },
-  paymentStatusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 10,
-  },
-  paymentStatusText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  paymentTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1D26',
-    textAlign: 'right',
-    marginBottom: 4,
-  },
-  paymentType: {
-    fontSize: 13,
-    color: '#8E95A2',
-    textAlign: 'right',
-    marginBottom: 14,
-  },
-  amountsBox: {
-    marginBottom: 12,
-    gap: 6,
-  },
-  amountRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  amountLabel: {
-    fontSize: 13,
-    color: '#8E95A2',
-  },
-  amountValue: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1A1D26',
-  },
-  detailsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
-    marginBottom: 4,
-  },
-  detailText: {
-    fontSize: 12,
-    color: '#8E95A2',
-  },
-  paymentNotes: {
-    fontSize: 12,
-    color: '#8E95A2',
-    fontStyle: 'italic',
-    textAlign: 'right',
-    marginTop: 8,
-    lineHeight: 18,
-  },
-  payBtn: {
-    backgroundColor: '#10B981',
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  payBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFF',
-  },
-
-  /* Empty */
-  emptyBox: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#EEF2F6',
-  },
-  emptyEmoji: {
-    fontSize: 56,
+    gap: 10,
+    marginTop: -14,
     marginBottom: 16,
   },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1D26',
-    marginBottom: 8,
+  statCard: {
+    flex: 1, borderRadius: 14, paddingVertical: 12, alignItems: 'center',
+    shadowColor: '#000', shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.06, shadowRadius: 6, elevation: 2,
   },
+  statNum: {fontSize: 20, fontWeight: '800'},
+  statLabel: {fontSize: 11, fontWeight: '600', marginTop: 2},
+
+  /* â”€â”€ Filter â”€â”€ */
+  filterWrap: {marginBottom: 16, paddingLeft: 16},
+  filterContent: {gap: 8, paddingRight: 16},
+  chip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 14, paddingVertical: 8,
+    borderRadius: 20, backgroundColor: Colors.white,
+    borderWidth: 1, borderColor: Colors.borderMedium,
+  },
+  chipActive: {backgroundColor: Colors.primary, borderColor: Colors.primary},
+  chipEmoji: {fontSize: 14},
+  chipText: {fontSize: 13, fontWeight: '600', color: Colors.textLight},
+  chipTextActive: {color: Colors.white},
+  chipCount: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: 7, paddingVertical: 2,
+    borderRadius: 10, minWidth: 22, alignItems: 'center',
+  },
+  chipCountText: {fontSize: 11, fontWeight: '700', color: Colors.white},
+
+  /* â”€â”€ List â”€â”€ */
+  listSection: {paddingHorizontal: 16},
+  listHeader: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 12,
+  },
+  listHeaderTitle: {fontSize: 17, fontWeight: '700', color: Colors.textPrimary},
+  listHeaderCount: {
+    fontSize: 13, fontWeight: '600', color: Colors.primary,
+    backgroundColor: Colors.infoLight, paddingHorizontal: 10,
+    paddingVertical: 4, borderRadius: 10,
+  },
+  paymentsList: {gap: 12},
+
+  /* â”€â”€ Payment Card â”€â”€ */
+  payCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 18,
+    padding: 16,
+    borderLeftWidth: 4,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  payCardTop: {
+    flexDirection: 'row', alignItems: 'center', marginBottom: 14,
+  },
+  payTypeCircle: {
+    width: 46, height: 46, borderRadius: 14,
+    alignItems: 'center', justifyContent: 'center', marginRight: 12,
+  },
+  payTypeIcon: {fontSize: 22},
+  payTitleArea: {flex: 1},
+  payName: {fontSize: 15, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right'},
+  payFeeType: {fontSize: 12, fontWeight: '600', textAlign: 'right', marginTop: 2},
+  statusBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10,
+  },
+  statusBadgeEmoji: {fontSize: 12},
+  statusBadgeText: {fontSize: 12, fontWeight: '700'},
+
+  payAmountsRow: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: Colors.background, borderRadius: 12,
+    padding: 12, marginBottom: 10,
+  },
+  payAmountItem: {flex: 1, alignItems: 'center'},
+  payAmountLbl: {fontSize: 11, color: Colors.textHint, fontWeight: '500', marginBottom: 4},
+  payAmountVal: {fontSize: 14, fontWeight: '700', color: Colors.textPrimary},
+  payAmountSep: {width: 1, height: 32, backgroundColor: Colors.borderMedium},
+
+  miniProgressWrap: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12,
+  },
+  miniProgressBg: {
+    flex: 1, height: 6, backgroundColor: Colors.borderMedium,
+    borderRadius: 3, overflow: 'hidden',
+  },
+  miniProgressFill: {height: '100%', borderRadius: 3},
+  miniProgressTxt: {fontSize: 11, fontWeight: '700', minWidth: 34, textAlign: 'right'},
+
+  payMeta: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 6,
+  },
+  payMetaChip: {
+    backgroundColor: Colors.background, paddingHorizontal: 10,
+    paddingVertical: 4, borderRadius: 8,
+  },
+  payMetaChipTxt: {fontSize: 12, color: Colors.textSecondary, fontWeight: '600'},
+  payMetaDate: {fontSize: 12, color: Colors.textHint},
+
+  payNotes: {
+    fontSize: 12, color: Colors.textHint, fontStyle: 'italic',
+    textAlign: 'right', lineHeight: 18, marginTop: 6,
+  },
+
+  payNowBtn: {
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.primaryLight, borderRadius: 14,
+    paddingHorizontal: 18, paddingVertical: 12, marginTop: 12,
+    shadowColor: Colors.primaryLight, shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.25, shadowRadius: 6, elevation: 3,
+  },
+  payNowBtnText: {fontSize: 15, fontWeight: '700', color: Colors.white},
+  payNowBtnAmount: {fontSize: 14, fontWeight: '800', color: Colors.white},
+
+  /* â”€â”€ Empty â”€â”€ */
+  emptyBox: {
+    alignItems: 'center', paddingVertical: 48,
+    backgroundColor: Colors.white, borderRadius: 18,
+    borderWidth: 1, borderColor: Colors.borderMedium,
+  },
+  emptyEmoji: {fontSize: 56, marginBottom: 16},
+  emptyTitle: {fontSize: 18, fontWeight: '700', color: Colors.textPrimary, marginBottom: 8},
   emptyMsg: {
-    fontSize: 14,
-    color: '#8E95A2',
-    textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: 20,
+    fontSize: 14, color: Colors.textHint, textAlign: 'center',
+    lineHeight: 22, paddingHorizontal: 24,
   },
 });
 

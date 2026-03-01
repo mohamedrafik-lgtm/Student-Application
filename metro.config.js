@@ -11,6 +11,21 @@ const config = {
     alias: {
       '@react-native-async-storage/async-storage': '@react-native-async-storage/async-storage/lib/commonjs/index.js',
     },
+    // Resolve react-native-vision-camera from pre-built lib instead of src
+    resolveRequest: (context, moduleName, platform) => {
+      if (
+        moduleName === 'react-native-vision-camera' ||
+        moduleName.startsWith('react-native-vision-camera/')
+      ) {
+        const newContext = {
+          ...context,
+          resolveRequest: undefined,
+          mainFields: ['main', 'module'],
+        };
+        return context.resolveRequest(newContext, moduleName, platform);
+      }
+      return context.resolveRequest(context, moduleName, platform);
+    },
   },
 };
 

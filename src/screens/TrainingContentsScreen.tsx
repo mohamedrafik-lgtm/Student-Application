@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 import { trainingContentsService } from '../services/trainingContentsService';
 import { AuthService } from '../services/authService';
 import ContentLecturesScreen from './ContentLecturesScreen';
@@ -183,8 +185,8 @@ const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
               <View style={s.badge}>
                 <Text style={s.badgeText}>{totalLectures} محاضرة</Text>
               </View>
-              <View style={[s.badge, { backgroundColor: '#EBF5FF' }]}>
-                <Text style={[s.badgeText, { color: '#2563EB' }]}>{content._count.scheduleSlots} متاحة</Text>
+              <View style={[s.badge, { backgroundColor: Colors.infoLight }]}>
+                <Text style={[s.badgeText, { color: Colors.primary }]}>{content._count.scheduleSlots} متاحة</Text>
               </View>
             </View>
           </View>
@@ -196,7 +198,7 @@ const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
           activeOpacity={0.8}
         >
           <Text style={s.cardBtnText}>عرض المحاضرات</Text>
-          <Text style={{ fontSize: 14, color: '#fff' }}>←</Text>
+          <Text style={{ fontSize: 14, color: Colors.white }}>←</Text>
         </TouchableOpacity>
       </View>
     );
@@ -207,7 +209,7 @@ const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Text style={s.backIcon}>→</Text>
+          <Icon name={AppIcons.forward} size={18} color={Colors.primary} />
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: 'flex-end', marginRight: 14 }}>
           <Text style={s.headerTitle}>مقرراتك الدراسية</Text>
@@ -232,7 +234,7 @@ const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
         {/* Loading */}
         {isLoading && (
           <View style={s.center}>
-            <ActivityIndicator size="large" color="#2563EB" />
+            <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={s.loadingText}>جاري تحميل المحتوى التدريبي...</Text>
           </View>
         )}
@@ -330,29 +332,29 @@ const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FA' },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     paddingHorizontal: 18,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
+    borderBottomColor: Colors.borderLight,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
   },
   backBtn: {
-    width: 38, height: 38, borderRadius: 19, backgroundColor: '#F0F4FF',
+    width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.primary50,
     alignItems: 'center', justifyContent: 'center',
   },
-  backIcon: { fontSize: 18, color: '#2563EB', fontWeight: '700' },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
+  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
   scroll: { padding: 18, paddingBottom: 32 },
   // Banner
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: Colors.primary,
     borderRadius: 16,
     padding: 18,
     marginBottom: 20,
@@ -362,7 +364,7 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', marginLeft: 14,
   },
   bannerLabel: { fontSize: 12, color: 'rgba(255,255,255,0.8)', textAlign: 'right', marginBottom: 2 },
-  bannerValue: { fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'right' },
+  bannerValue: { fontSize: 16, fontWeight: '700', color: Colors.white, textAlign: 'right' },
   // Term Tabs
   termTabsWrapper: {
     marginBottom: 16,
@@ -375,28 +377,28 @@ const s = StyleSheet.create({
   termTab: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.white,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
     gap: 6,
   },
   termTabActive: {
-    backgroundColor: '#0D9488',
-    borderColor: '#0D9488',
+    backgroundColor: Colors.secondary,
+    borderColor: Colors.secondary,
   },
   termTabText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#6B7280',
+    color: Colors.textLight,
   },
   termTabTextActive: {
-    color: '#FFF',
+    color: Colors.white,
   },
   termTabCount: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.borderLight,
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 8,
@@ -409,10 +411,10 @@ const s = StyleSheet.create({
   termTabCountText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#6B7280',
+    color: Colors.textLight,
   },
   termTabCountTextActive: {
-    color: '#FFF',
+    color: Colors.white,
   },
   // Term Section
   termSection: {
@@ -422,12 +424,12 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.white,
     borderRadius: 14,
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#D1FAE5',
+    borderColor: Colors.primary100,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
@@ -448,17 +450,17 @@ const s = StyleSheet.create({
   termTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#1F2937',
+    color: Colors.textPrimary,
     textAlign: 'right',
   },
   termSubtitle: {
     fontSize: 11,
-    color: '#6B7280',
+    color: Colors.textLight,
     textAlign: 'right',
     marginTop: 1,
   },
   termCountBadge: {
-    backgroundColor: '#E8F8F5',
+    backgroundColor: Colors.successLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -466,53 +468,53 @@ const s = StyleSheet.create({
   termCountBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#0D9488',
+    color: Colors.secondary,
   },
   termCards: {
     gap: 12,
   },
   // Section (legacy)
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#1A1D26', textAlign: 'right', marginBottom: 10 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right', marginBottom: 10 },
   // Card
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
   cardRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
   cardIcon: {
-    width: 52, height: 52, borderRadius: 14, backgroundColor: '#F0F4FF',
+    width: 52, height: 52, borderRadius: 14, backgroundColor: Colors.primary50,
     alignItems: 'center', justifyContent: 'center', marginLeft: 14,
   },
   cardInfo: { flex: 1 },
-  cardName: { fontSize: 15, fontWeight: '700', color: '#1A1D26', textAlign: 'right', marginBottom: 4, lineHeight: 22 },
-  cardCode: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginBottom: 8 },
+  cardName: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right', marginBottom: 4, lineHeight: 22 },
+  cardCode: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginBottom: 8 },
   cardBadges: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
-  badge: { backgroundColor: '#E8FAF0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  badgeText: { fontSize: 11, fontWeight: '600', color: '#10B981' },
+  badge: { backgroundColor: Colors.successLight, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  badgeText: { fontSize: 11, fontWeight: '600', color: Colors.primaryLight },
   cardBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: Colors.primary,
     borderRadius: 12,
     paddingVertical: 12,
     gap: 8,
   },
-  cardBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  cardBtnText: { fontSize: 14, fontWeight: '700', color: Colors.white },
   // States
   center: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
-  loadingText: { marginTop: 16, fontSize: 14, color: '#8E95A2', fontWeight: '600' },
+  loadingText: { marginTop: 16, fontSize: 14, color: Colors.textHint, fontWeight: '600' },
   errorCircle: {
-    width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2',
+    width: 64, height: 64, borderRadius: 32, backgroundColor: Colors.errorLight,
     alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
-  errorText: { fontSize: 15, color: '#EF4444', textAlign: 'center', marginBottom: 20, fontWeight: '600', lineHeight: 22 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1A1D26', textAlign: 'center', marginBottom: 8 },
-  emptyDesc: { fontSize: 14, color: '#8E95A2', textAlign: 'center', lineHeight: 22 },
+  errorText: { fontSize: 15, color: Colors.error, textAlign: 'center', marginBottom: 20, fontWeight: '600', lineHeight: 22 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary, textAlign: 'center', marginBottom: 8 },
+  emptyDesc: { fontSize: 14, color: Colors.textHint, textAlign: 'center', lineHeight: 22 },
 });
 
 export default TrainingContentsScreen;

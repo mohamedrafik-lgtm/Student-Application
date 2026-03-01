@@ -3,6 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Animated, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 
 interface RequestSettingsScreenProps {
   onBack: () => void;
@@ -34,7 +36,7 @@ const RequestSettingsScreen: React.FC<RequestSettingsScreenProps> = ({ onBack })
             <Text style={s.headerTitle}>إعدادات الطلبات</Text>
             <Text style={s.headerSubtitle}>التحكم في استقبال طلبات تأجيل السداد</Text>
           </View>
-          <TouchableOpacity style={s.backBtn} onPress={onBack}><Text style={s.backBtnText}>→</Text></TouchableOpacity>
+          <TouchableOpacity style={s.backBtn} onPress={onBack}><Icon name={AppIcons.back} size={20} color={Colors.primary} /></TouchableOpacity>
         </View>
       </Animated.View>
 
@@ -52,7 +54,7 @@ const RequestSettingsScreen: React.FC<RequestSettingsScreenProps> = ({ onBack })
             onPress={() => setIsRequestsEnabled(false)}
             activeOpacity={0.7}
           >
-            <View style={[s.toggleIconCircle, { backgroundColor: '#EF4444' }]}><Text style={s.toggleIconText}>✕</Text></View>
+            <View style={[s.toggleIconCircle, { backgroundColor: Colors.error }]}><Icon name={AppIcons.close} size={22} color={Colors.white} /></View>
             <Text style={s.toggleCardTitle}>معطل</Text>
             <Text style={s.toggleCardLabel}>إيقاف الطلبات</Text>
           </TouchableOpacity>
@@ -62,7 +64,7 @@ const RequestSettingsScreen: React.FC<RequestSettingsScreenProps> = ({ onBack })
             onPress={() => setIsRequestsEnabled(true)}
             activeOpacity={0.7}
           >
-            <View style={[s.toggleIconCircle, { backgroundColor: '#10B981' }]}><Text style={s.toggleIconText}>✓</Text></View>
+            <View style={[s.toggleIconCircle, { backgroundColor: Colors.primaryLight }]}><Icon name={AppIcons.check} size={22} color={Colors.white} /></View>
             <Text style={s.toggleCardTitle}>مُفعّل</Text>
             <Text style={s.toggleCardLabel}>قبول الطلبات</Text>
             {isRequestsEnabled && (
@@ -78,8 +80,8 @@ const RequestSettingsScreen: React.FC<RequestSettingsScreenProps> = ({ onBack })
           isRequestsEnabled ? s.statusCardEnabled : s.statusCardDisabled,
         ]}>
           <View style={s.statusHeader}>
-            <View style={[s.statusDot, { backgroundColor: isRequestsEnabled ? '#10B981' : '#EF4444' }]} />
-            <Text style={[s.statusTitle, { color: isRequestsEnabled ? '#10B981' : '#EF4444' }]}>
+            <View style={[s.statusDot, { backgroundColor: isRequestsEnabled ? Colors.primaryLight : Colors.error }]} />
+            <Text style={[s.statusTitle, { color: isRequestsEnabled ? Colors.primaryLight : Colors.error }]}>
               الطلبات {isRequestsEnabled ? 'مُفعلة' : 'معطلة'}
             </Text>
           </View>
@@ -113,43 +115,43 @@ const RequestSettingsScreen: React.FC<RequestSettingsScreenProps> = ({ onBack })
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FA' },
-  header: { backgroundColor: '#FFF', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#EEF2F6' },
+  container: { flex: 1, backgroundColor: Colors.background },
+  header: { backgroundColor: Colors.white, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   headerTitleArea: { flex: 1, alignItems: 'flex-end', marginRight: 12 },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: '#1A1D26', textAlign: 'right' },
-  headerSubtitle: { fontSize: 13, color: '#8E95A2', marginTop: 4, textAlign: 'right' },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F4F6FA', alignItems: 'center', justifyContent: 'center' },
-  backBtnText: { fontSize: 20, color: '#1A1D26', fontWeight: '600' },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right' },
+  headerSubtitle: { fontSize: 13, color: Colors.textHint, marginTop: 4, textAlign: 'right' },
+  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' },
+  backBtnText: { fontSize: 20, color: Colors.textPrimary, fontWeight: '600' },
   headerSpacer: { width: 38 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 },
-  sectionHeader: { backgroundColor: '#FFF', borderRadius: 16, padding: 18, marginBottom: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
-  sectionTitle: { fontSize: 17, fontWeight: '800', color: '#1A1D26', textAlign: 'right', marginBottom: 6 },
-  sectionDesc: { fontSize: 13, color: '#8E95A2', textAlign: 'right', lineHeight: 20 },
+  sectionHeader: { backgroundColor: Colors.white, borderRadius: 16, padding: 18, marginBottom: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
+  sectionTitle: { fontSize: 17, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right', marginBottom: 6 },
+  sectionDesc: { fontSize: 13, color: Colors.textHint, textAlign: 'right', lineHeight: 20 },
   toggleRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
-  toggleCard: { flex: 1, backgroundColor: '#FFF', borderRadius: 16, padding: 18, alignItems: 'center', borderWidth: 2, borderColor: '#E2E8F0', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2, minHeight: 160 },
-  toggleCardSelected: { borderColor: '#2563EB', backgroundColor: '#F0F5FF' },
+  toggleCard: { flex: 1, backgroundColor: Colors.white, borderRadius: 16, padding: 18, alignItems: 'center', borderWidth: 2, borderColor: Colors.borderMedium, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2, minHeight: 160 },
+  toggleCardSelected: { borderColor: Colors.primary, backgroundColor: Colors.backgroundSoft },
   toggleIconCircle: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-  toggleIconText: { fontSize: 22, color: '#FFF', fontWeight: '800' },
-  toggleCardTitle: { fontSize: 16, fontWeight: '800', color: '#1A1D26', marginBottom: 4 },
-  toggleCardLabel: { fontSize: 13, color: '#8E95A2', marginBottom: 8 },
-  featureBadge: { backgroundColor: '#E6F9F0', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginTop: 4 },
-  featureBadgeText: { fontSize: 11, color: '#10B981', fontWeight: '600', textAlign: 'center' },
+  toggleIconText: { fontSize: 22, color: Colors.white, fontWeight: '800' },
+  toggleCardTitle: { fontSize: 16, fontWeight: '800', color: Colors.textPrimary, marginBottom: 4 },
+  toggleCardLabel: { fontSize: 13, color: Colors.textHint, marginBottom: 8 },
+  featureBadge: { backgroundColor: Colors.successLight, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginTop: 4 },
+  featureBadgeText: { fontSize: 11, color: Colors.primaryLight, fontWeight: '600', textAlign: 'center' },
   statusCard: { borderRadius: 16, padding: 18, marginBottom: 16, borderWidth: 1.5 },
-  statusCardEnabled: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
-  statusCardDisabled: { backgroundColor: '#FEF2F2', borderColor: '#FECACA' },
+  statusCardEnabled: { backgroundColor: Colors.successLight, borderColor: Colors.successBorder },
+  statusCardDisabled: { backgroundColor: Colors.errorLight, borderColor: Colors.errorBorder },
   statusHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 12 },
   statusDot: { width: 10, height: 10, borderRadius: 5, marginLeft: 8 },
   statusTitle: { fontSize: 16, fontWeight: '800', textAlign: 'right' },
   statusList: { gap: 8 },
   statusItem: { flexDirection: 'row', alignItems: 'flex-start' },
-  statusBullet: { fontSize: 14, color: '#10B981', marginLeft: 8, fontWeight: '800' },
-  statusItemText: { flex: 1, fontSize: 13, color: '#374151', textAlign: 'right', lineHeight: 20 },
+  statusBullet: { fontSize: 14, color: Colors.primaryLight, marginLeft: 8, fontWeight: '800' },
+  statusItemText: { flex: 1, fontSize: 13, color: Colors.textSecondary, textAlign: 'right', lineHeight: 20 },
   saveBtnWrap: { marginBottom: 16 },
-  noteCard: { backgroundColor: '#EFF6FF', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#BFDBFE' },
-  noteTitle: { fontSize: 14, fontWeight: '800', color: '#2563EB', textAlign: 'right', marginBottom: 8 },
-  noteText: { fontSize: 13, color: '#374151', textAlign: 'right', lineHeight: 22 },
+  noteCard: { backgroundColor: Colors.infoLight, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Colors.infoBorder },
+  noteTitle: { fontSize: 14, fontWeight: '800', color: Colors.primary, textAlign: 'right', marginBottom: 8 },
+  noteText: { fontSize: 13, color: Colors.textSecondary, textAlign: 'right', lineHeight: 22 },
 });
 
 export default RequestSettingsScreen;

@@ -9,6 +9,8 @@ import {
   StudentRequest, PaymentDeferralStatus, RequestError, REQUEST_TYPE_INFO,
 } from '../types/requests';
 import CustomButton from '../components/CustomButton';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 
 interface StudentRequestsScreenProps {
   accessToken: string;
@@ -60,10 +62,10 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
 
   const statusColor = (status: PaymentDeferralStatus) => {
     switch (status) {
-      case PaymentDeferralStatus.PENDING: return '#F59E0B';
-      case PaymentDeferralStatus.APPROVED: return '#10B981';
-      case PaymentDeferralStatus.REJECTED: return '#EF4444';
-      default: return '#8E95A2';
+      case PaymentDeferralStatus.PENDING: return Colors.warning;
+      case PaymentDeferralStatus.APPROVED: return Colors.primaryLight;
+      case PaymentDeferralStatus.REJECTED: return Colors.error;
+      default: return Colors.textHint;
     }
   };
   const statusLabel = (status: PaymentDeferralStatus) => {
@@ -88,7 +90,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Text style={s.backIcon}>→</Text>
+          <Icon name={AppIcons.back} size={18} color={Colors.primary} />
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: 'flex-end', marginRight: 14 }}>
           <Text style={s.headerTitle}>الطلبات المجانية</Text>
@@ -118,7 +120,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
         {/* Loading */}
         {isLoading && (
           <View style={s.center}>
-            <ActivityIndicator size="large" color="#2563EB" />
+            <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={s.loadingText}>جاري تحميل الطلبات...</Text>
           </View>
         )}
@@ -126,7 +128,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
         {/* Error */}
         {error && !isLoading && (
           <View style={s.center}>
-            <View style={s.errorCircle}><Text style={{ fontSize: 32 }}>⚠️</Text></View>
+            <View style={s.errorCircle}><Icon name={AppIcons.warning} size={32} color={Colors.warning} /></View>
             <Text style={s.errorText}>{error}</Text>
             <CustomButton title="إعادة المحاولة" onPress={loadRequests} variant="outline" size="medium" />
           </View>
@@ -203,7 +205,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
         {/* Empty */}
         {!isLoading && !error && requests.length === 0 && (
           <View style={s.center}>
-            <Text style={{ fontSize: 56, marginBottom: 16 }}>📋</Text>
+            <Icon name={AppIcons.request} size={56} color={Colors.primary} style={{ marginBottom: 16 }} />
             <Text style={s.emptyTitle}>لا توجد طلبات</Text>
             <Text style={s.emptyDesc}>لا توجد طلبات لديك حالياً</Text>
           </View>
@@ -214,65 +216,60 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FA' },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
     paddingHorizontal: 18, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: '#EEF2F6',
+    borderBottomWidth: 1, borderBottomColor: Colors.borderLight,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
   },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F0F4FF', alignItems: 'center', justifyContent: 'center' },
-  backIcon: { fontSize: 18, color: '#2563EB', fontWeight: '700' },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
+  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.backgroundSoft, alignItems: 'center', justifyContent: 'center' },
+  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
   scroll: { padding: 18, paddingBottom: 32 },
-  // Type cards
   typesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
   typeCard: {
-    width: '47%' as any, backgroundColor: '#fff', borderRadius: 16, padding: 16, alignItems: 'center',
-    borderWidth: 1, borderColor: '#EEF2F6',
+    width: '47%' as any, backgroundColor: Colors.white, borderRadius: 16, padding: 16, alignItems: 'center',
+    borderWidth: 1, borderColor: Colors.borderLight,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
   typeIcon: {
-    width: 48, height: 48, borderRadius: 14, backgroundColor: '#F4F6FA',
+    width: 48, height: 48, borderRadius: 14, backgroundColor: Colors.background,
     alignItems: 'center', justifyContent: 'center', marginBottom: 10,
   },
-  typeLabel: { fontSize: 14, fontWeight: '700', color: '#1A1D26', textAlign: 'center', marginBottom: 3 },
-  typeHint: { fontSize: 11, color: '#8E95A2' },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#1A1D26', textAlign: 'right', marginBottom: 10 },
-  // Request card
+  typeLabel: { fontSize: 14, fontWeight: '700', color: Colors.textPrimary, textAlign: 'center', marginBottom: 3 },
+  typeHint: { fontSize: 11, color: Colors.textHint },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right', marginBottom: 10 },
   reqCard: {
-    backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#EEF2F6',
+    backgroundColor: Colors.white, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Colors.borderLight,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
-  reqHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#F4F6FA' },
+  reqHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.background },
   reqLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, marginLeft: 10, gap: 12 },
-  reqIcon: { width: 42, height: 42, borderRadius: 12, backgroundColor: '#FFF7ED', alignItems: 'center', justifyContent: 'center' },
-  reqTitle: { fontSize: 14, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
-  reqReason: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 2 },
+  reqIcon: { width: 42, height: 42, borderRadius: 12, backgroundColor: Colors.warningLight, alignItems: 'center', justifyContent: 'center' },
+  reqTitle: { fontSize: 14, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
+  reqReason: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
   statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1.5 },
   statusDot: { width: 6, height: 6, borderRadius: 3, marginLeft: 6 },
   statusText: { fontSize: 11, fontWeight: '700' },
-  // Stats
   statsRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  statBox: { flex: 1, backgroundColor: '#FAFBFD', borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#EEF2F6' },
-  statLabel: { fontSize: 11, color: '#8E95A2', marginBottom: 4 },
-  statVal: { fontSize: 14, fontWeight: '700', color: '#1A1D26' },
-  // Admin / reviewer
-  adminBox: { backgroundColor: '#E8FAF0', borderRadius: 10, padding: 12, marginBottom: 10 },
-  adminLabel: { fontSize: 12, fontWeight: '700', color: '#10B981', marginBottom: 4, textAlign: 'right' },
-  adminText: { fontSize: 13, color: '#1A1D26', textAlign: 'right', lineHeight: 20 },
-  reviewerBox: { backgroundColor: '#EBF5FF', borderRadius: 10, padding: 12, marginBottom: 10 },
-  reviewerLabel: { fontSize: 12, fontWeight: '600', color: '#2563EB', textAlign: 'right' },
-  reviewerDate: { fontSize: 11, color: '#8E95A2', textAlign: 'right', marginTop: 2 },
-  reqFooter: { paddingTop: 10, borderTopWidth: 1, borderTopColor: '#F4F6FA' },
-  footerDate: { fontSize: 12, color: '#8E95A2', textAlign: 'right' },
-  // States
+  statBox: { flex: 1, backgroundColor: Colors.backgroundAlt, borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: Colors.borderLight },
+  statLabel: { fontSize: 11, color: Colors.textHint, marginBottom: 4 },
+  statVal: { fontSize: 14, fontWeight: '700', color: Colors.textPrimary },
+  adminBox: { backgroundColor: Colors.successLight, borderRadius: 10, padding: 12, marginBottom: 10 },
+  adminLabel: { fontSize: 12, fontWeight: '700', color: Colors.primaryLight, marginBottom: 4, textAlign: 'right' },
+  adminText: { fontSize: 13, color: Colors.textPrimary, textAlign: 'right', lineHeight: 20 },
+  reviewerBox: { backgroundColor: Colors.infoLight, borderRadius: 10, padding: 12, marginBottom: 10 },
+  reviewerLabel: { fontSize: 12, fontWeight: '600', color: Colors.primary, textAlign: 'right' },
+  reviewerDate: { fontSize: 11, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
+  reqFooter: { paddingTop: 10, borderTopWidth: 1, borderTopColor: Colors.background },
+  footerDate: { fontSize: 12, color: Colors.textHint, textAlign: 'right' },
   center: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
-  loadingText: { marginTop: 16, fontSize: 14, color: '#8E95A2', fontWeight: '600' },
-  errorCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  errorText: { fontSize: 15, color: '#EF4444', textAlign: 'center', marginBottom: 20, fontWeight: '600', lineHeight: 22 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1A1D26', textAlign: 'center', marginBottom: 8 },
-  emptyDesc: { fontSize: 14, color: '#8E95A2', textAlign: 'center', lineHeight: 22 },
+  loadingText: { marginTop: 16, fontSize: 14, color: Colors.textHint, fontWeight: '600' },
+  errorCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: Colors.errorLight, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  errorText: { fontSize: 15, color: Colors.error, textAlign: 'center', marginBottom: 20, fontWeight: '600', lineHeight: 22 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary, textAlign: 'center', marginBottom: 8 },
+  emptyDesc: { fontSize: 14, color: Colors.textHint, textAlign: 'center', lineHeight: 22 },
 });
 
 export default StudentRequestsScreen;

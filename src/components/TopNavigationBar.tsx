@@ -25,15 +25,17 @@ export type TopNavTab =
   | 'home'
   | 'schedule'
   | 'grades'
+  | 'academic-results'
+  | 'grade-appeals'
   | 'exams'
   | 'attendance'
+  | 'register-attendance'
   | 'documents'
   | 'payments'
   | 'payment-due-dates'
   | 'profile'
   | 'training-contents'
-  | 'requests-hub'
-  | 'academic-results';
+  | 'requests-hub';
 
 interface TopNavigationBarProps {
   currentTab: TopNavTab;
@@ -48,8 +50,10 @@ const TABS: { id: TopNavTab; label: string; icon?: string }[] = [
   { id: 'training-contents', label: 'المحتوى التدريبي', icon: '📚' },
   { id: 'grades', label: 'الدرجات', icon: '📊' },
   { id: 'academic-results', label: 'النتائج الدراسية', icon: '🎓' },
+  { id: 'grade-appeals', label: 'تظلمات الدرجات', icon: '⚖️' },
   { id: 'exams', label: 'الاختبارات', icon: '📝' },
   { id: 'attendance', label: 'الحضور', icon: '✅' },
+  { id: 'register-attendance', label: 'تسجيل الحضور', icon: '📲' },
   { id: 'requests-hub', label: 'الطلبات', icon: '📋' },
   { id: 'documents', label: 'الوثائق', icon: '📄' },
   { id: 'payments', label: 'المدفوعات', icon: '💰' },

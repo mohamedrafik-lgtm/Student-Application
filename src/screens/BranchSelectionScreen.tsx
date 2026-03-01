@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BranchService } from '../services/branchService';
 import { BranchType, BranchInfo } from '../types/auth';
 import CustomButton from '../components/CustomButton';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 
 interface BranchSelectionScreenProps {
   onBranchSelected: (branch: BranchType) => void;
@@ -80,7 +82,7 @@ const BranchSelectionScreen: React.FC<BranchSelectionScreenProps> = ({ onBranchS
             <Text style={s.branchDesc}>{branch.descriptionAr}</Text>
           </View>
           {isSelected && (
-            <View style={s.checkCircle}><Text style={s.checkText}>✓</Text></View>
+            <View style={s.checkCircle}><Icon name={AppIcons.check} size={16} color={Colors.white} /></View>
           )}
           {isSaved && !isSelected && (
             <View style={s.savedBadge}><Text style={s.savedBadgeText}>محفوظ</Text></View>
@@ -93,7 +95,7 @@ const BranchSelectionScreen: React.FC<BranchSelectionScreenProps> = ({ onBranchS
   if (isLoading) {
     return (
       <SafeAreaView style={s.container}>
-        <View style={s.loadingCenter}><ActivityIndicator size="large" color="#2563EB" /><Text style={s.loadingText}>جاري تحميل الفروع...</Text></View>
+        <View style={s.loadingCenter}><ActivityIndicator size="large" color={Colors.primary} /><Text style={s.loadingText}>جاري تحميل الفروع...</Text></View>
       </SafeAreaView>
     );
   }
@@ -131,31 +133,31 @@ const BranchSelectionScreen: React.FC<BranchSelectionScreenProps> = ({ onBranchS
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FA' },
+  container: { flex: 1, backgroundColor: Colors.background },
   scrollContent: { flexGrow: 1, padding: 20 },
   loadingCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  loadingText: { fontSize: 15, color: '#1A1D26', marginTop: 14, textAlign: 'center' },
+  loadingText: { fontSize: 15, color: Colors.textPrimary, marginTop: 14, textAlign: 'center' },
   headerSection: { alignItems: 'center', marginBottom: 32, marginTop: 20 },
-  headerTitle: { fontSize: 26, fontWeight: '800', color: '#1A1D26', textAlign: 'center', marginBottom: 8 },
-  underline: { width: 60, height: 3, backgroundColor: '#2563EB', borderRadius: 2, marginBottom: 12 },
-  headerSubtitle: { fontSize: 15, color: '#8E95A2', textAlign: 'center', lineHeight: 22, marginBottom: 16 },
-  savedInfo: { backgroundColor: '#F0FDF4', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: '#BBF7D0' },
-  savedInfoText: { fontSize: 13, color: '#10B981', fontWeight: '600', textAlign: 'center' },
+  headerTitle: { fontSize: 26, fontWeight: '800', color: Colors.textPrimary, textAlign: 'center', marginBottom: 8 },
+  underline: { width: 60, height: 3, backgroundColor: Colors.primary, borderRadius: 2, marginBottom: 12 },
+  headerSubtitle: { fontSize: 15, color: Colors.textHint, textAlign: 'center', lineHeight: 22, marginBottom: 16 },
+  savedInfo: { backgroundColor: Colors.successLight, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: Colors.successBorder },
+  savedInfoText: { fontSize: 13, color: Colors.primaryLight, fontWeight: '600', textAlign: 'center' },
   branchesSection: { marginBottom: 28 },
-  branchCard: { backgroundColor: '#FFF', borderRadius: 16, marginBottom: 14, borderWidth: 2, borderColor: '#E2E8F0', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 3, overflow: 'hidden' },
-  branchCardSelected: { borderColor: '#2563EB', shadowColor: '#2563EB', shadowOpacity: 0.15 },
+  branchCard: { backgroundColor: Colors.white, borderRadius: 16, marginBottom: 14, borderWidth: 2, borderColor: Colors.borderMedium, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 3, overflow: 'hidden' },
+  branchCardSelected: { borderColor: Colors.primary, shadowColor: Colors.primary, shadowOpacity: 0.15 },
   branchCardInner: { padding: 20, flexDirection: 'row', alignItems: 'center' },
   branchIcon: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center', marginLeft: 16 },
   branchIconText: { fontSize: 24 },
   branchInfo: { flex: 1, alignItems: 'flex-end' },
-  branchName: { fontSize: 18, fontWeight: '700', color: '#1A1D26', marginBottom: 4, textAlign: 'right' },
-  branchNameSelected: { color: '#2563EB' },
-  branchCity: { fontSize: 14, fontWeight: '600', color: '#6B7280', marginBottom: 4, textAlign: 'right' },
-  branchDesc: { fontSize: 13, color: '#8E95A2', lineHeight: 19, textAlign: 'right' },
-  checkCircle: { position: 'absolute', top: 16, right: 16, width: 28, height: 28, borderRadius: 14, backgroundColor: '#2563EB', justifyContent: 'center', alignItems: 'center' },
-  checkText: { fontSize: 14, fontWeight: '700', color: '#FFF' },
-  savedBadge: { position: 'absolute', top: 16, right: 16, backgroundColor: '#10B981', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  savedBadgeText: { fontSize: 11, fontWeight: '600', color: '#FFF' },
+  branchName: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary, marginBottom: 4, textAlign: 'right' },
+  branchNameSelected: { color: Colors.primary },
+  branchCity: { fontSize: 14, fontWeight: '600', color: Colors.textLight, marginBottom: 4, textAlign: 'right' },
+  branchDesc: { fontSize: 13, color: Colors.textHint, lineHeight: 19, textAlign: 'right' },
+  checkCircle: { position: 'absolute', top: 16, right: 16, width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center' },
+  checkText: { fontSize: 14, fontWeight: '700', color: Colors.white },
+  savedBadge: { position: 'absolute', top: 16, right: 16, backgroundColor: Colors.primaryLight, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  savedBadgeText: { fontSize: 11, fontWeight: '600', color: Colors.white },
   actionsSection: { gap: 12 },
 });
 

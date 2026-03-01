@@ -6,6 +6,8 @@ import { requestsService } from '../services/requestsService';
 import { RequestType, CreateTraineeRequestDto } from '../types/requests';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 
 interface SickLeaveScreenProps {
   accessToken: string;
@@ -54,7 +56,7 @@ const SickLeaveScreen: React.FC<SickLeaveScreenProps> = ({ accessToken, onBack }
             <Text style={s.headerTitle}>طلب إجازة مرضية</Text>
             <Text style={s.headerSubtitle}>تقديم طلب إجازة مرضية مع المستندات</Text>
           </View>
-          <TouchableOpacity style={s.backBtn} onPress={onBack}><Text style={s.backBtnText}>→</Text></TouchableOpacity>
+          <TouchableOpacity style={s.backBtn} onPress={onBack}><Icon name={AppIcons.back} size={20} color={Colors.primary} /></TouchableOpacity>
         </View>
       </View>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
@@ -68,7 +70,7 @@ const SickLeaveScreen: React.FC<SickLeaveScreenProps> = ({ accessToken, onBack }
             <Text style={s.fieldLabel}>المستندات الداعمة</Text>
             <TouchableOpacity style={s.uploadBtn} onPress={handleFileUpload} activeOpacity={0.7}>
               <View style={s.uploadIconCircle}>
-                <Text style={s.uploadIcon}>📎</Text>
+                <Icon name={AppIcons.upload} size={18} color={Colors.primary} />
               </View>
               <View style={s.uploadTextArea}>
                 <Text style={s.uploadTitle}>{attachmentUrl ? 'تم اختيار ملف' : 'رفع مستند'}</Text>
@@ -88,26 +90,26 @@ const SickLeaveScreen: React.FC<SickLeaveScreenProps> = ({ accessToken, onBack }
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FA' },
-  header: { backgroundColor: '#FFF', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#EEF2F6' },
+  container: { flex: 1, backgroundColor: Colors.background },
+  header: { backgroundColor: Colors.white, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   headerTitleArea: { flex: 1, alignItems: 'flex-end', marginRight: 12 },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: '#1A1D26', textAlign: 'right' },
-  headerSubtitle: { fontSize: 13, color: '#8E95A2', marginTop: 4, textAlign: 'right' },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F4F6FA', alignItems: 'center', justifyContent: 'center' },
-  backBtnText: { fontSize: 20, color: '#1A1D26', fontWeight: '600' },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right' },
+  headerSubtitle: { fontSize: 13, color: Colors.textHint, marginTop: 4, textAlign: 'right' },
+  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' },
+  backBtnText: { fontSize: 20, color: Colors.textPrimary, fontWeight: '600' },
   headerSpacer: { width: 38 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 },
-  formCard: { backgroundColor: '#FFF', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
+  formCard: { backgroundColor: Colors.white, borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
   fieldGroup: { marginBottom: 24 },
-  fieldLabel: { fontSize: 14, fontWeight: '700', color: '#1A1D26', marginBottom: 10, textAlign: 'right' },
-  uploadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: '#F4F6FA', borderRadius: 12, padding: 16, borderWidth: 1.5, borderColor: '#E2E8F0', borderStyle: 'dashed' },
-  uploadIconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#E0ECFF', alignItems: 'center', justifyContent: 'center', marginLeft: 12 },
+  fieldLabel: { fontSize: 14, fontWeight: '700', color: Colors.textPrimary, marginBottom: 10, textAlign: 'right' },
+  uploadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: Colors.background, borderRadius: 12, padding: 16, borderWidth: 1.5, borderColor: Colors.borderMedium, borderStyle: 'dashed' },
+  uploadIconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primary50, alignItems: 'center', justifyContent: 'center', marginLeft: 12 },
   uploadIcon: { fontSize: 18 },
   uploadTextArea: { flex: 1, alignItems: 'flex-end' },
-  uploadTitle: { fontSize: 14, fontWeight: '700', color: '#2563EB', marginBottom: 2 },
-  uploadHint: { fontSize: 12, color: '#8E95A2' },
+  uploadTitle: { fontSize: 14, fontWeight: '700', color: Colors.primary, marginBottom: 2 },
+  uploadHint: { fontSize: 12, color: Colors.textHint },
   buttonsRow: { gap: 10, marginTop: 8 },
   btnWrap: { marginBottom: 4 },
 });

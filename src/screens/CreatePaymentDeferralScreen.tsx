@@ -7,6 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_CONFIG } from '../services/apiConfig';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 
 interface CreatePaymentDeferralScreenProps {
   accessToken: string;
@@ -60,7 +62,7 @@ const CreatePaymentDeferralScreen: React.FC<CreatePaymentDeferralScreenProps> = 
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Text style={s.backIcon}>→</Text>
+          <Icon name={AppIcons.back} size={18} color={Colors.primary} />
         </TouchableOpacity>
         <View style={{ flex: 1, marginRight: 14 }}>
           <Text style={s.headerTitle}>طلب تأجيل سداد</Text>
@@ -74,17 +76,17 @@ const CreatePaymentDeferralScreen: React.FC<CreatePaymentDeferralScreenProps> = 
           {/* Fee Select */}
           <Text style={s.label}>الرسم المطلوب تأجيله *</Text>
           <TouchableOpacity style={s.selectBox} onPress={() => setShowFeePicker(!showFeePicker)}>
-            <Text style={[s.selectText, !selectedPaymentId && { color: '#8E95A2' }]}>
+            <Text style={[s.selectText, !selectedPaymentId && { color: Colors.textHint }]}>
               {selectedPayment ? `${selectedPayment.fee.name} - ${selectedPayment.fee.amount} جنيه` : '-- اختر الرسم --'}
             </Text>
-            <Text style={{ fontSize: 12, color: '#8E95A2' }}>▼</Text>
+            <Icon name={AppIcons.chevronDown} size={12} color={Colors.textHint} />
           </TouchableOpacity>
 
           {/* Picker List */}
           {showFeePicker && (
             <ScrollView style={s.pickerList} showsVerticalScrollIndicator nestedScrollEnabled>
               {isLoadingPayments ? (
-                <ActivityIndicator color="#2563EB" style={{ marginVertical: 20 }} />
+                <ActivityIndicator color={Colors.primary} style={{ marginVertical: 20 }} />
               ) : (
                 payments.map((p, i) => (
                   <TouchableOpacity
@@ -136,47 +138,47 @@ const CreatePaymentDeferralScreen: React.FC<CreatePaymentDeferralScreenProps> = 
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FA' },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
     paddingHorizontal: 18, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: '#EEF2F6',
+    borderBottomWidth: 1, borderBottomColor: Colors.borderLight,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
   },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F0F4FF', alignItems: 'center', justifyContent: 'center' },
-  backIcon: { fontSize: 18, color: '#2563EB', fontWeight: '700' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
-  headerSub: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 2 },
+  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.backgroundSoft, alignItems: 'center', justifyContent: 'center' },
+  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
+  headerSub: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
   scroll: { padding: 18, paddingBottom: 32 },
   formCard: {
-    backgroundColor: '#fff', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#EEF2F6',
+    backgroundColor: Colors.white, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: Colors.borderLight,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
-  label: { fontSize: 14, fontWeight: '700', color: '#1A1D26', marginBottom: 10, textAlign: 'right' },
-  hint: { fontSize: 11, color: '#8E95A2', marginTop: 6, textAlign: 'right', fontStyle: 'italic' },
+  label: { fontSize: 14, fontWeight: '700', color: Colors.textPrimary, marginBottom: 10, textAlign: 'right' },
+  hint: { fontSize: 11, color: Colors.textHint, marginTop: 6, textAlign: 'right', fontStyle: 'italic' },
   selectBox: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    borderWidth: 1.5, borderColor: '#EEF2F6', borderRadius: 12,
-    paddingVertical: 14, paddingHorizontal: 14, backgroundColor: '#FAFBFD',
+    borderWidth: 1.5, borderColor: Colors.borderLight, borderRadius: 12,
+    paddingVertical: 14, paddingHorizontal: 14, backgroundColor: Colors.backgroundAlt,
   },
-  selectText: { fontSize: 14, color: '#1A1D26', fontWeight: '600', flex: 1, textAlign: 'right' },
+  selectText: { fontSize: 14, color: Colors.textPrimary, fontWeight: '600', flex: 1, textAlign: 'right' },
   pickerList: {
-    backgroundColor: '#fff', borderRadius: 12, borderWidth: 1.5, borderColor: '#2563EB',
+    backgroundColor: Colors.white, borderRadius: 12, borderWidth: 1.5, borderColor: Colors.primary,
     marginTop: 8, marginBottom: 8, maxHeight: 260,
   },
   pickerItem: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 14, paddingHorizontal: 14, borderBottomWidth: 1, borderBottomColor: '#F4F6FA',
+    paddingVertical: 14, paddingHorizontal: 14, borderBottomWidth: 1, borderBottomColor: Colors.background,
   },
-  pickerName: { fontSize: 14, color: '#1A1D26', fontWeight: '600', flex: 1, textAlign: 'right' },
-  pickerAmountBadge: { backgroundColor: '#E8FAF0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  pickerAmount: { fontSize: 12, color: '#10B981', fontWeight: '700' },
+  pickerName: { fontSize: 14, color: Colors.textPrimary, fontWeight: '600', flex: 1, textAlign: 'right' },
+  pickerAmountBadge: { backgroundColor: Colors.successLight, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  pickerAmount: { fontSize: 12, color: Colors.primaryLight, fontWeight: '700' },
   infoBox: {
-    backgroundColor: '#EBF5FF', borderRadius: 12, padding: 16, marginTop: 20, marginBottom: 20,
-    borderWidth: 1, borderColor: '#BFDBFE',
+    backgroundColor: Colors.infoLight, borderRadius: 12, padding: 16, marginTop: 20, marginBottom: 20,
+    borderWidth: 1, borderColor: Colors.infoBorder,
   },
-  infoTitle: { fontSize: 14, fontWeight: '700', color: '#2563EB', marginBottom: 10, textAlign: 'right' },
-  infoItem: { fontSize: 12, color: '#1E40AF', textAlign: 'right', lineHeight: 20, marginBottom: 4 },
+  infoTitle: { fontSize: 14, fontWeight: '700', color: Colors.primary, marginBottom: 10, textAlign: 'right' },
+  infoItem: { fontSize: 12, color: Colors.primaryDark, textAlign: 'right', lineHeight: 20, marginBottom: 4 },
 });
 
 export default CreatePaymentDeferralScreen;

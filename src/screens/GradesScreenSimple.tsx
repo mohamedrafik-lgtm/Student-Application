@@ -1,6 +1,8 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 
 interface GradesScreenProps {
   accessToken: string;
@@ -16,7 +18,7 @@ const GradesScreenSimple: React.FC<GradesScreenProps> = ({
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={onBack}>
-          <Text style={s.backArrow}>→</Text>
+          <Icon name={AppIcons.back} size={18} color={Colors.primary} />
         </TouchableOpacity>
         <View style={s.headerCenter}>
           <Text style={s.headerTitle}>الدرجات</Text>
@@ -42,28 +44,28 @@ const GradesScreenSimple: React.FC<GradesScreenProps> = ({
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F6FA',
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.white,
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
+    borderBottomColor: Colors.borderLight,
   },
   backBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#F0F4FF',
+    backgroundColor: Colors.backgroundSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   backArrow: {
     fontSize: 18,
-    color: '#2563EB',
+    color: Colors.primary,
     fontWeight: '700',
   },
   headerCenter: {
@@ -74,7 +76,7 @@ const s = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
   },
   content: {
     flex: 1,
@@ -89,26 +91,26 @@ const s = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     marginBottom: 10,
   },
   desc: {
     fontSize: 15,
-    color: '#8E95A2',
+    color: Colors.textHint,
     textAlign: 'center',
     marginBottom: 24,
   },
   tokenBadge: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.white,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
   },
   tokenText: {
     fontSize: 13,
-    color: '#8E95A2',
+    color: Colors.textHint,
   },
 });
 

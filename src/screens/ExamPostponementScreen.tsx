@@ -7,6 +7,8 @@ import { RequestType, ExamType, CreateTraineeRequestDto } from '../types/request
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import DatePicker from '../components/DatePicker';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 
 interface ExamPostponementScreenProps {
   accessToken: string;
@@ -51,7 +53,7 @@ const ExamPostponementScreen: React.FC<ExamPostponementScreenProps> = ({ accessT
             <Text style={s.headerTitle}>طلب تأجيل اختبار</Text>
             <Text style={s.headerSubtitle}>تقديم طلب تأجيل اختبار رسمي</Text>
           </View>
-          <TouchableOpacity style={s.backBtn} onPress={onBack}><Text style={s.backBtnText}>→</Text></TouchableOpacity>
+          <TouchableOpacity style={s.backBtn} onPress={onBack}><Icon name={AppIcons.back} size={20} color={Colors.primary} /></TouchableOpacity>
         </View>
       </View>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
@@ -105,25 +107,25 @@ const ExamPostponementScreen: React.FC<ExamPostponementScreenProps> = ({ accessT
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FA' },
-  header: { backgroundColor: '#FFF', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#EEF2F6' },
+  container: { flex: 1, backgroundColor: Colors.background },
+  header: { backgroundColor: Colors.white, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   headerTitleArea: { flex: 1, alignItems: 'flex-end', marginRight: 12 },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: '#1A1D26', textAlign: 'right' },
-  headerSubtitle: { fontSize: 13, color: '#8E95A2', marginTop: 4, textAlign: 'right' },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F4F6FA', alignItems: 'center', justifyContent: 'center' },
-  backBtnText: { fontSize: 20, color: '#1A1D26', fontWeight: '600' },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right' },
+  headerSubtitle: { fontSize: 13, color: Colors.textHint, marginTop: 4, textAlign: 'right' },
+  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' },
+  backBtnText: { fontSize: 20, color: Colors.textPrimary, fontWeight: '600' },
   headerSpacer: { width: 38 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 },
-  formCard: { backgroundColor: '#FFF', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
+  formCard: { backgroundColor: Colors.white, borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
   fieldGroup: { marginBottom: 24 },
-  fieldLabel: { fontSize: 14, fontWeight: '700', color: '#1A1D26', marginBottom: 10, textAlign: 'right' },
+  fieldLabel: { fontSize: 14, fontWeight: '700', color: Colors.textPrimary, marginBottom: 10, textAlign: 'right' },
   toggleRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
-  toggleBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#F4F6FA', alignItems: 'center', borderWidth: 1.5, borderColor: '#E2E8F0' },
-  toggleBtnActive: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
-  toggleBtnText: { fontSize: 14, fontWeight: '700', color: '#6B7280' },
-  toggleBtnTextActive: { color: '#FFF' },
+  toggleBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: Colors.background, alignItems: 'center', borderWidth: 1.5, borderColor: Colors.borderMedium },
+  toggleBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  toggleBtnText: { fontSize: 14, fontWeight: '700', color: Colors.textLight },
+  toggleBtnTextActive: { color: Colors.white },
   buttonsRow: { gap: 10, marginTop: 8 },
   btnWrap: { marginBottom: 4 },
 });

@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
+import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from '../components/shared/Icon';
 import { trainingContentsService } from '../services/trainingContentsService';
 import { lecturesService } from '../services/lecturesService';
 import LectureViewScreen from './LectureViewScreen';
@@ -118,19 +120,19 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
 
   const getLectureTypeColor = (type: LectureType): string => {
     switch (type) {
-      case 'VIDEO': return '#EF4444';
-      case 'PDF': return '#2563EB';
+      case 'VIDEO': return Colors.error;
+      case 'PDF': return Colors.primary;
       case 'BOTH': return '#8B5CF6';
-      default: return '#8E95A2';
+      default: return Colors.textHint;
     }
   };
 
   const getLectureTypeBg = (type: LectureType): string => {
     switch (type) {
-      case 'VIDEO': return '#FEF2F2';
-      case 'PDF': return '#EBF5FF';
+      case 'VIDEO': return Colors.errorLight;
+      case 'PDF': return Colors.infoLight;
       case 'BOTH': return '#F3F0FF';
-      default: return '#F4F6FA';
+      default: return Colors.background;
     }
   };
 
@@ -158,7 +160,7 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Text style={s.backIcon}>→</Text>
+          <Icon name={AppIcons.forward} size={18} color={Colors.primary} />
         </TouchableOpacity>
         <View style={{ flex: 1, marginRight: 14 }}>
           <Text style={s.headerTitle} numberOfLines={1}>{contentName}</Text>
@@ -173,7 +175,7 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
         {/* Loading */}
         {isLoading && (
           <View style={s.center}>
-            <ActivityIndicator size="large" color="#2563EB" />
+            <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={s.loadingText}>جاري تحميل المحاضرات...</Text>
           </View>
         )}
@@ -208,9 +210,7 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
                       </View>
                     </View>
                     <View style={[s.expandIcon, isExpanded && s.expandIconActive]}>
-                      <Text style={{ fontSize: 12, color: isExpanded ? '#2563EB' : '#8E95A2' }}>
-                        {isExpanded ? '▲' : '▼'}
-                      </Text>
+                      <Icon name={isExpanded ? AppIcons.chevronUp : AppIcons.chevronDown} size={12} color={isExpanded ? Colors.primary : Colors.textHint} />
                     </View>
                   </TouchableOpacity>
 
@@ -245,7 +245,7 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
                                   </View>
                                 </View>
                               </View>
-                              <Text style={{ fontSize: 14, color: '#C4C9D4', marginRight: 4 }}>←</Text>
+                              <Text style={{ fontSize: 14, color: Colors.textHint, marginRight: 4 }}>←</Text>
                             </View>
                           </TouchableOpacity>
                         ))
@@ -272,31 +272,31 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FA' },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     paddingHorizontal: 18,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
+    borderBottomColor: Colors.borderLight,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
   },
   backBtn: {
-    width: 38, height: 38, borderRadius: 19, backgroundColor: '#F0F4FF',
+    width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.primary50,
     alignItems: 'center', justifyContent: 'center',
   },
-  backIcon: { fontSize: 18, color: '#2563EB', fontWeight: '700' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
-  headerSub: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 2 },
+  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
+  headerSub: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
   scroll: { padding: 18, paddingBottom: 32 },
   // Chapter
   chapterCard: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
     overflow: 'hidden',
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
@@ -308,35 +308,35 @@ const s = StyleSheet.create({
   },
   chapterLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   chapterNum: {
-    width: 36, height: 36, borderRadius: 10, backgroundColor: '#2563EB',
+    width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.primary,
     alignItems: 'center', justifyContent: 'center',
   },
-  chapterNumText: { fontSize: 15, fontWeight: '800', color: '#fff' },
-  chapterTitle: { fontSize: 15, fontWeight: '700', color: '#1A1D26', textAlign: 'right' },
-  chapterCount: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 2 },
+  chapterNumText: { fontSize: 15, fontWeight: '800', color: Colors.white },
+  chapterTitle: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
+  chapterCount: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
   expandIcon: {
     width: 32, height: 32, borderRadius: 10,
-    backgroundColor: '#F4F6FA', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center',
   },
-  expandIconActive: { backgroundColor: '#EBF5FF' },
-  lecturesList: { backgroundColor: '#FAFBFD', padding: 12, gap: 10, borderTopWidth: 1, borderTopColor: '#EEF2F6' },
-  noLectures: { fontSize: 13, color: '#8E95A2', textAlign: 'center', paddingVertical: 16 },
+  expandIconActive: { backgroundColor: Colors.infoLight },
+  lecturesList: { backgroundColor: Colors.backgroundAlt, padding: 12, gap: 10, borderTopWidth: 1, borderTopColor: Colors.borderLight },
+  noLectures: { fontSize: 13, color: Colors.textHint, textAlign: 'center', paddingVertical: 16 },
   // Lecture item
   lectureItem: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
   },
   lectureRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   lectureOrder: {
-    width: 32, height: 32, borderRadius: 16, backgroundColor: '#E8FAF0',
+    width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.successLight,
     alignItems: 'center', justifyContent: 'center',
   },
-  lectureOrderText: { fontSize: 13, fontWeight: '700', color: '#10B981' },
-  lectureTitle: { fontSize: 14, fontWeight: '600', color: '#1A1D26', textAlign: 'right' },
-  lectureDesc: { fontSize: 12, color: '#8E95A2', textAlign: 'right', marginTop: 3, lineHeight: 18 },
+  lectureOrderText: { fontSize: 13, fontWeight: '700', color: Colors.primaryLight },
+  lectureTitle: { fontSize: 14, fontWeight: '600', color: Colors.textPrimary, textAlign: 'right' },
+  lectureDesc: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 3, lineHeight: 18 },
   typeBadge: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3,
     borderRadius: 6, gap: 4,
@@ -344,14 +344,14 @@ const s = StyleSheet.create({
   typeBadgeText: { fontSize: 11, fontWeight: '600' },
   // States
   center: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
-  loadingText: { marginTop: 16, fontSize: 14, color: '#8E95A2', fontWeight: '600' },
+  loadingText: { marginTop: 16, fontSize: 14, color: Colors.textHint, fontWeight: '600' },
   errorCircle: {
-    width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2',
+    width: 64, height: 64, borderRadius: 32, backgroundColor: Colors.errorLight,
     alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
-  errorText: { fontSize: 15, color: '#EF4444', textAlign: 'center', marginBottom: 20, fontWeight: '600', lineHeight: 22 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1A1D26', textAlign: 'center', marginBottom: 8 },
-  emptyDesc: { fontSize: 14, color: '#8E95A2', textAlign: 'center', lineHeight: 22 },
+  errorText: { fontSize: 15, color: Colors.error, textAlign: 'center', marginBottom: 20, fontWeight: '600', lineHeight: 22 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary, textAlign: 'center', marginBottom: 8 },
+  emptyDesc: { fontSize: 14, color: Colors.textHint, textAlign: 'center', lineHeight: 22 },
 });
 
 export default ContentLecturesScreen;
