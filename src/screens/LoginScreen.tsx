@@ -142,7 +142,7 @@ const s = StyleSheet.create({
     borderTopLeftRadius: 32, borderTopRightRadius: 32,
     paddingHorizontal: 24, paddingTop: 28, paddingBottom: 40,
     minHeight: height * 0.62,
-    shadowColor: '#000', shadowOffset: { width: 0, height: -4 },
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08, shadowRadius: 16, elevation: 10,
   },
   branchPill: {

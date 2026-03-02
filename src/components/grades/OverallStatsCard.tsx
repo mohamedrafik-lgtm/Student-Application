@@ -7,6 +7,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { OverallStats, Trainee } from '../../types/grades';
 import { getGradeColor, getGradeStatus, formatGrade, formatPercentage } from '../../utils/gradesUtils';
+import { Colors } from '../../styles/colors';
 
 interface OverallStatsCardProps {
   trainee: Trainee;
@@ -64,15 +65,15 @@ const OverallStatsCard: React.FC<OverallStatsCardProps> = ({ trainee, overallSta
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    borderColor: Colors.borderLight,
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
     elevation: 4,
   },
   header: {
@@ -81,13 +82,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: '800',
+    color: Colors.textPrimary,
     marginBottom: 8,
   },
   traineeName: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: 15,
+    color: Colors.textLight,
+    fontWeight: '600',
   },
   content: {
     flexDirection: 'row',
@@ -99,25 +101,25 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: '800',
+    color: Colors.textPrimary,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.textLight,
     textAlign: 'center',
   },
   statusBadge: {
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.borderLight,
   },
   statusText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '800',
   },
 });
 

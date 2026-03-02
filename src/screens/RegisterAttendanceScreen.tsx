@@ -1,16 +1,13 @@
 // RegisterAttendanceScreen - 6-digit attendance code entry with QR option
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
-  Animated, ActivityIndicator, ScrollView, Dimensions, Alert,
+  Animated, ActivityIndicator, ScrollView, Dimensions,
 } from 'react-native';
-import {
-  Camera,
-  useCameraDevice,
-  useCodeScanner,
-  useCameraPermission,
-} from 'react-native-vision-camera';
+
 import { HomeService } from '../services/homeService';
+import { Colors } from '../styles/colors';
+import ScreenHeader from '../components/shared/ScreenHeader';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -32,26 +29,6 @@ const RegisterAttendanceScreen: React.FC<RegisterAttendanceScreenProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isCameraActive, setIsCameraActive] = useState(false);
-  const [qrScanned, setQrScanned] = useState(false);
-
-  // Camera hooks
-  const { hasPermission, requestPermission } = useCameraPermission();
-  const device = useCameraDevice('back');
-
-  const codeScanner = useCodeScanner({
-    codeTypes: ['qr'],
-    onCodeScanned: useCallback((codes) => {
-      if (qrScanned || !isCameraActive) return;
-      const value = codes[0]?.value;
-      if (!value) return;
-      setQrScanned(true);
-      setIsCameraActive(false);
-      // استخدام قيمة الـ QR مباشرةً للتسجيل
-      handleQrSubmit(value);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [qrScanned, isCameraActive]),
-  });
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -165,54 +142,14 @@ const RegisterAttendanceScreen: React.FC<RegisterAttendanceScreenProps> = ({
     }
   };
 
-  const handleOpenCamera = async () => {
-    if (hasPermission) {
-      setQrScanned(false);
-      setErrorMessage(null);
-      setSuccessMessage(null);
-      setIsCameraActive(true);
-    } else {
-      const granted = await requestPermission();
-      if (granted) {
-        setQrScanned(false);
-        setErrorMessage(null);
-        setSuccessMessage(null);
-        setIsCameraActive(true);
-      } else {
-        Alert.alert(
-          'صلاحية الكاميرا',
-          'يرجى السماح للتطبيق بالوصول للكاميرا من إعدادات الهاتف لمسح QR Code',
-          [{ text: 'حسناً' }],
-        );
-      }
-    }
-  };
 
-  const handleCloseCamera = () => {
-    setIsCameraActive(false);
-    setQrScanned(false);
-  };
 
   const isFilled = digits.every(d => d !== '');
 
   return (
     <View style={s.container}>
-      {/* ===== GREEN HEADER ===== */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={onBack} style={s.backBtn}>
-          <Text style={s.backArrow}>→</Text>
-          <Text style={s.backText}>العودة الرئيسية</Text>
-        </TouchableOpacity>
-        <View style={s.headerCenter}>
-          <View style={s.headerRow}>
-            <View style={s.qrIconBox}>
-              <Text style={s.qrIconText}>▣</Text>
-            </View>
-            <Text style={s.headerTitle}>تسجيل الحضور</Text>
-          </View>
-          <Text style={s.headerSub}>أدخل كود الحضور أو امسح الكيو آر كود</Text>
-        </View>
-      </View>
+      {/* ===== HEADER ===== */}
+      <ScreenHeader title="تسجيل الحضور" subtitle="أدخل كود الحضور أو امسح الكيو آر كود" onBack={onBack} />
 
       <ScrollView
         contentContainerStyle={s.scrollContent}
@@ -323,70 +260,21 @@ const RegisterAttendanceScreen: React.FC<RegisterAttendanceScreenProps> = ({
         {/* ===== QR CODE SECTION ===== */}
         {activeTab === 'qr' && (
           <View style={s.qrSection}>
-            {/* ===== حالة الكاميرا مفتوحة ===== */}
-            {isCameraActive && device ? (
-              <View style={s.cameraWrapper}>
-                <Camera
-                  style={s.camera}
-                  device={device}
-                  isActive={isCameraActive}
-                  codeScanner={codeScanner}
-                />
-                {/* إطار المسح */}
-                <View style={s.scanFrame}>
-                  <View style={[s.scanCorner, s.scanCornerTL]} />
-                  <View style={[s.scanCorner, s.scanCornerTR]} />
-                  <View style={[s.scanCorner, s.scanCornerBL]} />
-                  <View style={[s.scanCorner, s.scanCornerBR]} />
-                </View>
-                <Text style={s.scanHint}>وجّه الكاميرا نحو رمز QR</Text>
-                <TouchableOpacity style={s.closeCameraBtn} onPress={handleCloseCamera}>
-                  <Text style={s.closeCameraText}>✕  إغلاق الكاميرا</Text>
-                </TouchableOpacity>
-                {isSubmitting && (
-                  <View style={s.scanningOverlay}>
-                    <ActivityIndicator size="large" color="#FFF" />
-                    <Text style={s.scanningText}>جاري التحقق...</Text>
-                  </View>
-                )}
-              </View>
-            ) : (
-              /* ===== الواجهة الافتراضية ===== */
-              <View style={s.qrPlaceholder}>
-                <Text style={s.qrPlaceholderIcon}>📷</Text>
-                <Text style={s.qrPlaceholderTitle}>مسح QR Code</Text>
-                <Text style={s.qrPlaceholderSub}>وجّه الكاميرا نحو رمز QR المعروض في المحاضرة</Text>
+            <View style={s.qrPlaceholder}>
+              <Text style={s.qrPlaceholderIcon}>📷</Text>
+              <Text style={s.qrPlaceholderTitle}>مسح QR Code</Text>
+              <Text style={s.qrPlaceholderSub}>
+                ميزة مسح QR Code غير متاحة حالياً.{"\n"}
+                يرجى استخدام تبويب "إدخال الكود" لتسجيل الحضور.
+              </Text>
 
-                {/* رسالة نجاح */}
-                {successMessage && (
-                  <View style={s.successBanner}>
-                    <Text style={s.successIcon}>✅</Text>
-                    <Text style={s.successText}>{successMessage}</Text>
-                  </View>
-                )}
-
-                {/* رسالة خطأ */}
-                {errorMessage && (
-                  <View style={s.errorBanner}>
-                    <Text style={s.errorIcon}>⚠</Text>
-                    <Text style={s.errorText}>{errorMessage}</Text>
-                  </View>
-                )}
-
-                <TouchableOpacity style={s.qrOpenCameraBtn} onPress={handleOpenCamera}>
-                  <Text style={s.qrOpenCameraText}>📷  فتح الكاميرا</Text>
-                </TouchableOpacity>
-
-                {qrScanned && !errorMessage && !successMessage && (
-                  <TouchableOpacity
-                    style={[s.qrOpenCameraBtn, { marginTop: 10, backgroundColor: '#6B7280' }]}
-                    onPress={() => { setQrScanned(false); handleOpenCamera(); }}
-                  >
-                    <Text style={s.qrOpenCameraText}>🔄  مسح مرة أخرى</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            )}
+              <TouchableOpacity
+                style={s.qrOpenCameraBtn}
+                onPress={() => setActiveTab('code')}
+              >
+                <Text style={s.qrOpenCameraText}># الذهاب لإدخال الكود</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
@@ -397,10 +285,10 @@ const RegisterAttendanceScreen: React.FC<RegisterAttendanceScreenProps> = ({
             <Text style={s.instructionsTitle}>تعليمات تسجيل الحضور</Text>
           </View>
           {[
-            { num: '1', text: 'احصل على كود الحضور المكون من 6 أرقام أو QR Code من المحاضر', color: '#DC2626' },
-            { num: '2', text: 'أدخل الكود يدوياً أو امسح QR Code بالكاميرا', color: '#DC2626' },
-            { num: '3', text: 'سيتم تسجيل حضورك تلقائياً', color: '#0D9488' },
-            { num: '4', text: 'يجب أن تكون متواجد في توقيتة المحاضرة لتسجيل الحضور', color: '#DC2626' },
+            { num: '1', text: 'احصل على كود الحضور المكون من 6 أرقام أو QR Code من المحاضر', color: Colors.error },
+            { num: '2', text: 'أدخل الكود يدوياً أو امسح QR Code بالكاميرا', color: Colors.error },
+            { num: '3', text: 'سيتم تسجيل حضورك تلقائياً', color: Colors.secondary },
+            { num: '4', text: 'يجب أن تكون متواجد في توقيتة المحاضرة لتسجيل الحضور', color: Colors.error },
           ].map((item, i) => (
             <View key={i} style={s.instructionRow}>
               <View style={[s.instructionNumCircle, { borderColor: item.color }]}>
@@ -420,66 +308,20 @@ const RegisterAttendanceScreen: React.FC<RegisterAttendanceScreenProps> = ({
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.background,
   },
 
   // ===== HEADER =====
-  header: {
-    backgroundColor: '#0D9488',
-    paddingTop: 16,
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  backBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-end',
-    marginBottom: 12,
-  },
-  backArrow: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 16,
-    marginLeft: 6,
-  },
-  backText: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  headerCenter: {
-    alignItems: 'center',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  qrIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 10,
-  },
-  qrIconText: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  headerTitle: {
-    color: '#FFF',
-    fontSize: 22,
-    fontWeight: '800',
-  },
-  headerSub: {
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: 13,
-    textAlign: 'center',
-  },
+  header: { display: 'none' as any },
+  backBtn: { display: 'none' as any },
+  backArrow: { fontSize: 0 },
+  backText: { fontSize: 0 },
+  headerCenter: { display: 'none' as any },
+  headerRow: { display: 'none' as any },
+  qrIconBox: { display: 'none' as any },
+  qrIconText: { fontSize: 0 },
+  headerTitle: { fontSize: 0 },
+  headerSub: { fontSize: 0 },
 
   // ===== SCROLL =====
   scrollContent: {
@@ -496,8 +338,8 @@ const s = StyleSheet.create({
     padding: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#FECACA',
-    shadowColor: '#000',
+    borderColor: Colors.errorBorder,
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
     shadowRadius: 4,
@@ -516,18 +358,18 @@ const s = StyleSheet.create({
   warningTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#1F2937',
+    color: Colors.textPrimary,
     textAlign: 'right',
     marginBottom: 4,
   },
   warningDesc: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.textLight,
     textAlign: 'right',
     lineHeight: 20,
   },
   warningHighlight: {
-    color: '#DC2626',
+    color: Colors.error,
     fontWeight: '700',
   },
 
@@ -538,7 +380,7 @@ const s = StyleSheet.create({
     borderRadius: 12,
     padding: 4,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
     shadowRadius: 4,
@@ -553,22 +395,22 @@ const s = StyleSheet.create({
     borderRadius: 10,
   },
   tabActive: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.backgroundAlt,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.borderMedium,
   },
   tabCheckbox: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: Colors.textHint,
     marginRight: 6,
   },
   tabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
+    color: Colors.textLight,
   },
   tabTextActive: {
-    color: '#1F2937',
+    color: Colors.textPrimary,
     fontWeight: '700',
   },
 
@@ -579,7 +421,7 @@ const s = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -589,7 +431,7 @@ const s = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#E8F8F5',
+    backgroundColor: Colors.successLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -597,18 +439,18 @@ const s = StyleSheet.create({
   hashText: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#0D9488',
+    color: Colors.secondary,
   },
   codeTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1F2937',
+    color: Colors.textPrimary,
     textAlign: 'center',
     marginBottom: 6,
   },
   codeSub: {
     fontSize: 13,
-    color: '#6B7280',
+    color: Colors.textLight,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -623,24 +465,24 @@ const s = StyleSheet.create({
     height: 56,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#F9FAFB',
+    borderColor: Colors.borderMedium,
+    backgroundColor: Colors.backgroundAlt,
     fontSize: 22,
     fontWeight: '800',
-    color: '#1F2937',
+    color: Colors.textPrimary,
     textAlign: 'center',
   },
   digitBoxFilled: {
-    borderColor: '#0D9488',
+    borderColor: Colors.secondary,
     backgroundColor: '#FFF',
   },
   digitBoxError: {
-    borderColor: '#FECACA',
+    borderColor: Colors.errorBorder,
     backgroundColor: '#FFF5F5',
   },
   digitBoxSuccess: {
-    borderColor: '#86EFAC',
-    backgroundColor: '#F0FDF4',
+    borderColor: Colors.successBorder,
+    backgroundColor: Colors.background,
   },
 
   // ===== ERROR / SUCCESS =====
@@ -655,16 +497,16 @@ const s = StyleSheet.create({
     marginBottom: 16,
     width: '100%',
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: Colors.errorBorder,
   },
   errorIcon: {
     fontSize: 14,
-    color: '#DC2626',
+    color: Colors.error,
     marginLeft: 8,
   },
   errorText: {
     fontSize: 13,
-    color: '#DC2626',
+    color: Colors.error,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -672,14 +514,14 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F0FDF4',
+    backgroundColor: Colors.background,
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 16,
     marginBottom: 16,
     width: '100%',
     borderWidth: 1,
-    borderColor: '#86EFAC',
+    borderColor: Colors.successBorder,
   },
   successIcon: {
     fontSize: 14,
@@ -687,7 +529,7 @@ const s = StyleSheet.create({
   },
   successText: {
     fontSize: 13,
-    color: '#16A34A',
+    color: Colors.primary,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -695,12 +537,12 @@ const s = StyleSheet.create({
   // ===== SUBMIT BUTTON =====
   submitBtn: {
     width: '100%',
-    backgroundColor: '#0D9488',
+    backgroundColor: Colors.secondary,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#0D9488',
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
@@ -724,7 +566,7 @@ const s = StyleSheet.create({
     borderRadius: 18,
     padding: 32,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -737,17 +579,17 @@ const s = StyleSheet.create({
   qrPlaceholderTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1F2937',
+    color: Colors.textPrimary,
     marginBottom: 6,
   },
   qrPlaceholderSub: {
     fontSize: 13,
-    color: '#6B7280',
+    color: Colors.textLight,
     textAlign: 'center',
     marginBottom: 20,
   },
   qrOpenCameraBtn: {
-    backgroundColor: '#0D9488',
+    backgroundColor: Colors.secondary,
     borderRadius: 12,
     paddingHorizontal: 24,
     paddingVertical: 12,
@@ -781,7 +623,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     width: 28,
     height: 28,
-    borderColor: '#0D9488',
+    borderColor: Colors.secondary,
     borderWidth: 3,
   },
   scanCornerTL: { top: 0, left: 0, borderRightWidth: 0, borderBottomWidth: 0, borderTopLeftRadius: 6 },
@@ -830,7 +672,7 @@ const s = StyleSheet.create({
     backgroundColor: '#FFF',
     borderRadius: 18,
     padding: 18,
-    shadowColor: '#000',
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -849,7 +691,7 @@ const s = StyleSheet.create({
   instructionsTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#0D9488',
+    color: Colors.secondary,
     textAlign: 'right',
   },
   instructionRow: {
@@ -874,7 +716,7 @@ const s = StyleSheet.create({
   instructionText: {
     flex: 1,
     fontSize: 12,
-    color: '#374151',
+    color: Colors.textSecondary,
     textAlign: 'right',
     lineHeight: 20,
   },

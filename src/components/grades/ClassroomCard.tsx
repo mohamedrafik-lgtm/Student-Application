@@ -8,6 +8,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native
 import { ClassroomWithContents } from '../../types/grades';
 import { getGradeColor, formatGrade, formatPercentage } from '../../utils/gradesUtils';
 import ContentCard from './ContentCard';
+import { Colors } from '../../styles/colors';
 
 interface ClassroomCardProps {
   classroomData: ClassroomWithContents;
@@ -79,14 +80,14 @@ const ClassroomCard: React.FC<ClassroomCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    borderColor: Colors.borderLight,
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
     elevation: 4,
     overflow: 'hidden',
   },
@@ -101,29 +102,31 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: '700',
+    color: Colors.textPrimary,
     marginBottom: 4,
+    textAlign: 'right',
   },
   stats: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 13,
+    color: Colors.textLight,
+    textAlign: 'right',
   },
   grade: {
     alignItems: 'flex-end',
   },
   percentage: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '800',
     marginBottom: 4,
   },
   total: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 13,
+    color: Colors.textLight,
   },
   contents: {
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: Colors.borderLight,
     paddingTop: 16,
   },
 });

@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {Colors} from '../styles/colors';
+import ScreenHeader from '../components/shared/ScreenHeader';
 import {gradesService} from '../services/gradesService';
 import {
   GradesResponse,
@@ -66,11 +68,11 @@ const GradesScreen: React.FC<GradesScreenProps> = ({accessToken, onBack}) => {
   };
 
   const getGradeColor = (percentage: number): string => {
-    if (percentage >= 90) return '#10B981';
-    if (percentage >= 80) return '#3B82F6';
-    if (percentage >= 70) return '#F59E0B';
-    if (percentage >= 60) return '#EF4444';
-    return '#6B7280';
+    if (percentage >= 90) return Colors.primaryLight;
+    if (percentage >= 80) return Colors.info;
+    if (percentage >= 70) return Colors.accent;
+    if (percentage >= 60) return Colors.error;
+    return Colors.textLight;
   };
 
   const getGradeStatus = (percentage: number): string => {
@@ -228,8 +230,9 @@ const GradesScreen: React.FC<GradesScreenProps> = ({accessToken, onBack}) => {
   if (isLoading) {
     return (
       <SafeAreaView style={s.container}>
+        <ScreenHeader title="الدرجات" onBack={onBack} />
         <View style={s.centerBox}>
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color={Colors.primary} />
           <Text style={s.loadingText}>جاري تحميل الدرجات...</Text>
         </View>
       </SafeAreaView>
@@ -240,6 +243,7 @@ const GradesScreen: React.FC<GradesScreenProps> = ({accessToken, onBack}) => {
   if (error) {
     return (
       <SafeAreaView style={s.container}>
+        <ScreenHeader title="الدرجات" onBack={onBack} />
         <View style={s.centerBox}>
           <Text style={s.errorEmoji}>⚠️</Text>
           <Text style={s.errorTitle}>خطأ</Text>
@@ -258,21 +262,11 @@ const GradesScreen: React.FC<GradesScreenProps> = ({accessToken, onBack}) => {
 
   return (
     <SafeAreaView style={s.container}>
+      <ScreenHeader title="الدرجات" subtitle="نتائج المقررات الدراسية" onBack={onBack} />
       <ScrollView
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={s.header}>
-          <TouchableOpacity style={s.backBtn} onPress={onBack}>
-            <Text style={s.backArrow}>→</Text>
-          </TouchableOpacity>
-          <View style={s.headerCenter}>
-            <Text style={s.headerTitle}>الدرجات</Text>
-            <Text style={s.headerSub}>نتائج المقررات الدراسية</Text>
-          </View>
-          <View style={{width: 38}} />
-        </View>
 
         {/* Overall Stats Card */}
         {gradesData && (
@@ -350,7 +344,7 @@ const GradesScreen: React.FC<GradesScreenProps> = ({accessToken, onBack}) => {
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F6FA',
+    backgroundColor: Colors.background,
   },
   scroll: {
     flex: 1,
@@ -367,7 +361,7 @@ const s = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#8E95A2',
+    color: Colors.textLight,
   },
   errorEmoji: {
     fontSize: 56,
@@ -376,21 +370,21 @@ const s = StyleSheet.create({
   errorTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     marginBottom: 8,
   },
   errorMsg: {
     fontSize: 15,
-    color: '#8E95A2',
+    color: Colors.textLight,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
   },
   retryBtn: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 14,
   },
   retryBtnText: {
     color: '#FFF',
@@ -406,52 +400,35 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
+    borderBottomColor: Colors.borderLight,
   },
   backBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#F0F4FF',
+    backgroundColor: Colors.backgroundSoft,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  backArrow: {
-    fontSize: 18,
-    color: '#2563EB',
-    fontWeight: '700',
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'flex-end',
-    marginRight: 12,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1D26',
-  },
-  headerSub: {
-    fontSize: 13,
-    color: '#8E95A2',
-    marginTop: 2,
   },
 
   /* Overall Card */
   overallCard: {
-    backgroundColor: '#FFF',
-    marginHorizontal: 20,
+    backgroundColor: Colors.white,
+    marginHorizontal: 16,
     marginTop: 16,
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
     alignItems: 'center',
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08, shadowRadius: 16, elevation: 4,
   },
   traineeName: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -465,7 +442,7 @@ const s = StyleSheet.create({
     borderWidth: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FAFBFC',
+    backgroundColor: Colors.backgroundAlt,
   },
   circlePct: {
     fontSize: 28,
@@ -473,7 +450,7 @@ const s = StyleSheet.create({
   },
   circleLabel: {
     fontSize: 11,
-    color: '#8E95A2',
+    color: Colors.textLight,
     marginTop: 2,
   },
   statsGrid: {
@@ -490,17 +467,17 @@ const s = StyleSheet.create({
   statsGridValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     marginBottom: 4,
   },
   statsGridLabel: {
     fontSize: 12,
-    color: '#8E95A2',
+    color: Colors.textLight,
   },
   statsGridDivider: {
     width: 1,
     height: 32,
-    backgroundColor: '#EEF2F6',
+    backgroundColor: Colors.borderLight,
   },
   statusBadge: {
     paddingHorizontal: 24,
@@ -519,11 +496,14 @@ const s = StyleSheet.create({
     gap: 12,
   },
   classroomCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
     overflow: 'hidden',
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
   classroomHeader: {
     flexDirection: 'row',
@@ -538,10 +518,10 @@ const s = StyleSheet.create({
     gap: 12,
   },
   classroomIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: '#F0F4FF',
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: Colors.backgroundSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -550,17 +530,17 @@ const s = StyleSheet.create({
   },
   classroomName: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1D26',
+    fontWeight: '800',
+    color: Colors.textPrimary,
   },
   classroomSub: {
     fontSize: 13,
-    color: '#8E95A2',
+    color: Colors.textLight,
     marginTop: 2,
   },
   classroomArrow: {
     fontSize: 12,
-    color: '#8E95A2',
+    color: Colors.textLight,
     marginLeft: 8,
   },
   classroomContents: {
@@ -571,10 +551,10 @@ const s = StyleSheet.create({
 
   /* Content Card */
   contentCard: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
+    backgroundColor: Colors.background,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
     overflow: 'hidden',
   },
   contentCardHeader: {
@@ -596,12 +576,12 @@ const s = StyleSheet.create({
   },
   contentName: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1A1D26',
+    fontWeight: '700',
+    color: Colors.textPrimary,
   },
   contentCode: {
     fontSize: 12,
-    color: '#8E95A2',
+    color: Colors.textLight,
     marginTop: 2,
   },
   contentCardRight: {
@@ -615,7 +595,7 @@ const s = StyleSheet.create({
   },
   expandArrow: {
     fontSize: 10,
-    color: '#8E95A2',
+    color: Colors.textLight,
   },
   contentProgress: {
     paddingHorizontal: 14,
@@ -625,7 +605,7 @@ const s = StyleSheet.create({
   /* Progress Bar */
   progressBarBg: {
     height: 6,
-    backgroundColor: '#EEF2F6',
+    backgroundColor: Colors.borderLight,
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -640,7 +620,7 @@ const s = StyleSheet.create({
     paddingBottom: 14,
     gap: 10,
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
+    borderTopColor: Colors.borderLight,
     paddingTop: 12,
   },
   gradeTypeRow: {
@@ -662,12 +642,12 @@ const s = StyleSheet.create({
   },
   gradeTypeLabel: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#1A1D26',
+    fontWeight: '700',
+    color: Colors.textPrimary,
   },
   gradeTypeMarks: {
     fontSize: 11,
-    color: '#8E95A2',
+    color: Colors.textLight,
     marginTop: 1,
   },
   gradeTypeRight: {
@@ -684,12 +664,12 @@ const s = StyleSheet.create({
   emptyBox: {
     alignItems: 'center',
     paddingVertical: 48,
-    marginHorizontal: 20,
+    marginHorizontal: 16,
     marginTop: 16,
-    backgroundColor: '#FFF',
-    borderRadius: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
   },
   emptyEmoji: {
     fontSize: 56,
@@ -698,12 +678,12 @@ const s = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     marginBottom: 8,
   },
   emptyMsg: {
     fontSize: 14,
-    color: '#8E95A2',
+    color: Colors.textLight,
   },
 });
 

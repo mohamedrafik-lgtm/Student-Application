@@ -7,6 +7,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ContentWithGrades, GradeType, GRADE_TYPE_INFO } from '../../types/grades';
 import { getGradeColor, getGradeStatus, formatGrade, calculatePercentage } from '../../utils/gradesUtils';
+import { Colors } from '../../styles/colors';
 
 interface ContentCardProps {
   content: ContentWithGrades;
@@ -111,11 +112,11 @@ const styles = StyleSheet.create({
   container: {
     marginHorizontal: 16,
     marginBottom: 12,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
+    backgroundColor: Colors.backgroundAlt,
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.borderLight,
   },
   header: {
     flexDirection: 'row',
@@ -128,26 +129,28 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   code: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 13,
+    color: Colors.textLight,
     marginBottom: 4,
+    textAlign: 'right',
   },
   name: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    textAlign: 'right',
   },
   grade: {
     alignItems: 'flex-end',
   },
   percentage: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '800',
     marginBottom: 4,
   },
   total: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 13,
+    color: Colors.textLight,
   },
   statusContainer: {
     flexDirection: 'row',
@@ -157,27 +160,28 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: 10,
   },
   statusText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
   },
   expandIcon: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: 14,
+    color: Colors.textLight,
   },
   breakdown: {
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: Colors.borderLight,
   },
   breakdownTitle: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: '700',
+    color: Colors.textPrimary,
     marginBottom: 12,
+    textAlign: 'right',
   },
   gradeTypeRow: {
     flexDirection: 'row',
@@ -195,20 +199,20 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   gradeTypeLabel: {
-    fontSize: 14,
-    color: '#1F2937',
+    fontSize: 13,
+    color: Colors.textPrimary,
   },
   gradeTypeValues: {
     alignItems: 'flex-end',
   },
   gradeTypeMarks: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 13,
+    color: Colors.textLight,
     marginBottom: 2,
   },
   gradeTypePercentage: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
 

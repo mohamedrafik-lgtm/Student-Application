@@ -18,6 +18,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
+import Icon from '../components/shared/Icon';
+import ScreenHeader from '../components/shared/ScreenHeader';
 import { Colors } from '../styles/colors';
 import { attendanceService } from '../services/attendanceService';
 import { API_CONFIG } from '../services/apiConfig';
@@ -82,10 +84,10 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
       setIsLoading(true);
       setError(null);
 
-      console.log('🔍 Loading attendance records...');
+      console.log('Loading attendance records...');
       const response = await attendanceService.getAttendanceRecords(accessToken);
 
-      console.log('✅ Attendance records loaded successfully!');
+      console.log('Attendance records loaded successfully!');
 
       if (response.success && response.data) {
         setAttendanceData(response.data);
@@ -94,11 +96,11 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
         setError(errorMessage);
         setAttendanceData(null);
       } else {
-        console.warn('⚠️ Invalid response structure');
+        console.warn('Invalid response structure');
         setAttendanceData(null);
       }
     } catch (error) {
-      console.error('❌ Failed to load attendance records:', error);
+      console.error('Failed to load attendance records:', error);
       const apiError = error as AttendanceError;
 
       if (apiError && apiError.message && apiError.message.includes('BASE_URL')) {
@@ -131,11 +133,11 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
   };
 
   const getAttendanceColor = (rate: number) => {
-    if (rate >= 90) return '#10B981';
-    if (rate >= 80) return '#3B82F6';
-    if (rate >= 70) return '#F59E0B';
-    if (rate >= 60) return '#EF4444';
-    return '#6B7280';
+    if (rate >= 90) return Colors.primaryLight;
+    if (rate >= 80) return Colors.info;
+    if (rate >= 70) return Colors.accent;
+    if (rate >= 60) return Colors.error;
+    return Colors.textLight;
   };
 
   const formatDate = (date: Date) => {
@@ -169,7 +171,7 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
     const color = getAttendanceColor(percentage);
     return (
       <View style={styles.circularProgressContainer}>
-        <View style={[styles.circularProgressOuter, { borderColor: '#E5E7EB' }]}>
+        <View style={[styles.circularProgressOuter, { borderColor: Colors.borderMedium }]}>
           <View style={styles.circularProgressInner}>
             <Text style={[styles.circularProgressText, { color }]}>
               {formatPercentage(percentage)}
@@ -184,13 +186,13 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
   const renderStatCard = (
     label: string,
     value: number,
-    iconText: string,
+    icon: React.ReactNode,
     bgColor: string,
     iconColor: string,
   ) => (
     <View style={[styles.statCard, { backgroundColor: bgColor }]}>
       <View style={styles.statCardHeader}>
-        <Text style={[styles.statCardIcon, { color: iconColor }]}>{iconText}</Text>
+        {icon}
         <Text style={[styles.statCardLabel, { color: iconColor }]}>{label}</Text>
       </View>
       <Text style={styles.statCardValue}>{value}</Text>
@@ -220,7 +222,7 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
         {/* Date info – right side */}
         <View style={styles.sessionRight}>
           <View style={styles.sessionDateRow}>
-            <Text style={styles.sessionDateIcon}>⏰</Text>
+            <Icon name="clock-outline" size={14} color="#8E95A2" />
             <Text style={styles.sessionDayText}>{dayInfo.labelAr}</Text>
             <Text style={styles.sessionDateDot}>•</Text>
             <Text style={styles.sessionDateText}>{formatDate(session.date)}</Text>
@@ -259,7 +261,7 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
                 <Text style={styles.miniStatLabelGreen}>حضور</Text>
               </View>
               <View style={styles.miniStatItem}>
-                <Text style={[styles.miniStatValue, { color: '#EF4444' }]}>
+                <Text style={[styles.miniStatValue, { color: Colors.error }]}>
                   {stats.absent}
                 </Text>
                 <Text style={styles.miniStatLabelRed}>غياب</Text>
@@ -316,33 +318,7 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      {/* ══════════ Header ══════════ */}
-      <Animated.View
-        style={[
-          styles.header,
-          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-        ]}>
-        <View style={styles.headerTop}>
-          {/* "سجل محدث" badge – left */}
-          <View style={styles.updatedBadge}>
-            <Text style={styles.updatedBadgeIcon}>📅</Text>
-            <Text style={styles.updatedBadgeText}>سجل محدث</Text>
-          </View>
-
-          {/* Title area – centre-right */}
-          <View style={styles.headerTitleArea}>
-            <Text style={styles.headerTitle}>سجل الحضور</Text>
-            <Text style={styles.headerSubtitle}>
-              متابعة حضورك في المحاضرات التدريبية
-            </Text>
-          </View>
-
-          {/* Back arrow – right */}
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
-            <Text style={styles.backButtonText}>→</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
+      <ScreenHeader title="سجل الحضور" subtitle="متابعة حضورك في المحاضرات التدريبية" onBack={onBack} />
 
       {/* ══════════ Body ══════════ */}
       <ScrollView
@@ -368,7 +344,7 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
         {/* Error */}
         {error && !isLoading && (
           <View style={styles.errorContainer}>
-            <Text style={styles.errorEmoji}>⚠️</Text>
+            <Icon name="alert-circle-outline" size={56} color="#EF4444" />
             <Text style={styles.errorText}>{error}</Text>
             <CustomButton
               title="إعادة المحاولة"
@@ -392,30 +368,30 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
                 {renderStatCard(
                   'تأخر',
                   attendanceData.stats.late,
-                  '⏰',
-                  '#FEF9E7',
-                  '#D4A017',
+                  <Icon name="clock-outline" size={12} color={Colors.warning} />,
+                  Colors.warningLight,
+                  Colors.warning,
                 )}
                 {renderStatCard(
                   'غياب',
                   attendanceData.stats.absent,
                   '✕',
-                  '#FDEDEE',
-                  '#E74C3C',
+                  Colors.errorLight,
+                  Colors.error,
                 )}
                 {renderStatCard(
                   'حضور',
                   attendanceData.stats.present,
                   '✓',
-                  '#E8F8F5',
-                  '#27AE60',
+                  Colors.successLight,
+                  Colors.success,
                 )}
                 {renderStatCard(
                   'إجمالي المحاضرات',
                   attendanceData.stats.total,
-                  '📋',
-                  '#EBF5FB',
-                  '#2E86C1',
+                  <Icon name="clipboard-text-outline" size={12} color={Colors.info} />,
+                  Colors.infoLight,
+                  Colors.info,
                 )}
 
                 {/* Circular progress */}
@@ -474,7 +450,7 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
             {/* ── Section Title: سجل المواد ── */}
             <View style={styles.sectionTitleRow}>
               <TouchableOpacity onPress={onRefresh} style={styles.refreshButton}>
-                <Text style={styles.refreshIcon}>🔄</Text>
+                <Icon name="refresh" size={16} color="#8E95A2" />
               </TouchableOpacity>
               <View style={styles.sectionTitleRight}>
                 <Text style={styles.sectionTitle}>سجل المواد</Text>
@@ -491,7 +467,7 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
         {/* Empty */}
         {!isLoading && !error && !attendanceData && (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>📅</Text>
+            <Icon name="calendar-outline" size={56} color={Colors.primary} />
             <Text style={styles.emptyTitle}>لا توجد سجلات حضور</Text>
             <Text style={styles.emptyDescription}>
               لا توجد سجلات حضور متاحة لك في الوقت الحالي
@@ -511,7 +487,7 @@ const styles = StyleSheet.create({
   /* ══════ Container ══════ */
   container: {
     flex: 1,
-    backgroundColor: '#F4F6FA',
+    backgroundColor: Colors.backgroundAlt,
   },
 
   /* ══════ Header ══════ */
@@ -521,7 +497,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
+    borderBottomColor: Colors.borderLight,
   },
   headerTop: {
     flexDirection: 'row',
@@ -536,12 +512,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     textAlign: 'right',
   },
   headerSubtitle: {
     fontSize: 13,
-    color: '#8E95A2',
+    color: Colors.textLight,
     marginTop: 4,
     textAlign: 'right',
   },
@@ -549,19 +525,19 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#F4F6FA',
+    backgroundColor: Colors.backgroundAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },
   backButtonText: {
     fontSize: 20,
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     fontWeight: '600',
   },
   updatedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F4F6FA',
+    backgroundColor: Colors.backgroundAlt,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -573,7 +549,7 @@ const styles = StyleSheet.create({
   },
   updatedBadgeText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.textLight,
     fontWeight: '500',
   },
 
@@ -595,7 +571,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 15,
-    color: '#8E95A2',
+    color: Colors.textLight,
     textAlign: 'center',
   },
   errorContainer: {
@@ -610,7 +586,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 15,
-    color: '#EF4444',
+    color: Colors.error,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 24,
@@ -628,13 +604,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     textAlign: 'center',
     marginBottom: 10,
   },
   emptyDescription: {
     fontSize: 15,
-    color: '#8E95A2',
+    color: Colors.textLight,
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -646,14 +622,14 @@ const styles = StyleSheet.create({
 
   /* ══════ Summary Card ══════ */
   summaryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 20,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
     shadowRadius: 12,
-    elevation: 3,
+    elevation: 4,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -686,7 +662,7 @@ const styles = StyleSheet.create({
   statCardValue: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
   },
 
   /* ══════ Circular Progress ══════ */
@@ -722,18 +698,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 24,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.borderMedium,
   },
   termTabActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   termTabText: {
     fontSize: 13,
-    color: '#6B7280',
-    fontWeight: '600',
+    color: Colors.textLight,
+    fontWeight: '700',
   },
   termTabTextActive: {
     color: '#FFFFFF',
@@ -753,7 +729,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     textAlign: 'right',
   },
   refreshButton: {
@@ -763,7 +739,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -780,13 +756,13 @@ const styles = StyleSheet.create({
 
   /* ══════ Content Card (Subject) ══════ */
   contentCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    shadowColor: '#000',
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.06,
     shadowRadius: 10,
-    elevation: 2,
+    elevation: 3,
     overflow: 'hidden',
   },
   contentCardHeader: {
@@ -811,7 +787,7 @@ const styles = StyleSheet.create({
   contentName: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     textAlign: 'right',
     marginBottom: 6,
   },
@@ -820,32 +796,32 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   attendanceBadge: {
-    backgroundColor: '#E8F8F0',
+    backgroundColor: Colors.successLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   attendanceBadgeText: {
     fontSize: 11,
-    color: '#27AE60',
+    color: Colors.success,
     fontWeight: '600',
   },
   lectureBadge: {
-    backgroundColor: '#EBF5FB',
+    backgroundColor: Colors.infoLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   lectureBadgeText: {
     fontSize: 11,
-    color: '#5DADE2',
+    color: Colors.secondary,
     fontWeight: '600',
   },
   contentAvatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#2563EB',
+    width: 46,
+    height: 46,
+    borderRadius: 18,
+    backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -865,13 +841,13 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#F4F6FA',
+    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   expandIcon: {
     fontSize: 16,
-    color: '#8E95A2',
+    color: Colors.textLight,
     fontWeight: '700',
   },
   contentMiniStats: {
@@ -884,17 +860,17 @@ const styles = StyleSheet.create({
   miniStatValue: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
   },
   miniStatLabelGreen: {
     fontSize: 10,
-    color: '#27AE60',
+    color: Colors.success,
     fontWeight: '600',
     marginTop: 2,
   },
   miniStatLabelRed: {
     fontSize: 10,
-    color: '#EF4444',
+    color: Colors.error,
     fontWeight: '600',
     marginTop: 2,
   },
@@ -902,7 +878,7 @@ const styles = StyleSheet.create({
   /* ══════ Sessions (expanded) ══════ */
   sessionsContainer: {
     borderTopWidth: 1,
-    borderTopColor: '#F0F2F5',
+    borderTopColor: Colors.borderLight,
     paddingVertical: 8,
   },
   sessionRow: {
@@ -912,7 +888,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F8F9FB',
+    borderBottomColor: Colors.borderLight,
   },
   sessionRight: {
     flexDirection: 'row',
@@ -928,20 +904,20 @@ const styles = StyleSheet.create({
   },
   sessionDateIcon: {
     fontSize: 14,
-    color: '#8E95A2',
+    color: Colors.textLight,
   },
   sessionDayText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#4A5568',
+    fontWeight: '700',
+    color: Colors.textSecondary,
   },
   sessionDateDot: {
     fontSize: 10,
-    color: '#CBD5E1',
+    color: Colors.borderMedium,
   },
   sessionDateText: {
     fontSize: 13,
-    color: '#8E95A2',
+    color: Colors.textLight,
   },
   sessionLeft: {
     flexDirection: 'row',
@@ -950,14 +926,14 @@ const styles = StyleSheet.create({
   sessionStatusBadge: {
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   sessionStatusText: {
     fontSize: 12,
     fontWeight: '700',
   },
   cancelledBadge: {
-    backgroundColor: '#FDEDEE',
+    backgroundColor: Colors.errorLight,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -965,12 +941,12 @@ const styles = StyleSheet.create({
   },
   cancelledText: {
     fontSize: 11,
-    color: '#EF4444',
+    color: Colors.error,
     fontWeight: '600',
   },
   sessionNotes: {
     fontSize: 12,
-    color: '#8E95A2',
+    color: Colors.textLight,
     marginTop: 4,
     textAlign: 'right',
   },
@@ -980,7 +956,7 @@ const styles = StyleSheet.create({
   },
   noSessionsText: {
     fontSize: 13,
-    color: '#8E95A2',
+    color: Colors.textLight,
     textAlign: 'center',
   },
 });

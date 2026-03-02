@@ -1,4 +1,4 @@
-﻿import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -53,9 +53,9 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
       setPayments(profileData.trainee.traineePayments || []);
     } catch (err) {
       const apiError = err as any;
-      let errorMessage = 'Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª';
+      let errorMessage = 'حدث خطأ أثناء تحميل المدفوعات';
       if (apiError.statusCode === 401) {
-        errorMessage = 'Ø§Ù†ØªÙ‡Øª ØµÙ„Ø§Ø­ÙŠØ© Ø§Ù„Ø¬Ù„Ø³Ø©. ÙŠØ±Ø¬Ù‰ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰';
+        errorMessage = 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى';
       } else if (apiError.message) {
         errorMessage = apiError.message;
       }
@@ -66,7 +66,7 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
   };
 
   const handleMakePayment = (_payment: TraineePayment) => {
-    Alert.alert('Ø¯ÙØ¹ Ø§Ù„Ø±Ø³ÙˆÙ…', 'Ø³ÙŠØªÙ… Ø¥Ø¶Ø§ÙØ© Ù‡Ø°Ù‡ Ø§Ù„Ù…ÙŠØ²Ø© Ù‚Ø±ÙŠØ¨Ø§Ù‹');
+    Alert.alert('دفع الرسوم', 'سيتم إضافة هذه الميزة قريباً');
   };
 
   const getStatusMeta = (status: PaymentStatus) => {
@@ -78,26 +78,26 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
       case 'CANCELLED':
         return {label: 'ملغي', color: Colors.error, bg: Colors.errorLight, icon: '✕'};
       case 'REFUNDED':
-        return {label: 'مسترد', color: '#3B82F6', bg: Colors.infoLight, icon: '↩'};
+        return {label: 'مسترد', color: Colors.info, bg: Colors.infoLight, icon: '↩'};
       default:
-        return {label: status, color: Colors.textHint, bg: Colors.background, icon: '•'};
+        return {label: status, color: Colors.textHint, bg: Colors.background, icon: '💳'};
     }
   };
 
   const getFeeTypeMeta = (type: FeeType) => {
     switch (type) {
       case 'REGISTRATION':
-        return {label: 'Ø±Ø³ÙˆÙ… Ø§Ù„ØªØ³Ø¬ÙŠÙ„', icon: 'ðŸ“', color: '#8B5CF6'};
+        return {label: 'رسوم التسجيل', icon: '📝', color: Colors.secondary};
       case 'TUITION':
-        return {label: 'Ø§Ù„Ø±Ø³ÙˆÙ… Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ©', icon: 'ðŸŽ"', color: Colors.primary};
+        return {label: 'الرسوم الدراسية', icon: '🎓', color: Colors.primary};
       case 'EXAM':
-        return {label: 'Ø±Ø³ÙˆÙ… Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†', icon: 'ðŸ“‹', color: '#0891B2'};
+        return {label: 'رسوم الامتحان', icon: '📋', color: Colors.secondary};
       case 'MATERIALS':
-        return {label: 'Ø±Ø³ÙˆÙ… Ø§Ù„Ù…ÙˆØ§Ø¯', icon: 'ðŸ"š', color: Colors.warning};
+        return {label: 'رسوم المواد', icon: '📚', color: Colors.warning};
       case 'CERTIFICATE':
-        return {label: 'Ø±Ø³ÙˆÙ… Ø§Ù„Ø´Ù‡Ø§Ø¯Ø©', icon: 'ðŸ†', color: '#DB2777'};
+        return {label: 'رسوم الشهادة', icon: '🏆', color: Colors.warning};
       default:
-        return {label: 'Ø£Ø®Ø±Ù‰', icon: 'ðŸ'°', color: Colors.textLight};
+        return {label: 'أخرى', icon: '💰', color: Colors.textLight};
     }
   };
 
@@ -127,11 +127,11 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
       : payments.filter(p => p.status === selectedFilter);
 
   const paymentStatuses: {id: PaymentStatus | 'ALL'; label: string; emoji: string}[] = [
-    {id: 'ALL', label: 'Ø§Ù„ÙƒÙ„', emoji: 'ðŸ“‹'},
-    {id: PaymentStatus.PENDING, label: 'Ù…Ø¹Ù„Ù‚', emoji: 'â³'},
-    {id: PaymentStatus.COMPLETED, label: 'Ù…ÙƒØªÙ…Ù„', emoji: 'âœ…'},
-    {id: PaymentStatus.CANCELLED, label: 'Ù…Ù„ØºÙŠ', emoji: 'âœ•'},
-    {id: PaymentStatus.REFUNDED, label: 'Ù…Ø³ØªØ±Ø¯', emoji: 'â†©'},
+    {id: 'ALL', label: 'الكل', emoji: '📋'},
+    {id: PaymentStatus.PENDING, label: 'معلق', emoji: '⏳'},
+    {id: PaymentStatus.COMPLETED, label: 'مكتمل', emoji: '✅'},
+    {id: PaymentStatus.CANCELLED, label: 'ملغي', emoji: '✕'},
+    {id: PaymentStatus.REFUNDED, label: 'مسترد', emoji: '↩'},
   ];
 
   const totalAmount = payments.reduce((sum, p) => sum + p.amount, 0);
@@ -141,31 +141,31 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
   const pendingCount = payments.filter(p => p.status === 'PENDING').length;
   const paidPct = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
 
-  /* â”€â”€â”€ Loading â”€â”€â”€ */
+  /* ─── Loading ─── */
   if (isLoading) {
     return (
       <SafeAreaView style={s.container}>
         <View style={s.centerBox}>
           <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={s.loadingText}>Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª...</Text>
+          <Text style={s.loadingText}>جاري تحميل المدفوعات...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  /* â”€â”€â”€ Error â”€â”€â”€ */
+  /* ─── Error ─── */
   if (error) {
     return (
       <SafeAreaView style={s.container}>
         <View style={s.centerBox}>
-          <View style={s.errorIconBox}><Text style={s.errorIconTxt}>âš ï¸</Text></View>
-          <Text style={s.errorTitle}>Ø®Ø·Ø£ ÙÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª</Text>
+          <View style={s.errorIconBox}><Text style={s.errorIconTxt}>⚠️</Text></View>
+          <Text style={s.errorTitle}>خطأ في تحميل المدفوعات</Text>
           <Text style={s.errorMsg}>{error}</Text>
           <TouchableOpacity style={s.retryBtn} onPress={loadPayments}>
-            <Text style={s.retryBtnText}>Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©</Text>
+            <Text style={s.retryBtnText}>إعادة المحاولة</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onBack} style={s.backLink}>
-            <Text style={s.backLinkText}>â† Ø§Ù„Ø¹ÙˆØ¯Ø©</Text>
+            <Text style={s.backLinkText}>← العودة</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -179,23 +179,23 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}>
 
-        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â• HERO HEADER â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        {/* ══════════════ HERO HEADER ══════════════ */}
         <View style={s.hero}>
           {/* Top bar */}
           <View style={s.heroTopBar}>
             <TouchableOpacity style={s.heroBackBtn} onPress={onBack}>
-              <Text style={s.heroBackArrow}>â†’</Text>
+              <Text style={s.heroBackArrow}>→</Text>
             </TouchableOpacity>
             <View style={s.heroTitleArea}>
-              <Text style={s.heroTitle}>Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª</Text>
-              <Text style={s.heroSub}>Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø±Ø³ÙˆÙ… ÙˆØ§Ù„Ù…Ø³ØªØ­Ù‚Ø§Øª Ø§Ù„Ù…Ø§Ù„ÙŠØ©</Text>
+              <Text style={s.heroTitle}>المدفوعات</Text>
+              <Text style={s.heroSub}>إدارة الرسوم والمستحقات المالية</Text>
             </View>
             {onNavigateToPaymentDueDates && (
               <TouchableOpacity
                 style={s.heroDatesBtn}
                 onPress={onNavigateToPaymentDueDates}>
-                <Text style={s.heroDatesIcon}>ðŸ“…</Text>
-                <Text style={s.heroDatesText}>Ø§Ù„Ù…ÙˆØ§Ø¹ÙŠØ¯</Text>
+                <Text style={s.heroDatesIcon}>📅</Text>
+                <Text style={s.heroDatesText}>المواعيد</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -204,21 +204,21 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
           <View style={s.heroAmounts}>
             <View style={s.heroAmountItem}>
               <Text style={s.heroAmountValue}>{formatCurrency(totalAmount)}</Text>
-              <Text style={s.heroAmountLabel}>Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨</Text>
+              <Text style={s.heroAmountLabel}>إجمالي المطلوب</Text>
             </View>
             <View style={s.heroAmountDivider} />
             <View style={s.heroAmountItem}>
-              <Text style={[s.heroAmountValue, {color: '#34D399'}]}>
+              <Text style={[s.heroAmountValue, {color: Colors.primaryLight}]}>
                 {formatCurrency(paidAmount)}
               </Text>
-              <Text style={s.heroAmountLabel}>Ø§Ù„Ù…Ø¯ÙÙˆØ¹</Text>
+              <Text style={s.heroAmountLabel}>المدفوع</Text>
             </View>
             <View style={s.heroAmountDivider} />
             <View style={s.heroAmountItem}>
-              <Text style={[s.heroAmountValue, {color: '#FCD34D'}]}>
+              <Text style={[s.heroAmountValue, {color: Colors.accentLight}]}>
                 {formatCurrency(pendingAmount)}
               </Text>
-              <Text style={s.heroAmountLabel}>Ø§Ù„Ù…ØªØ¨Ù‚ÙŠ</Text>
+              <Text style={s.heroAmountLabel}>المتبقي</Text>
             </View>
           </View>
 
@@ -228,19 +228,19 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
               <View style={[s.heroProgressFill, {width: `${paidPct}%`}]} />
             </View>
             <View style={s.heroProgressLabels}>
-              <Text style={s.heroProgressPct}>{paidPct}% Ù…Ø¯ÙÙˆØ¹</Text>
-              <Text style={s.heroProgressPct}>{100 - paidPct}% Ù…ØªØ¨Ù‚ÙŠ</Text>
+              <Text style={s.heroProgressPct}>{paidPct}% مدفوع</Text>
+              <Text style={s.heroProgressPct}>{100 - paidPct}% متبقي</Text>
             </View>
           </View>
         </View>
 
-        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â• STATS ROW â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        {/* ══════════════ STATS ROW ══════════════ */}
         <View style={s.statsRow}>
           {[
-            {num: payments.length, label: 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ', color: Colors.primary, bg: Colors.infoLight},
-            {num: completedCount, label: 'Ù…ÙƒØªÙ…Ù„', color: Colors.primaryLight, bg: Colors.successLight},
-            {num: pendingCount, label: 'Ù…Ø¹Ù„Ù‚', color: Colors.warning, bg: Colors.warningLight},
-            {num: payments.filter(p => p.status === 'CANCELLED').length, label: 'Ù…Ù„ØºÙŠ', color: Colors.error, bg: Colors.errorLight},
+            {num: payments.length, label: 'إجمالي', color: Colors.primary, bg: Colors.infoLight},
+            {num: completedCount, label: 'مكتمل', color: Colors.primaryLight, bg: Colors.successLight},
+            {num: pendingCount, label: 'معلق', color: Colors.warning, bg: Colors.warningLight},
+            {num: payments.filter(p => p.status === 'CANCELLED').length, label: 'ملغي', color: Colors.error, bg: Colors.errorLight},
           ].map((item, i) => (
             <View key={i} style={[s.statCard, {backgroundColor: item.bg}]}>
               <Text style={[s.statNum, {color: item.color}]}>{item.num}</Text>
@@ -249,7 +249,7 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
           ))}
         </View>
 
-        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â• FILTER CHIPS â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        {/* ══════════════ FILTER CHIPS ══════════════ */}
         <View style={s.filterWrap}>
           <ScrollView
             horizontal
@@ -281,23 +281,23 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
           </ScrollView>
         </View>
 
-        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â• PAYMENTS LIST â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        {/* ══════════════ PAYMENTS LIST ══════════════ */}
         <View style={s.listSection}>
           <View style={s.listHeader}>
             <Text style={s.listHeaderCount}>
-              {filteredPayments.length} Ø¯ÙØ¹Ø©
+              {filteredPayments.length} دفعة
             </Text>
-            <Text style={s.listHeaderTitle}>Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª</Text>
+            <Text style={s.listHeaderTitle}>المدفوعات</Text>
           </View>
 
           {filteredPayments.length === 0 ? (
             <View style={s.emptyBox}>
-              <Text style={s.emptyEmoji}>ðŸ’³</Text>
-              <Text style={s.emptyTitle}>Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø¯ÙÙˆØ¹Ø§Øª</Text>
+              <Text style={s.emptyEmoji}>💳</Text>
+              <Text style={s.emptyTitle}>لا توجد مدفوعات</Text>
               <Text style={s.emptyMsg}>
                 {selectedFilter === 'ALL'
-                  ? 'Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø£ÙŠ Ù…Ø¯ÙÙˆØ¹Ø§Øª'
-                  : `Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø¯ÙÙˆØ¹Ø§Øª Ø¨Ø­Ø§Ù„Ø© "${getStatusMeta(selectedFilter as PaymentStatus).label}"`}
+                  ? 'لم يتم العثور على أي مدفوعات'
+                  : `لا توجد مدفوعات بحالة "${getStatusMeta(selectedFilter as PaymentStatus).label}"`}
               </Text>
             </View>
           ) : (
@@ -340,14 +340,14 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
                     {/* Row 2: amounts */}
                     <View style={s.payAmountsRow}>
                       <View style={s.payAmountItem}>
-                        <Text style={s.payAmountLbl}>Ø§Ù„Ù…Ø·Ù„ÙˆØ¨</Text>
+                        <Text style={s.payAmountLbl}>المطلوب</Text>
                         <Text style={s.payAmountVal}>
                           {formatCurrency(payment.amount)}
                         </Text>
                       </View>
                       <View style={s.payAmountSep} />
                       <View style={s.payAmountItem}>
-                        <Text style={s.payAmountLbl}>Ø§Ù„Ù…Ø¯ÙÙˆØ¹</Text>
+                        <Text style={s.payAmountLbl}>المدفوع</Text>
                         <Text style={[s.payAmountVal, {color: Colors.primaryLight}]}>
                           {formatCurrency(payment.paidAmount)}
                         </Text>
@@ -356,7 +356,7 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
                         <>
                           <View style={s.payAmountSep} />
                           <View style={s.payAmountItem}>
-                            <Text style={s.payAmountLbl}>Ø§Ù„Ù…ØªØ¨Ù‚ÙŠ</Text>
+                            <Text style={s.payAmountLbl}>المتبقي</Text>
                             <Text style={[s.payAmountVal, {color: Colors.warning}]}>
                               {formatCurrency(remaining)}
                             </Text>
@@ -389,18 +389,18 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
                     <View style={s.payMeta}>
                       <View style={s.payMetaChip}>
                         <Text style={s.payMetaChipTxt}>
-                          ðŸŽ“ {payment.fee.academicYear}
+                          🎓 {payment.fee.academicYear}
                         </Text>
                       </View>
                       <Text style={s.payMetaDate}>
-                        ðŸ“… {formatDate(payment.createdAt)}
+                        📅 {formatDate(payment.createdAt)}
                       </Text>
                     </View>
 
                     {/* Notes */}
                     {payment.notes ? (
                       <Text style={s.payNotes} numberOfLines={2}>
-                        ðŸ’¬ {payment.notes}
+                        💬 {payment.notes}
                       </Text>
                     ) : null}
 
@@ -410,7 +410,7 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
                         style={s.payNowBtn}
                         onPress={() => handleMakePayment(payment)}
                         activeOpacity={0.8}>
-                        <Text style={s.payNowBtnText}>ðŸ’³  Ø¯ÙØ¹ Ø§Ù„Ø¢Ù†</Text>
+                        <Text style={s.payNowBtnText}>💳  دفع الآن</Text>
                         <Text style={s.payNowBtnAmount}>
                           {formatCurrency(remaining)}
                         </Text>
@@ -429,9 +429,9 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
   );
 };
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ════════════════════════════════════════════════
    STYLES
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+════════════════════════════════════════════════ */
 const s = StyleSheet.create({
   container: {flex: 1, backgroundColor: Colors.background},
   scroll: {flex: 1},
@@ -458,7 +458,7 @@ const s = StyleSheet.create({
   backLink: {paddingVertical: 8},
   backLinkText: {color: Colors.primary, fontSize: 14, fontWeight: '600'},
 
-  /* â”€â”€ Hero â”€â”€ */
+  /* ── Hero ── */
   hero: {
     backgroundColor: Colors.primaryDark,
     paddingTop: 20,
@@ -503,12 +503,12 @@ const s = StyleSheet.create({
     borderRadius: 4, overflow: 'hidden',
   },
   heroProgressFill: {
-    height: '100%', backgroundColor: '#34D399', borderRadius: 4,
+    height: '100%', backgroundColor: Colors.primaryLight, borderRadius: 4,
   },
   heroProgressLabels: {flexDirection: 'row', justifyContent: 'space-between'},
   heroProgressPct: {fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: '600'},
 
-  /* â”€â”€ Stats Row â”€â”€ */
+  /* ── Stats Row ── */
   statsRow: {
     flexDirection: 'row',
     paddingHorizontal: 16,
@@ -518,13 +518,13 @@ const s = StyleSheet.create({
   },
   statCard: {
     flex: 1, borderRadius: 14, paddingVertical: 12, alignItems: 'center',
-    shadowColor: '#000', shadowOffset: {width: 0, height: 2},
+    shadowColor: Colors.primaryDark, shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.06, shadowRadius: 6, elevation: 2,
   },
   statNum: {fontSize: 20, fontWeight: '800'},
   statLabel: {fontSize: 11, fontWeight: '600', marginTop: 2},
 
-  /* â”€â”€ Filter â”€â”€ */
+  /* ── Filter ── */
   filterWrap: {marginBottom: 16, paddingLeft: 16},
   filterContent: {gap: 8, paddingRight: 16},
   chip: {
@@ -544,7 +544,7 @@ const s = StyleSheet.create({
   },
   chipCountText: {fontSize: 11, fontWeight: '700', color: Colors.white},
 
-  /* â”€â”€ List â”€â”€ */
+  /* ── List ── */
   listSection: {paddingHorizontal: 16},
   listHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
@@ -558,13 +558,13 @@ const s = StyleSheet.create({
   },
   paymentsList: {gap: 12},
 
-  /* â”€â”€ Payment Card â”€â”€ */
+  /* ── Payment Card ── */
   payCard: {
     backgroundColor: Colors.white,
     borderRadius: 18,
     padding: 16,
     borderLeftWidth: 4,
-    shadowColor: '#000',
+    shadowColor: Colors.primaryDark,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -635,7 +635,7 @@ const s = StyleSheet.create({
   payNowBtnText: {fontSize: 15, fontWeight: '700', color: Colors.white},
   payNowBtnAmount: {fontSize: 14, fontWeight: '800', color: Colors.white},
 
-  /* â”€â”€ Empty â”€â”€ */
+  /* ── Empty ── */
   emptyBox: {
     alignItems: 'center', paddingVertical: 48,
     backgroundColor: Colors.white, borderRadius: 18,

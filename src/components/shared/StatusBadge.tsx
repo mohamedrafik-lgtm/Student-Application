@@ -1,4 +1,4 @@
-// Shared StatusBadge — small colored pill for status display
+﻿// Shared StatusBadge  premium pill badge
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Icon from './Icon';
@@ -27,13 +27,13 @@ const StatusBadge: React.FC<Props> = ({
 const s = StyleSheet.create({
   badge: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    borderRadius: 8, alignSelf: 'flex-start',
+    borderRadius: 20, alignSelf: 'flex-start',
   },
-  sm: { paddingHorizontal: 8, paddingVertical: 3 },
-  md: { paddingHorizontal: 10, paddingVertical: 5 },
+  sm: { paddingHorizontal: 10, paddingVertical: 4 },
+  md: { paddingHorizontal: 12, paddingVertical: 6 },
   label: { fontWeight: '700' },
-  smText: { fontSize: 10 },
-  mdText: { fontSize: 12 },
+  smText: { fontSize: 11 },
+  mdText: { fontSize: 13 },
 });
 
 export default StatusBadge;

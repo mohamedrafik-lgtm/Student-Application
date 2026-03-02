@@ -3,7 +3,7 @@
 // 2. Open/Closed: Can be extended with new branch operations without modification
 // 3. Dependency Inversion: Depends on abstractions (interfaces) not concretions
 
-import AsyncStorage from '../utils/mockAsyncStorage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { 
   BranchType, 
   BranchInfo, 

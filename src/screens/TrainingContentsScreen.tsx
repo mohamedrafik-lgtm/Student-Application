@@ -16,6 +16,7 @@ import Icon, { AppIcons } from '../components/shared/Icon';
 import { trainingContentsService } from '../services/trainingContentsService';
 import { AuthService } from '../services/authService';
 import ContentLecturesScreen from './ContentLecturesScreen';
+import ScreenHeader from '../components/shared/ScreenHeader';
 import {
   TrainingContent,
   TrainingContentsError,
@@ -206,16 +207,7 @@ const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
 
   return (
     <SafeAreaView style={s.container}>
-      {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Icon name={AppIcons.forward} size={18} color={Colors.primary} />
-        </TouchableOpacity>
-        <View style={{ flex: 1, alignItems: 'flex-end', marginRight: 14 }}>
-          <Text style={s.headerTitle}>مقرراتك الدراسية</Text>
-        </View>
-        <View style={{ width: 38 }} />
-      </View>
+      <ScreenHeader title="مقرراتك الدراسية" subtitle="المحتوى التدريبي للبرنامج" onBack={onBack} />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* Program Banner */}
@@ -333,22 +325,10 @@ const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
-  },
-  backBtn: {
-    width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.primary50,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
+  header: { display: 'none' as any },
+  backBtn: { display: 'none' as any },
+  backIcon: { fontSize: 0 },
+  headerTitle: { fontSize: 0 },
   scroll: { padding: 18, paddingBottom: 32 },
   // Banner
   banner: {
@@ -430,7 +410,7 @@ const s = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: Colors.primary100,
-    shadowColor: '#000',
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
     shadowRadius: 4,
@@ -482,7 +462,7 @@ const s = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
   cardRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
   cardIcon: {

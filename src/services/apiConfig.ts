@@ -14,7 +14,7 @@ export const BRANCH_CONFIG = {
     apiUrl: 'https://mansapi.tiba29.com',
     city: 'Mansoura',
     cityAr: 'المنصورة',
-    icon: '🏛️',
+    icon: 'office-building',
     color: '#3B82F6',
     description: 'Mansoura Branch - Main Campus',
     descriptionAr: 'فرع المنصورة - المقر الرئيسي'
@@ -26,7 +26,7 @@ export const BRANCH_CONFIG = {
     apiUrl: 'https://zagapi.tiba29.com',
     city: 'Zagazig',
     cityAr: 'الزقازيق',
-    icon: '🏢',
+    icon: 'domain',
     color: '#10B981',
     description: 'Zagazig Branch - Secondary Campus',
     descriptionAr: 'فرع الزقازيق - المقر الفرعي'

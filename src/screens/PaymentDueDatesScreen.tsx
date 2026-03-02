@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../styles/colors';
 import Icon, { AppIcons } from '../components/shared/Icon';
+import ScreenHeader from '../components/shared/ScreenHeader';
 
 interface PaymentDueDatesScreenProps {
   accessToken: string;
@@ -42,17 +43,7 @@ const PaymentDueDatesScreen: React.FC<PaymentDueDatesScreenProps> = ({ onBack })
 
   return (
     <SafeAreaView style={s.container}>
-      {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Icon name={AppIcons.back} size={18} color={Colors.primary} />
-        </TouchableOpacity>
-        <View style={{ flex: 1, marginRight: 14 }}>
-          <Text style={s.headerTitle}>مواعيد سداد الرسوم</Text>
-          <Text style={s.headerSub}>إدارة مواعيد سداد الرسوم والإجراءات</Text>
-        </View>
-        <View style={s.headerIcon}><Icon name={AppIcons.schedule} size={18} color={Colors.primary} /></View>
-      </View>
+      <ScreenHeader title="مواعيد سداد الرسوم" subtitle="إدارة مواعيد سداد الرسوم والإجراءات" onBack={onBack} />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* Section title */}
@@ -113,26 +104,18 @@ const PaymentDueDatesScreen: React.FC<PaymentDueDatesScreenProps> = ({ onBack })
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
-    paddingHorizontal: 18, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
-  },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.backgroundSoft, alignItems: 'center', justifyContent: 'center' },
-  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
-  headerSub: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
-  headerIcon: {
-    width: 38, height: 38, borderRadius: 12, backgroundColor: Colors.backgroundSoft,
-    alignItems: 'center', justifyContent: 'center',
-  },
+  header: { display: 'none' as any },
+  backBtn: { display: 'none' as any },
+  backIcon: { fontSize: 0 },
+  headerTitle: { fontSize: 0 },
+  headerSub: { fontSize: 0 },
+  headerIcon: { display: 'none' as any },
   scroll: { padding: 18, paddingBottom: 32 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right', marginBottom: 14 },
   programCard: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
-    borderRadius: 16, padding: 16, borderWidth: 1.5, borderColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
+    borderRadius: 20, padding: 16, borderWidth: 1.5, borderColor: Colors.borderLight,
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3,
   },
   programCardActive: { borderColor: Colors.primary, backgroundColor: Colors.backgroundSoft },
   programIcon: {

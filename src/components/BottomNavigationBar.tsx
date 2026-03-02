@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../styles/colors';
 import { theme } from '../styles/theme';
+import Icon, { AppIcons } from './shared/Icon';
 
 export type TabType = 'home' | 'schedule' | 'grades' | 'exams' | 'attendance' | 'documents' | 'payments' | 'profile';
 
@@ -24,18 +25,18 @@ interface BottomNavigationBarProps {
 interface TabItem {
   id: TabType;
   label: string;
-  icon: string;
+  iconName: string;
 }
 
 const TABS: TabItem[] = [
-  { id: 'home', label: 'الرئيسية', icon: '🏠' },
-  { id: 'schedule', label: 'الجدول', icon: '📅' },
-  { id: 'grades', label: 'الدرجات', icon: '📊' },
-  { id: 'exams', label: 'الاختبارات', icon: '📝' },
-  { id: 'attendance', label: 'الحضور', icon: '✅' },
-  { id: 'documents', label: 'الوثائق', icon: '📄' },
-  { id: 'payments', label: 'المدفوعات', icon: '💰' },
-  { id: 'profile', label: 'الملف', icon: '👤' },
+  { id: 'home', label: 'الرئيسية', iconName: AppIcons.home },
+  { id: 'schedule', label: 'الجدول', iconName: AppIcons.schedule },
+  { id: 'grades', label: 'الدرجات', iconName: AppIcons.grades },
+  { id: 'exams', label: 'الاختبارات', iconName: AppIcons.exam },
+  { id: 'attendance', label: 'الحضور', iconName: AppIcons.attendance },
+  { id: 'documents', label: 'الوثائق', iconName: AppIcons.document },
+  { id: 'payments', label: 'المدفوعات', iconName: AppIcons.payments },
+  { id: 'profile', label: 'الملف', iconName: AppIcons.profile },
 ];
 
 const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
@@ -55,9 +56,12 @@ const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
         onPress={() => onTabPress(tab.id)}
         activeOpacity={0.7}
       >
-        <Text style={[styles.tabIcon, isActive && styles.tabIconActive]}>
-          {tab.icon}
-        </Text>
+        <Icon
+          name={isActive ? tab.iconName.replace('-outline', '') : tab.iconName}
+          size={20}
+          color={isActive ? Colors.primary : Colors.textSecondary}
+          style={isActive ? { transform: [{ scale: 1.1 }] } : undefined}
+        />
         <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
           {tab.label}
         </Text>
@@ -114,13 +118,6 @@ const styles = StyleSheet.create({
   },
   tabActive: {
     backgroundColor: Colors.primarySoft,
-  },
-  tabIcon: {
-    fontSize: 20,
-    marginBottom: 2,
-  },
-  tabIconActive: {
-    transform: [{ scale: 1.1 }],
   },
   tabLabel: {
     fontSize: 10,

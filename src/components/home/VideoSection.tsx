@@ -36,13 +36,13 @@ const VideoSection: React.FC<Props> = ({ onPress }) => (
 const s = StyleSheet.create({
   card: {
     marginHorizontal: 16, marginTop: 2,
-    backgroundColor: Colors.backgroundDark, borderRadius: 18, overflow: 'hidden',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15, shadowRadius: 12, elevation: 5,
+    backgroundColor: Colors.backgroundDark, borderRadius: 20, overflow: 'hidden',
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.18, shadowRadius: 14, elevation: 6,
   },
   inner: { flexDirection: 'column' },
   thumb: {
-    height: 140, backgroundColor: '#111827',
+    height: 140, backgroundColor: Colors.textPrimary,
     alignItems: 'center', justifyContent: 'center', position: 'relative',
   },
   playBtn: {

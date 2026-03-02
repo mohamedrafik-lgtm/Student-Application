@@ -1,24 +1,22 @@
-// LoginScreen — Hero Section component
-import React from 'react';
+﻿import React from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import Logo from '../Logo';
 import { Colors } from '../../styles/colors';
 
 const { width } = Dimensions.get('window');
 
-interface Props {
-  opacity: Animated.Value;
-}
+interface Props { opacity: Animated.Value; }
 
 const LoginHero: React.FC<Props> = ({ opacity }) => (
   <View style={s.heroBg}>
     <View style={s.blob1} />
     <View style={s.blob2} />
     <View style={s.blob3} />
+    <View style={s.blob4} />
     <Animated.View style={[s.heroContent, { opacity }]}>
       <Logo size="large" showText={false} />
       <Text style={s.heroTitle}>منصة المتدربين</Text>
-      <Text style={s.heroSubtitle}>بوابتك نحو التعلم والتطور</Text>
+      <Text style={s.heroTagline}>طيبة للتعليم والتدريب</Text>
     </Animated.View>
   </View>
 );
@@ -26,34 +24,39 @@ const LoginHero: React.FC<Props> = ({ opacity }) => (
 const s = StyleSheet.create({
   heroBg: {
     backgroundColor: Colors.primaryDark,
-    paddingTop: 60,
-    paddingBottom: 70,
+    paddingTop: 55,
+    paddingBottom: 75,
     alignItems: 'center',
     overflow: 'hidden',
   },
   blob1: {
-    position: 'absolute', top: -40, right: -50,
-    width: 180, height: 180, borderRadius: 90,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    position: 'absolute', top: -50, right: -60,
+    width: 200, height: 200, borderRadius: 100,
+    backgroundColor: 'rgba(16, 185, 129, 0.18)',
   },
   blob2: {
-    position: 'absolute', top: 20, left: -60,
-    width: 140, height: 140, borderRadius: 70,
-    backgroundColor: 'rgba(13, 148, 136, 0.2)',
+    position: 'absolute', top: 30, left: -70,
+    width: 160, height: 160, borderRadius: 80,
+    backgroundColor: 'rgba(13, 148, 136, 0.15)',
   },
   blob3: {
-    position: 'absolute', bottom: -30, right: width * 0.3,
-    width: 100, height: 100, borderRadius: 50,
-    backgroundColor: 'rgba(167, 243, 208, 0.15)',
+    position: 'absolute', bottom: -40, right: width * 0.25,
+    width: 120, height: 120, borderRadius: 60,
+    backgroundColor: 'rgba(167, 243, 208, 0.12)',
+  },
+  blob4: {
+    position: 'absolute', bottom: 10, left: width * 0.1,
+    width: 80, height: 80, borderRadius: 40,
+    backgroundColor: 'rgba(5, 150, 105, 0.1)',
   },
   heroContent: { alignItems: 'center', zIndex: 2 },
   heroTitle: {
-    fontSize: 26, fontWeight: '800', color: '#FFFFFF',
-    marginTop: 14, letterSpacing: 0.5,
+    fontSize: 28, fontWeight: '800', color: '#FFFFFF',
+    marginTop: 16, letterSpacing: 0.3,
   },
-  heroSubtitle: {
-    fontSize: 14, color: 'rgba(255,255,255,0.75)',
-    marginTop: 6, letterSpacing: 0.3,
+  heroTagline: {
+    fontSize: 14, color: 'rgba(255,255,255,0.7)',
+    marginTop: 6, letterSpacing: 0.5,
   },
 });
 

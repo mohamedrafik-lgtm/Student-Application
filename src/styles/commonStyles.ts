@@ -1,47 +1,47 @@
-// Shared styles matching the website design
-// Used across all screens for consistent look and feel
+// Shared styles — Premium Design System
+// Used across all screens for consistent, modern look and feel
 
 import { StyleSheet, Dimensions, Platform } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-// ── Website Design Tokens ──
+// ── Unified Design Tokens (aligned with Colors.ts — Emerald Green theme) ──
 export const WebColors = {
   // Backgrounds
-  screenBg: '#F4F6FA',
+  screenBg: '#F0FDF4',
   cardBg: '#FFFFFF',
   headerBg: '#FFFFFF',
 
   // Text
-  title: '#1A1D26',
-  subtitle: '#8E95A2',
-  body: '#4A5568',
-  hint: '#A0AEC0',
+  title: '#111827',
+  subtitle: '#6B7280',
+  body: '#374151',
+  hint: '#9CA3AF',
 
-  // Primary
-  primary: '#2563EB',
-  primarySoft: '#EBF5FB',
-  primaryLight: '#3B82F6',
+  // Primary — ALWAYS emerald green
+  primary: '#059669',
+  primarySoft: '#ECFDF5',
+  primaryLight: '#10B981',
 
   // Status
-  success: '#27AE60',
-  successBg: '#E8F8F0',
-  error: '#EF4444',
-  errorBg: '#FDEDEE',
-  warning: '#D4A017',
-  warningBg: '#FEF9E7',
-  info: '#2E86C1',
-  infoBg: '#EBF5FB',
+  success: '#059669',
+  successBg: '#ECFDF5',
+  error: '#DC2626',
+  errorBg: '#FEF2F2',
+  warning: '#D97706',
+  warningBg: '#FFFBEB',
+  info: '#2563EB',
+  infoBg: '#EFF6FF',
 
   // Borders
-  border: '#EEF2F6',
-  borderLight: '#F0F2F5',
-  borderMedium: '#E5E7EB',
+  border: '#E5E7EB',
+  borderLight: '#F3F4F6',
+  borderMedium: '#D1D5DB',
 
   // Misc
-  badgeBg: '#F4F6FA',
-  avatarBg: '#2563EB',
-  separator: '#F8F9FB',
+  badgeBg: '#F0FDF4',
+  avatarBg: '#059669',
+  separator: '#F9FAFB',
 };
 
 // ── Shared screen-level styles ──

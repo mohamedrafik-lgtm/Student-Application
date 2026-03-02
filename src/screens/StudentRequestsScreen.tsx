@@ -11,6 +11,7 @@ import {
 import CustomButton from '../components/CustomButton';
 import { Colors } from '../styles/colors';
 import Icon, { AppIcons } from '../components/shared/Icon';
+import ScreenHeader from '../components/shared/ScreenHeader';
 
 interface StudentRequestsScreenProps {
   accessToken: string;
@@ -87,16 +88,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
 
   return (
     <SafeAreaView style={s.container}>
-      {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Icon name={AppIcons.back} size={18} color={Colors.primary} />
-        </TouchableOpacity>
-        <View style={{ flex: 1, alignItems: 'flex-end', marginRight: 14 }}>
-          <Text style={s.headerTitle}>الطلبات المجانية</Text>
-        </View>
-        <View style={{ width: 38 }} />
-      </View>
+      <ScreenHeader title="الطلبات المجانية" onBack={onBack} />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* Create Request Buttons */}
@@ -217,32 +209,27 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
-    paddingHorizontal: 18, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
-  },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.backgroundSoft, alignItems: 'center', justifyContent: 'center' },
-  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
+  header: { display: 'none' as any },
+  backBtn: { display: 'none' as any },
+  backIcon: { fontSize: 0 },
+  headerTitle: { fontSize: 0 },
   scroll: { padding: 18, paddingBottom: 32 },
   typesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
   typeCard: {
-    width: '47%' as any, backgroundColor: Colors.white, borderRadius: 16, padding: 16, alignItems: 'center',
+    width: '47%' as any, backgroundColor: Colors.white, borderRadius: 20, padding: 16, alignItems: 'center',
     borderWidth: 1, borderColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3,
   },
   typeIcon: {
-    width: 48, height: 48, borderRadius: 14, backgroundColor: Colors.background,
+    width: 52, height: 52, borderRadius: 16, backgroundColor: Colors.background,
     alignItems: 'center', justifyContent: 'center', marginBottom: 10,
   },
   typeLabel: { fontSize: 14, fontWeight: '700', color: Colors.textPrimary, textAlign: 'center', marginBottom: 3 },
   typeHint: { fontSize: 11, color: Colors.textHint },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right', marginBottom: 10 },
   reqCard: {
-    backgroundColor: Colors.white, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
+    backgroundColor: Colors.white, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: Colors.borderLight,
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3,
   },
   reqHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.background },
   reqLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, marginLeft: 10, gap: 12 },

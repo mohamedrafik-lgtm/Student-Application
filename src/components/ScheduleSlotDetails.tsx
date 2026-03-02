@@ -301,7 +301,7 @@ const ScheduleSlotDetails: React.FC<ScheduleSlotDetailsProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background,
   },
   scrollView: {
     flex: 1,
@@ -364,13 +364,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     marginBottom: 20,
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    elevation: 4,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.1)',
+    borderColor: Colors.borderLight,
   },
   cardTitle: {
     fontSize: 18,
@@ -416,11 +416,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sessionCard: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.backgroundAlt,
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.15)',
+    borderColor: Colors.borderLight,
     marginBottom: 12,
   },
   cancelledSession: {

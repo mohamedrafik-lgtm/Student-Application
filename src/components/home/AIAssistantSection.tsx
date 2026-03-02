@@ -32,9 +32,9 @@ const AIAssistantSection: React.FC = () => (
 const s = StyleSheet.create({
   card: {
     marginHorizontal: 16, marginTop: 14, backgroundColor: Colors.white,
-    borderRadius: 18, padding: 18,
-    shadowColor: Colors.shadow, shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1, shadowRadius: 10, elevation: 2,
+    borderRadius: 20, padding: 18,
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.07, shadowRadius: 12, elevation: 3,
     borderWidth: 1, borderColor: Colors.borderLight,
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 6 },

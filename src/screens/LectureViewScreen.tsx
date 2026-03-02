@@ -18,6 +18,7 @@ import { Colors } from '../styles/colors';
 import Icon, { AppIcons } from '../components/shared/Icon';
 import { lecturesService } from '../services/lecturesService';
 import { API_CONFIG } from '../services/apiConfig';
+import ScreenHeader from '../components/shared/ScreenHeader';
 import {
   LectureDetails,
   TrainingContentsError,
@@ -131,27 +132,11 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
 
   return (
     <SafeAreaView style={s.container}>
-      {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Icon name={AppIcons.forward} size={18} color={Colors.primary} />
-        </TouchableOpacity>
-        <View style={{ flex: 1, marginRight: 14 }}>
-          <Text style={s.headerTitle} numberOfLines={1}>
-            {lectureDetails?.title || 'المحاضرة'}
-          </Text>
-          {lectureDetails && (
-            <Text style={s.headerSub}>
-              {lectureDetails.content.name} • الباب {lectureDetails.chapter}
-            </Text>
-          )}
-        </View>
-        {lectureDetails && (
-          <View style={s.orderBadge}>
-            <Text style={s.orderBadgeText}>#{lectureDetails.order}</Text>
-          </View>
-        )}
-      </View>
+      <ScreenHeader
+        title={lectureDetails?.title || 'المحاضرة'}
+        subtitle={lectureDetails ? `${lectureDetails.content.name} • الباب ${lectureDetails.chapter}` : undefined}
+        onBack={onBack}
+      />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* Loading */}
@@ -318,36 +303,22 @@ const AvailRow = ({ label, available }: { label: string; available: boolean }) =
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
-  },
-  backBtn: {
-    width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.primary50,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
-  headerSub: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
-  orderBadge: {
-    backgroundColor: Colors.successLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10,
-  },
-  orderBadgeText: { fontSize: 12, fontWeight: '700', color: Colors.primaryLight },
+  header: { display: 'none' as any },
+  backBtn: { display: 'none' as any },
+  backIcon: { fontSize: 0 },
+  headerTitle: { fontSize: 0 },
+  headerSub: { fontSize: 0 },
+  orderBadge: { display: 'none' as any },
+  orderBadgeText: { fontSize: 0 },
   scroll: { padding: 18, paddingBottom: 32 },
   // Card
   card: {
     backgroundColor: Colors.white,
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 18,
     borderWidth: 1,
     borderColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3,
   },
   cardHeadRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 },
   cardHeadIcon: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },

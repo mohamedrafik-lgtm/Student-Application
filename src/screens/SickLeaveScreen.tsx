@@ -8,6 +8,7 @@ import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import { Colors } from '../styles/colors';
 import Icon, { AppIcons } from '../components/shared/Icon';
+import ScreenHeader from '../components/shared/ScreenHeader';
 
 interface SickLeaveScreenProps {
   accessToken: string;
@@ -49,16 +50,7 @@ const SickLeaveScreen: React.FC<SickLeaveScreenProps> = ({ accessToken, onBack }
 
   return (
     <SafeAreaView style={s.container} edges={['bottom']}>
-      <View style={s.header}>
-        <View style={s.headerRow}>
-          <View style={s.headerSpacer} />
-          <View style={s.headerTitleArea}>
-            <Text style={s.headerTitle}>طلب إجازة مرضية</Text>
-            <Text style={s.headerSubtitle}>تقديم طلب إجازة مرضية مع المستندات</Text>
-          </View>
-          <TouchableOpacity style={s.backBtn} onPress={onBack}><Icon name={AppIcons.back} size={20} color={Colors.primary} /></TouchableOpacity>
-        </View>
-      </View>
+      <ScreenHeader title="طلب إجازة مرضية" subtitle="تقديم طلب إجازة مرضية مع المستندات" onBack={onBack} />
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={s.formCard}>
           <View style={s.fieldGroup}>
@@ -91,17 +83,22 @@ const SickLeaveScreen: React.FC<SickLeaveScreenProps> = ({ accessToken, onBack }
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: { backgroundColor: Colors.white, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
-  headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-  headerTitleArea: { flex: 1, alignItems: 'flex-end', marginRight: 12 },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right' },
-  headerSubtitle: { fontSize: 13, color: Colors.textHint, marginTop: 4, textAlign: 'right' },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' },
-  backBtnText: { fontSize: 20, color: Colors.textPrimary, fontWeight: '600' },
-  headerSpacer: { width: 38 },
+  header: { display: 'none' as any },
+  headerRow: { display: 'none' as any },
+  headerTitleArea: { display: 'none' as any },
+  headerTitle: { fontSize: 0 },
+  headerSubtitle: { fontSize: 0 },
+  backBtn: { display: 'none' as any },
+  backBtnText: { fontSize: 0 },
+  headerSpacer: { display: 'none' as any },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 },
-  formCard: { backgroundColor: Colors.white, borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
+  formCard: {
+    backgroundColor: Colors.white, borderRadius: 20, padding: 20,
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08, shadowRadius: 14, elevation: 4,
+    borderWidth: 1, borderColor: Colors.borderLight,
+  },
   fieldGroup: { marginBottom: 24 },
   fieldLabel: { fontSize: 14, fontWeight: '700', color: Colors.textPrimary, marginBottom: 10, textAlign: 'right' },
   uploadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: Colors.background, borderRadius: 12, padding: 16, borderWidth: 1.5, borderColor: Colors.borderMedium, borderStyle: 'dashed' },

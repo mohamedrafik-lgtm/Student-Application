@@ -35,7 +35,8 @@ export type TopNavTab =
   | 'payment-due-dates'
   | 'profile'
   | 'training-contents'
-  | 'requests-hub';
+  | 'requests-hub'
+  | 'survey';
 
 interface TopNavigationBarProps {
   currentTab: TopNavTab;
@@ -44,21 +45,22 @@ interface TopNavigationBarProps {
   onNavigateToProfile?: () => void;
 }
 
-const TABS: { id: TopNavTab; label: string; icon?: string }[] = [
-  { id: 'home', label: 'الرئيسية', icon: '🏠' },
-  { id: 'schedule', label: 'الجدول', icon: '📅' },
-  { id: 'training-contents', label: 'المحتوى التدريبي', icon: '📚' },
-  { id: 'grades', label: 'الدرجات', icon: '📊' },
-  { id: 'academic-results', label: 'النتائج الدراسية', icon: '🎓' },
-  { id: 'grade-appeals', label: 'تظلمات الدرجات', icon: '⚖️' },
-  { id: 'exams', label: 'الاختبارات', icon: '📝' },
-  { id: 'attendance', label: 'الحضور', icon: '✅' },
-  { id: 'register-attendance', label: 'تسجيل الحضور', icon: '📲' },
-  { id: 'requests-hub', label: 'الطلبات', icon: '📋' },
-  { id: 'documents', label: 'الوثائق', icon: '📄' },
-  { id: 'payments', label: 'المدفوعات', icon: '💰' },
-  { id: 'payment-due-dates', label: 'مواعيد السداد', icon: '📆' },
-  { id: 'profile', label: 'الملف', icon: '👤' },
+const TABS: { id: TopNavTab; label: string }[] = [
+  { id: 'home', label: 'الرئيسية' },
+  { id: 'schedule', label: 'الجدول' },
+  { id: 'training-contents', label: 'المحتوى التدريبي' },
+  { id: 'grades', label: 'الدرجات' },
+  { id: 'academic-results', label: 'النتائج الدراسية' },
+  { id: 'grade-appeals', label: 'تظلمات الدرجات' },
+  { id: 'exams', label: 'الاختبارات' },
+  { id: 'attendance', label: 'الحضور' },
+  { id: 'register-attendance', label: 'تسجيل الحضور' },
+  { id: 'requests-hub', label: 'الطلبات' },
+  { id: 'survey', label: 'الاستبيان' },
+  { id: 'documents', label: 'الوثائق' },
+  { id: 'payments', label: 'المدفوعات' },
+  { id: 'payment-due-dates', label: 'مواعيد السداد' },
+  { id: 'profile', label: 'الملف' },
 ];
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -165,16 +167,11 @@ const TopNavigationBar: React.FC<TopNavigationBarProps> = ({
               style={styles.menuToggleButton}
               activeOpacity={0.7}
             >
-              <Text style={styles.menuToggleIcon}>
-                {isExpanded ? '✕' : '≡'}
-              </Text>
+              <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: '700' }}>{isExpanded ? '✕' : '☰'}</Text>
             </TouchableOpacity>
 
             {/* Current Tab Display */}
             <View style={styles.currentTabContainer}>
-              <Text style={styles.currentTabIcon}>
-                {TABS.find(t => t.id === currentTab)?.icon || '🏠'}
-              </Text>
               <Text style={styles.currentTabLabel} numberOfLines={1}>
                 {TABS.find(t => t.id === currentTab)?.label || 'الرئيسية'}
               </Text>
@@ -197,7 +194,6 @@ const TopNavigationBar: React.FC<TopNavigationBarProps> = ({
               style={styles.profileButton}
               activeOpacity={0.7}
             >
-              <Text style={styles.profileIcon}>👤</Text>
               <Text style={styles.profileText}>الملف</Text>
             </TouchableOpacity>
           </View>
@@ -243,7 +239,7 @@ const TopNavigationBar: React.FC<TopNavigationBarProps> = ({
                   style={styles.drawerCloseButton}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.drawerCloseIcon}>✕</Text>
+                  <Text style={{ color: Colors.textPrimary, fontSize: 18, fontWeight: '700' }}>✕</Text>
                 </TouchableOpacity>
               </View>
 
@@ -262,17 +258,6 @@ const TopNavigationBar: React.FC<TopNavigationBarProps> = ({
                   onPress={() => handleSelect(tab.id)}
                   activeOpacity={0.7}
                 >
-                  <View style={[
-                    styles.menuItemIconContainer,
-                    isActive && styles.menuItemIconContainerActive
-                  ]}>
-                    <Text style={[
-                      styles.menuItemIcon,
-                      isActive && styles.menuItemIconActive
-                    ]}>
-                      {tab.icon}
-                    </Text>
-                  </View>
                   <Text style={[
                     styles.menuItemLabel,
                     isActive && styles.menuItemLabelActive
@@ -290,9 +275,6 @@ const TopNavigationBar: React.FC<TopNavigationBarProps> = ({
               onPress={handleLogout}
               activeOpacity={0.7}
             >
-              <View style={styles.logoutMenuItemIconContainer}>
-                <Text style={styles.logoutMenuItemIcon}>🚪</Text>
-              </View>
               <Text style={styles.logoutMenuItemLabel}>
                 تسجيل الخروج
               </Text>
@@ -308,23 +290,21 @@ const TopNavigationBar: React.FC<TopNavigationBarProps> = ({
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.primaryDark,
     zIndex: 100,
   },
   container: {
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    backgroundColor: Colors.primaryDark,
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 8,
   },
   mainBar: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.primaryDark,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 13,
   },
   mainBarContent: {
     flexDirection: 'row',
@@ -332,37 +312,28 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   menuToggleButton: {
-    width: 44,
-    height: 44,
+    width: 42,
+    height: 42,
     borderRadius: 12,
-    backgroundColor: Colors.primarySoft,
+    backgroundColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  menuToggleIcon: {
-    fontSize: 20,
-    color: Colors.primary,
-    fontWeight: '800',
   },
   currentTabContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 12,
-    paddingHorizontal: 16,
+    marginHorizontal: 10,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    backgroundColor: Colors.backgroundSoft,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 12,
   },
-  currentTabIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
   currentTabLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: '#FFFFFF',
     textAlign: 'right',
   },
   profileButton: {
@@ -370,20 +341,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: Colors.primarySoft,
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  profileIcon: {
-    fontSize: 16,
-    marginRight: 6,
+    gap: 4,
   },
   profileText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    color: Colors.primary,
-    textAlign: 'right',
+    color: '#FFFFFF',
   },
   // Modal and Drawer Styles
   modalContainer: {
@@ -392,7 +357,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.overlay,
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   drawer: {
     position: 'absolute',
@@ -401,11 +366,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: DRAWER_WIDTH,
     backgroundColor: Colors.white,
-    shadowColor: Colors.shadowDark,
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: -4, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 16,
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 20,
   },
   drawerSafeArea: {
     flex: 1,
@@ -416,83 +381,64 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-    backgroundColor: Colors.primarySoft,
+    paddingVertical: 18,
+    backgroundColor: Colors.primaryDark,
   },
   drawerTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: Colors.textPrimary,
+    color: '#FFFFFF',
     textAlign: 'right',
   },
   drawerCloseButton: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.white,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  drawerCloseIcon: {
-    fontSize: 18,
-    color: Colors.textPrimary,
-    fontWeight: '700',
   },
   drawerScrollView: {
     flex: 1,
   },
   drawerContent: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginVertical: 6,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    marginVertical: 3,
     backgroundColor: Colors.backgroundSoft,
-    position: 'relative',
   },
   menuItemActive: {
     backgroundColor: Colors.primarySoft,
-    borderWidth: 2,
-    borderColor: Colors.primary,
+    borderWidth: 1.5,
+    borderColor: Colors.primary100,
   },
   menuItemIconContainer: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 12,
     backgroundColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 1,
   },
   menuItemIconContainerActive: {
     backgroundColor: Colors.primary,
   },
-  menuItemIcon: {
-    fontSize: 22,
-  },
-  menuItemIconActive: {
-    fontSize: 22,
-  },
   menuItemLabel: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: Colors.textPrimary,
     textAlign: 'right',
@@ -503,45 +449,34 @@ const styles = StyleSheet.create({
   },
   activeIndicator: {
     position: 'absolute',
-    right: 12,
+    right: 10,
     width: 4,
-    height: '60%',
+    height: 22,
     borderRadius: 2,
     backgroundColor: Colors.primary,
   },
   logoutMenuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginVertical: 6,
-    marginTop: 20,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    marginVertical: 3,
+    marginTop: 16,
     backgroundColor: Colors.errorSoft,
-    borderWidth: 1,
-    borderColor: Colors.error,
   },
   logoutMenuItemIconContainer: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 12,
     backgroundColor: Colors.error,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
-    shadowColor: Colors.shadowDark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  logoutMenuItemIcon: {
-    fontSize: 22,
-    color: Colors.white,
   },
   logoutMenuItemLabel: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: Colors.error,
     textAlign: 'right',

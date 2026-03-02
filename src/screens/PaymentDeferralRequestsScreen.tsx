@@ -11,6 +11,7 @@ import {
 import CustomButton from '../components/CustomButton';
 import { Colors } from '../styles/colors';
 import Icon, { AppIcons } from '../components/shared/Icon';
+import ScreenHeader from '../components/shared/ScreenHeader';
 
 interface PaymentDeferralRequestsScreenProps {
   accessToken: string;
@@ -70,16 +71,7 @@ const PaymentDeferralRequestsScreen: React.FC<PaymentDeferralRequestsScreenProps
 
   return (
     <SafeAreaView style={s.container}>
-      {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Icon name={AppIcons.back} size={18} color={Colors.primary} />
-        </TouchableOpacity>
-        <View style={{ flex: 1, alignItems: 'flex-end', marginRight: 14 }}>
-          <Text style={s.headerTitle}>طلبات تأجيل السداد</Text>
-        </View>
-        <View style={{ width: 38 }} />
-      </View>
+      <ScreenHeader title="طلبات تأجيل السداد" subtitle="متابعة طلبات تأجيل الدفعات" onBack={onBack} />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* Create button */}
@@ -179,25 +171,20 @@ const PaymentDeferralRequestsScreen: React.FC<PaymentDeferralRequestsScreenProps
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
-    paddingHorizontal: 18, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
-  },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.backgroundSoft, alignItems: 'center', justifyContent: 'center' },
-  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
+  header: { display: 'none' as any },
+  backBtn: { display: 'none' as any },
+  backIcon: { fontSize: 0 },
+  headerTitle: { fontSize: 0 },
   scroll: { padding: 18, paddingBottom: 32 },
   createBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: Colors.primary, borderRadius: 14, paddingVertical: 15, gap: 10,
-    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 4,
+    backgroundColor: Colors.primary, borderRadius: 16, paddingVertical: 15, gap: 10,
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 5,
   },
   createBtnText: { fontSize: 15, fontWeight: '700', color: Colors.white },
   card: {
-    backgroundColor: Colors.white, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
+    backgroundColor: Colors.white, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: Colors.borderLight,
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3,
   },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.background },
   cardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, marginLeft: 10, gap: 12 },

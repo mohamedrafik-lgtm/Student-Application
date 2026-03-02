@@ -1,5 +1,4 @@
-// Shared DataState — loading, error, empty states
-// Single Responsibility: Only state displays (loading spinner, error card, empty card)
+// Shared DataState — loading, error, empty states with premium styling
 import React from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon, { AppIcons } from './Icon';
@@ -36,8 +35,9 @@ const DataState: React.FC<Props> = ({
     return (
       <View style={s.center}>
         <View style={s.errorCircle}>
-          <Icon name={AppIcons.warning} size={32} color={Colors.error} />
+          <Icon name={AppIcons.warning} size={34} color={Colors.error} />
         </View>
+        <Text style={s.errorTitle}>حدث خطأ</Text>
         <Text style={s.errorText}>{error}</Text>
         {onRetry ? (
           <TouchableOpacity style={s.retryBtn} onPress={onRetry} activeOpacity={0.8}>
@@ -53,7 +53,7 @@ const DataState: React.FC<Props> = ({
     return (
       <View style={s.center}>
         <View style={s.emptyCircle}>
-          <Icon name={emptyIcon || AppIcons.document} size={36} color={Colors.primary} />
+          <Icon name={emptyIcon || AppIcons.document} size={38} color={Colors.primary} />
         </View>
         <Text style={s.emptyTitle}>{emptyTitle}</Text>
         {emptyMessage ? <Text style={s.emptyMsg}>{emptyMessage}</Text> : null}
@@ -68,46 +68,60 @@ const s = StyleSheet.create({
   center: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 70,
     paddingHorizontal: 24,
   },
   loaderWrap: {
-    width: 64, height: 64, borderRadius: 32,
+    width: 72, height: 72, borderRadius: 36,
     backgroundColor: Colors.primarySoft,
     alignItems: 'center', justifyContent: 'center',
     marginBottom: 16,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 3,
   },
   loadingText: {
     fontSize: 14, color: Colors.textLight, fontWeight: '600', textAlign: 'center',
   },
   errorCircle: {
-    width: 64, height: 64, borderRadius: 32,
+    width: 72, height: 72, borderRadius: 36,
     backgroundColor: Colors.errorLight,
     alignItems: 'center', justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  errorTitle: {
+    fontSize: 17, fontWeight: '800', color: Colors.textPrimary,
+    textAlign: 'center', marginBottom: 6,
   },
   errorText: {
-    fontSize: 15, fontWeight: '600', color: Colors.error,
-    textAlign: 'center', marginBottom: 20, lineHeight: 22,
+    fontSize: 14, fontWeight: '500', color: Colors.textSecondary,
+    textAlign: 'center', marginBottom: 22, lineHeight: 22,
   },
   retryBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: Colors.primary, paddingHorizontal: 22, paddingVertical: 10,
+    backgroundColor: Colors.primary, paddingHorizontal: 24, paddingVertical: 12,
     borderRadius: 12,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   retryText: { fontSize: 14, fontWeight: '700', color: Colors.white },
   emptyCircle: {
-    width: 72, height: 72, borderRadius: 36,
+    width: 80, height: 80, borderRadius: 40,
     backgroundColor: Colors.primarySoft,
     alignItems: 'center', justifyContent: 'center',
     marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: 17, fontWeight: '700', color: Colors.textPrimary,
-    textAlign: 'center', marginBottom: 6,
+    fontSize: 17, fontWeight: '800', color: Colors.textPrimary,
+    textAlign: 'center', marginBottom: 8,
   },
   emptyMsg: {
-    fontSize: 13, color: Colors.textLight, textAlign: 'center', lineHeight: 20,
+    fontSize: 14, color: Colors.textLight, textAlign: 'center', lineHeight: 22,
   },
 });
 

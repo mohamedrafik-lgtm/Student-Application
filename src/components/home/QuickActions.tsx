@@ -30,7 +30,7 @@ const QuickActions: React.FC<Props> = ({
     { icon: AppIcons.schedule, label: 'الجدول', onPress: onSchedule, bgColor: Colors.infoLight, iconColor: Colors.info },
     { icon: AppIcons.exams, label: 'الاختبارات', onPress: onExams, bgColor: Colors.warningLight, iconColor: Colors.warning },
     { icon: AppIcons.grades, label: 'الدرجات', onPress: onGrades, bgColor: Colors.backgroundSoft, iconColor: Colors.primary },
-    { icon: AppIcons.requests, label: 'الطلبات', onPress: onRequests, bgColor: '#F3E8FF', iconColor: '#7C3AED' },
+    { icon: AppIcons.requests, label: 'الطلبات', onPress: onRequests, bgColor: Colors.secondarySoft, iconColor: Colors.secondary },
     { icon: AppIcons.content, label: 'المحتوى', onPress: onContents, bgColor: Colors.errorLight, iconColor: Colors.error },
     { icon: AppIcons.profile, label: 'الملف', onPress: onProfile, bgColor: Colors.primary50, iconColor: Colors.primaryDark },
   ];

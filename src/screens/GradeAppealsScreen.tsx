@@ -9,6 +9,7 @@ import { HomeService } from '../services/homeService';
 import { gradesService } from '../services/gradesService';
 import { Colors } from '../styles/colors';
 import Icon, { AppIcons } from '../components/shared/Icon';
+import ScreenHeader from '../components/shared/ScreenHeader';
 
 /* ══════════════════════════════════ PROPS ══════════════════════════════════ */
 interface GradeAppealsScreenProps {
@@ -36,17 +37,17 @@ const normalizeStatus = (raw: any): string => {
 type FilterStatus = 'ALL' | 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: string }> = {
-  PENDING:      { label: 'قيد المراجعة', color: Colors.warning, bg: Colors.warningLight, icon: '⏳' },
-  UNDER_REVIEW: { label: 'تحت المراجعة', color: Colors.primary, bg: Colors.infoLight, icon: '🔍' },
-  APPROVED:     { label: 'مقبول',         color: Colors.success, bg: Colors.successLight, icon: '✅' },
-  REJECTED:     { label: 'مرفوض',         color: Colors.error, bg: Colors.errorLight, icon: '✕' },
+  PENDING:      { label: 'قيد المراجعة', color: Colors.warning, bg: Colors.warningLight, icon: 'timer-sand' },
+  UNDER_REVIEW: { label: 'تحت المراجعة', color: Colors.primary, bg: Colors.infoLight, icon: 'magnify' },
+  APPROVED:     { label: 'مقبول',         color: Colors.success, bg: Colors.successLight, icon: 'check-circle' },
+  REJECTED:     { label: 'مرفوض',         color: Colors.error, bg: Colors.errorLight, icon: 'close-circle-outline' },
 };
 
 const EXAM_TYPE_META: Record<string, { label: string; icon: string }> = {
-  PAPER_EXAM: { label: 'امتحان ورقي', icon: '📄' },
-  PRACTICAL:  { label: 'عملي',        icon: '🔬' },
-  ORAL:       { label: 'شفهي',        icon: '🎤' },
-  ASSIGNMENT: { label: 'واجب',        icon: '📚' },
+  PAPER_EXAM: { label: 'امتحان ورقي', icon: 'file-document-outline' },
+  PRACTICAL:  { label: 'عملي',        icon: 'flask' },
+  ORAL:       { label: 'شفهي',        icon: 'microphone' },
+  ASSIGNMENT: { label: 'واجب',        icon: 'book-open-variant' },
 };
 
 const FILTERS: { id: FilterStatus; label: string }[] = [
@@ -281,7 +282,7 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
       console.log('[GradeAppeals] Submitting:', body);
       await HomeService.createGradeAppeal(accessToken, body);
 
-      Alert.alert('تم بنجاح ✅', 'تم تقديم التظلم بنجاح. سيتم مراجعته من قِبَل الإدارة.');
+      Alert.alert('تم بنجاح', 'تم تقديم التظلم بنجاح. سيتم مراجعته من قِبَل الإدارة.');
       setShowForm(false);
       loadAppeals();
     } catch (err: any) {
@@ -295,17 +296,7 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
   /* ══════════════════════════════════ RENDER ══════════════════════════════════ */
 
   const renderHeader = () => (
-    <View style={s.header}>
-      <TouchableOpacity style={s.backBtn} onPress={onBack}>
-        <Text style={s.backArrow}>→</Text>
-        <Text style={s.backText}>العودة</Text>
-      </TouchableOpacity>
-      <View style={s.headerCenter}>
-        <Text style={s.headerTitle}>⚖️ تظلمات الدرجات</Text>
-        <Text style={s.headerSub}>تقديم ومتابعة طلبات التظلم على الدرجات</Text>
-      </View>
-      <View style={{ width: 60 }} />
-    </View>
+    <ScreenHeader title="تظلمات الدرجات" subtitle="تقديم ومتابعة طلبات التظلم على الدرجات" onBack={onBack} />
   );
 
   /* ── Loading ── */
@@ -327,7 +318,7 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
       <View style={s.container}>
         {renderHeader()}
         <View style={s.centerBox}>
-          <Text style={s.errEmoji}>⚠️</Text>
+          <Icon name="alert-circle-outline" size={48} color={Colors.warning} />
           <Text style={s.errTitle}>تعذّر التحميل</Text>
           <Text style={s.errMsg}>{error}</Text>
           <TouchableOpacity style={s.retryBtn} onPress={() => loadAppeals()}>
@@ -352,7 +343,7 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
         {/* ═══ APPEALS STATUS BANNER ═══ */}
         {!acceptAppeals && (
           <View style={s.closedBanner}>
-            <Text style={s.closedBannerIcon}>🔒</Text>
+            <Icon name="lock-outline" size={22} color={Colors.error} />
             <View style={s.closedBannerTextArea}>
               <Text style={s.closedBannerTitle}>باب التظلمات مغلق حالياً</Text>
               <Text style={s.closedBannerDesc}>لا يمكن تقديم تظلمات جديدة في الوقت الحالي</Text>
@@ -366,7 +357,7 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
           onPress={handleOpenForm}
           activeOpacity={0.8}
           disabled={!acceptAppeals}>
-          <Text style={s.submitBtnIcon}>📝</Text>
+          <Icon name="file-document-edit-outline" size={18} color={Colors.white} />
           <Text style={s.submitBtnTxt}>تقديم تظلم جديد</Text>
         </TouchableOpacity>
 
@@ -376,7 +367,7 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
             <Text style={s.sectionCountTxt}>{appeals.length}</Text>
           </View>
           <Text style={s.sectionTitle}>تظلماتي</Text>
-          <Text style={s.sectionIcon}>📊</Text>
+          <Icon name="chart-bar" size={18} color={Colors.textPrimary} />
         </View>
 
         {/* ═══ FILTER CHIPS ═══ */}
@@ -389,7 +380,7 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
                 key={f.id}
                 style={[s.chip, active && s.chipActive, active && meta ? { backgroundColor: meta.color, borderColor: meta.color } : null]}
                 onPress={() => setFilter(f.id)}>
-                {f.id !== 'ALL' && meta && <Text style={s.chipEmoji}>{meta.icon}</Text>}
+                {f.id !== 'ALL' && meta && <Icon name={meta.icon} size={12} color={active ? Colors.white : meta.color} />}
                 <Text style={[s.chipTxt, active && s.chipTxtActive]}>{f.label}</Text>
                 <View style={[s.chipBadge, active ? s.chipBadgeActive : null]}>
                   <Text style={[s.chipBadgeTxt, active && s.chipBadgeTxtActive]}>{counts[f.id]}</Text>
@@ -402,7 +393,7 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
         {/* ═══ APPEALS LIST ═══ */}
         {filtered.length === 0 ? (
           <View style={s.emptyBox}>
-            <Text style={s.emptyEmoji}>📭</Text>
+            <Icon name="mailbox-outline" size={48} color={Colors.textHint} />
             <Text style={s.emptyTitle}>لا توجد تظلمات</Text>
             <Text style={s.emptyMsg}>
               {filter === 'ALL'
@@ -415,7 +406,7 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
             {filtered.map((appeal, idx) => {
               const statusMeta = STATUS_META[appeal.status] ?? STATUS_META.PENDING;
               const examMeta = appeal.examType
-                ? (EXAM_TYPE_META[appeal.examType] ?? { label: appeal.examType, icon: '📄' })
+                ? (EXAM_TYPE_META[appeal.examType] ?? { label: appeal.examType, icon: 'file-document-outline' })
                 : null;
               const isExpanded = expandedId === appeal.id;
 
@@ -444,10 +435,9 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
 
                     {/* Subject + status */}
                     <View style={s.cardTop}>
-                      <View style={[s.statusPill, { backgroundColor: statusMeta.bg }]}>
-                        <Text style={[s.statusPillTxt, { color: statusMeta.color }]}>
-                          {statusMeta.icon} {statusMeta.label}
-                        </Text>
+                      <View style={[s.statusPill, { backgroundColor: statusMeta.bg, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+                        <Text style={[s.statusPillTxt, { color: statusMeta.color }]}>{statusMeta.label}</Text>
+                        <Icon name={statusMeta.icon} size={12} color={statusMeta.color} />
                       </View>
                       <View style={s.cardTitleArea}>
                         <Text style={s.subjectName} numberOfLines={1}>{appeal.subjectName}</Text>
@@ -474,8 +464,9 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
                         </View>
                       )}
                       {examMeta && (
-                        <View style={[s.examTypePill, { backgroundColor: Colors.borderLight }]}>
-                          <Text style={s.examTypeTxt}>{examMeta.icon} {examMeta.label}</Text>
+                        <View style={[s.examTypePill, { backgroundColor: Colors.borderLight, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+                          <Text style={s.examTypeTxt}>{examMeta.label}</Text>
+                          <Icon name={examMeta.icon} size={11} color={Colors.textSecondary} />
                         </View>
                       )}
                     </View>
@@ -483,7 +474,7 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
                     {/* Admin response */}
                     {appeal.adminResponse ? (
                       <View style={[s.responseBox, { borderColor: statusMeta.color + '60', backgroundColor: statusMeta.bg }]}>
-                        <Text style={s.responseIcon}>ℹ️</Text>
+                        <Icon name="information-outline" size={14} color={statusMeta.color} style={{marginTop: 1}} />
                         <Text style={[s.responseTxt, { color: statusMeta.color }]}>
                           <Text style={{ fontWeight: '700' }}>نتيجة المراجعة: </Text>
                           {appeal.adminResponse}
@@ -530,10 +521,9 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
                           </View>
                         ) : null}
                         <View style={s.expandRow}>
-                          <View style={[s.statusPill, { backgroundColor: statusMeta.bg }]}>
-                            <Text style={[s.statusPillTxt, { color: statusMeta.color }]}>
-                              {statusMeta.icon} {statusMeta.label}
-                            </Text>
+                          <View style={[s.statusPill, { backgroundColor: statusMeta.bg, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+                            <Text style={[s.statusPillTxt, { color: statusMeta.color }]}>{statusMeta.label}</Text>
+                            <Icon name={statusMeta.icon} size={12} color={statusMeta.color} />
                           </View>
                           <Text style={s.expandLbl}>حالة الطلب</Text>
                         </View>
@@ -560,7 +550,10 @@ const GradeAppealsScreen: React.FC<GradeAppealsScreenProps> = ({ accessToken, tr
               <TouchableOpacity onPress={() => setShowForm(false)} disabled={isSubmitting}>
                 <Text style={s.modalClose}>✕</Text>
               </TouchableOpacity>
-              <Text style={s.modalTitle}>📝 تقديم تظلم جديد</Text>
+              <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+                <Text style={s.modalTitle}>تقديم تظلم جديد</Text>
+                <Icon name="file-document-edit-outline" size={18} color={Colors.textPrimary} />
+              </View>
             </View>
 
             <ScrollView style={s.modalScroll} showsVerticalScrollIndicator={false}>
@@ -675,19 +668,13 @@ const s = StyleSheet.create({
   retryTxt: { color: Colors.white, fontWeight: '700', fontSize: 15 },
 
   /* Header */
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: Colors.white, paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: Colors.borderMedium,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 6, elevation: 3,
-  },
-  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  backArrow: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
-  backText: { fontSize: 14, color: Colors.primary, fontWeight: '600' },
-  headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: Colors.textPrimary },
-  headerSub: { fontSize: 11, color: Colors.textHint, marginTop: 2, textAlign: 'center' },
+  header: { display: 'none' as any },
+  backBtn: { display: 'none' as any },
+  backArrow: { fontSize: 0 },
+  backText: { fontSize: 0 },
+  headerCenter: { display: 'none' as any },
+  headerTitle: { fontSize: 0 },
+  headerSub: { fontSize: 0 },
 
   scroll: { paddingHorizontal: 16, paddingTop: 16 },
 
@@ -779,7 +766,7 @@ const s = StyleSheet.create({
   appealCard: {
     backgroundColor: Colors.white, borderRadius: 14, padding: 14,
     marginBottom: 10, borderRightWidth: 4,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
   },
   cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },

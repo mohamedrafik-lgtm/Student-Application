@@ -2,7 +2,7 @@
 // Single Responsibility: Only icon rendering
 import React from 'react';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Colors } from '../styles/colors';
+import { Colors } from '../../styles/colors';
 
 export interface IconProps {
   name: string;
@@ -31,6 +31,7 @@ export const AppIcons = {
   grades: 'chart-bar',
   gradesFilled: 'chart-bar',
   exam: 'file-document-edit-outline',
+  exams: 'file-document-edit-outline',
   certificate: 'certificate-outline',
   schedule: 'calendar-clock-outline',
   scheduleFilled: 'calendar-clock',
@@ -38,6 +39,7 @@ export const AppIcons = {
   attendanceFilled: 'clipboard-check',
   lecture: 'play-circle-outline',
   book: 'book-open-variant',
+  content: 'book-open-page-variant-outline',
 
   // Finance
   payments: 'credit-card-outline',
@@ -102,6 +104,7 @@ export const AppIcons = {
   // Requests
   appeal: 'scale-balance',
   request: 'file-send-outline',
+  requests: 'file-send-outline',
   sickLeave: 'hospital-box-outline',
   postpone: 'calendar-remove-outline',
   enrollment: 'badge-account-outline',

@@ -1,10 +1,11 @@
-// Profile Screen - displays trainee profile with info sections
+﻿// Profile Screen - displays trainee profile with info sections
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Animated, Dimensions, Alert, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthService } from '../services/authService';
 import { TraineeProfile, TraineeProfileError } from '../types/auth';
 import CustomButton from '../components/CustomButton';
+import { Colors } from '../styles/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -73,7 +74,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ accessToken, onBack, onNa
   };
 
   if (isLoading) {
-    return (<SafeAreaView style={s.container}><View style={s.center}><ActivityIndicator size="large" color="#2563EB" /><Text style={s.centerText}>جاري تحميل بيانات البروفايل...</Text></View></SafeAreaView>);
+    return (<SafeAreaView style={s.container}><View style={s.center}><ActivityIndicator size="large" color={Colors.primary} /><Text style={s.centerText}>جاري تحميل بيانات البروفايل...</Text></View></SafeAreaView>);
   }
   if (error) {
     return (<SafeAreaView style={s.container}><View style={s.center}><Text style={s.errTitle}>خطأ في تحميل البروفايل</Text><Text style={s.centerText}>{error}</Text><CustomButton title="إعادة المحاولة" onPress={loadProfile} variant="primary" size="large" /><View style={{height:8}}/><CustomButton title="العودة" onPress={onBack} variant="outline" size="large" /></View></SafeAreaView>);
@@ -214,13 +215,13 @@ const s = StyleSheet.create({
   headerTitle: { fontSize: 20, fontWeight: '800', color: '#1A1D26' },
   backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F4F6FA', alignItems: 'center', justifyContent: 'center' },
   backBtnText: { fontSize: 20, color: '#1A1D26', fontWeight: '600' },
-  editBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center' },
+  editBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
   editBtnText: { fontSize: 16 },
   profileCard: { backgroundColor: '#FFF', borderRadius: 16, marginHorizontal: 16, marginTop: 16, marginBottom: 16, alignItems: 'center', paddingBottom: 22, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 4, overflow: 'hidden' },
   profileCardTop: { width: '100%', height: 80, backgroundColor: '#EFF6FF' },
   photoWrap: { marginTop: -44, marginBottom: 12, position: 'relative' },
   profilePhoto: { width: 88, height: 88, borderRadius: 44, borderWidth: 3, borderColor: '#FFF' },
-  defaultPhoto: { width: 88, height: 88, borderRadius: 44, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#FFF' },
+  defaultPhoto: { width: 88, height: 88, borderRadius: 44, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#FFF' },
   defaultPhotoText: { fontSize: 36, fontWeight: '800', color: '#FFF' },
   onlineDot: { position: 'absolute', bottom: 4, right: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: '#10B981', borderWidth: 2, borderColor: '#FFF' },
   nameText: { fontSize: 22, fontWeight: '800', color: '#1A1D26', textAlign: 'center', marginBottom: 2 },
@@ -238,7 +239,7 @@ const s = StyleSheet.create({
   quickCardEmoji: { fontSize: 22 },
   quickCardLabel: { fontSize: 14, fontWeight: '700', color: '#1A1D26', marginBottom: 2 },
   quickCardSub: { fontSize: 11, color: '#8E95A2' },
-  quickCardBadge: { position: 'absolute', top: 10, right: 10, backgroundColor: '#2563EB', borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2, minWidth: 20, alignItems: 'center' },
+  quickCardBadge: { position: 'absolute', top: 10, right: 10, backgroundColor: Colors.primary, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2, minWidth: 20, alignItems: 'center' },
   quickCardBadgeText: { fontSize: 10, fontWeight: '700', color: '#FFF' },
   infoSection: { paddingHorizontal: 16, marginBottom: 16 },
   infoCard: { backgroundColor: '#FFF', borderRadius: 16, padding: 18, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },

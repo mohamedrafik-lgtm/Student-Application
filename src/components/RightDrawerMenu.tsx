@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Colors } from '../styles/colors';
 import { theme } from '../styles/theme';
+import Icon, { AppIcons } from './shared/Icon';
 
 export type DrawerTab =
   | 'home'
@@ -28,15 +29,15 @@ interface RightDrawerMenuProps {
 }
 
 const TABS: { id: DrawerTab; label: string; icon?: string }[] = [
-  { id: 'home', label: 'الرئيسية', icon: '🏠' },
-  { id: 'schedule', label: 'الجدول', icon: '📅' },
-  { id: 'grades', label: 'الدرجات', icon: '📊' },
-  { id: 'exams', label: 'الاختبارات', icon: '📝' },
-  { id: 'attendance', label: 'سجل الحضور و الغياب', icon: '✅' },
+  { id: 'home', label: 'الرئيسية', icon: AppIcons.home },
+  { id: 'schedule', label: 'الجدول', icon: AppIcons.schedule },
+  { id: 'grades', label: 'الدرجات', icon: AppIcons.grades },
+  { id: 'exams', label: 'الاختبارات', icon: AppIcons.exam },
+  { id: 'attendance', label: 'سجل الحضور و الغياب', icon: AppIcons.attendance },
   // renamed for clarity per user request
-  { id: 'documents', label: 'الوثائق', icon: '📄' },
-  { id: 'payments', label: 'المدفوعات', icon: '💰' },
-  { id: 'profile', label: 'الملف', icon: '👤' },
+  { id: 'documents', label: 'الوثائق', icon: AppIcons.document },
+  { id: 'payments', label: 'المدفوعات', icon: AppIcons.payments },
+  { id: 'profile', label: 'الملف', icon: AppIcons.profile },
 ];
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -126,7 +127,7 @@ const RightDrawerMenu: React.FC<RightDrawerMenuProps> = ({ currentTab, onSelect 
                 activeOpacity={0.8}
               >
                 <View style={[styles.itemIconWrap, active && styles.itemIconWrapActive]}>
-                  <Text style={[styles.itemIcon, active && styles.itemIconActive]}>{t.icon}</Text>
+                  <Icon name={t.icon!} size={18} color={active ? Colors.white : Colors.textSecondary} />
                 </View>
                 <Text style={[styles.itemLabel, active && styles.itemLabelActive]}>
                   {t.label}
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#000',
+    backgroundColor: Colors.overlay,
     zIndex: 30,
   },
   drawer: {

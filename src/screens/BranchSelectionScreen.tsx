@@ -1,4 +1,4 @@
-// Branch Selection Screen
+﻿// Branch Selection Screen
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Animated, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,7 +6,6 @@ import { BranchService } from '../services/branchService';
 import { BranchType, BranchInfo } from '../types/auth';
 import CustomButton from '../components/CustomButton';
 import { Colors } from '../styles/colors';
-import Icon, { AppIcons } from '../components/shared/Icon';
 
 interface BranchSelectionScreenProps {
   onBranchSelected: (branch: BranchType) => void;
@@ -73,8 +72,8 @@ const BranchSelectionScreen: React.FC<BranchSelectionScreenProps> = ({ onBranchS
         activeOpacity={0.7}
       >
         <View style={s.branchCardInner}>
-          <View style={[s.branchIcon, { backgroundColor: isSelected ? branch.color : '#DBEAFE' }]}>
-            <Text style={[s.branchIconText, { color: isSelected ? '#FFF' : branch.color }]}>{branch.icon}</Text>
+          <View style={[s.branchIcon, { backgroundColor: isSelected ? branch.color : Colors.infoLight }]}>
+            <Text style={[s.branchIconText, { color: isSelected ? Colors.white : branch.color }]}>{branch.icon}</Text>
           </View>
           <View style={s.branchInfo}>
             <Text style={[s.branchName, isSelected && s.branchNameSelected]}>{branch.nameAr}</Text>
@@ -82,7 +81,7 @@ const BranchSelectionScreen: React.FC<BranchSelectionScreenProps> = ({ onBranchS
             <Text style={s.branchDesc}>{branch.descriptionAr}</Text>
           </View>
           {isSelected && (
-            <View style={s.checkCircle}><Icon name={AppIcons.check} size={16} color={Colors.white} /></View>
+            <View style={s.checkCircle}><Text style={s.checkText}>✓</Text></View>
           )}
           {isSaved && !isSelected && (
             <View style={s.savedBadge}><Text style={s.savedBadgeText}>محفوظ</Text></View>
@@ -140,12 +139,12 @@ const s = StyleSheet.create({
   headerSection: { alignItems: 'center', marginBottom: 32, marginTop: 20 },
   headerTitle: { fontSize: 26, fontWeight: '800', color: Colors.textPrimary, textAlign: 'center', marginBottom: 8 },
   underline: { width: 60, height: 3, backgroundColor: Colors.primary, borderRadius: 2, marginBottom: 12 },
-  headerSubtitle: { fontSize: 15, color: Colors.textHint, textAlign: 'center', lineHeight: 22, marginBottom: 16 },
-  savedInfo: { backgroundColor: Colors.successLight, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: Colors.successBorder },
-  savedInfoText: { fontSize: 13, color: Colors.primaryLight, fontWeight: '600', textAlign: 'center' },
+  headerSubtitle: { fontSize: 15, color: Colors.textLight, textAlign: 'center', lineHeight: 22, marginBottom: 16 },
+  savedInfo: { backgroundColor: Colors.backgroundSoft, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: Colors.successBorder },
+  savedInfoText: { fontSize: 13, color: Colors.primary, fontWeight: '600', textAlign: 'center' },
   branchesSection: { marginBottom: 28 },
-  branchCard: { backgroundColor: Colors.white, borderRadius: 16, marginBottom: 14, borderWidth: 2, borderColor: Colors.borderMedium, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 3, overflow: 'hidden' },
-  branchCardSelected: { borderColor: Colors.primary, shadowColor: Colors.primary, shadowOpacity: 0.15 },
+  branchCard: { backgroundColor: Colors.white, borderRadius: 20, marginBottom: 14, borderWidth: 2, borderColor: Colors.borderMedium, shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 12, elevation: 3, overflow: 'hidden' },
+  branchCardSelected: { borderColor: Colors.primary, shadowColor: Colors.primaryDark, shadowOpacity: 0.15 },
   branchCardInner: { padding: 20, flexDirection: 'row', alignItems: 'center' },
   branchIcon: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center', marginLeft: 16 },
   branchIconText: { fontSize: 24 },
@@ -153,7 +152,7 @@ const s = StyleSheet.create({
   branchName: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary, marginBottom: 4, textAlign: 'right' },
   branchNameSelected: { color: Colors.primary },
   branchCity: { fontSize: 14, fontWeight: '600', color: Colors.textLight, marginBottom: 4, textAlign: 'right' },
-  branchDesc: { fontSize: 13, color: Colors.textHint, lineHeight: 19, textAlign: 'right' },
+  branchDesc: { fontSize: 13, color: Colors.textLight, lineHeight: 19, textAlign: 'right' },
   checkCircle: { position: 'absolute', top: 16, right: 16, width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center' },
   checkText: { fontSize: 14, fontWeight: '700', color: Colors.white },
   savedBadge: { position: 'absolute', top: 16, right: 16, backgroundColor: Colors.primaryLight, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },

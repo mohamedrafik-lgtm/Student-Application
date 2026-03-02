@@ -16,6 +16,7 @@ import Icon, { AppIcons } from '../components/shared/Icon';
 import { trainingContentsService } from '../services/trainingContentsService';
 import { lecturesService } from '../services/lecturesService';
 import LectureViewScreen from './LectureViewScreen';
+import ScreenHeader from '../components/shared/ScreenHeader';
 import {
   TrainingContentDetails,
   TrainingContentsError,
@@ -122,7 +123,7 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
     switch (type) {
       case 'VIDEO': return Colors.error;
       case 'PDF': return Colors.primary;
-      case 'BOTH': return '#8B5CF6';
+      case 'BOTH': return Colors.secondary;
       default: return Colors.textHint;
     }
   };
@@ -131,7 +132,7 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
     switch (type) {
       case 'VIDEO': return Colors.errorLight;
       case 'PDF': return Colors.infoLight;
-      case 'BOTH': return '#F3F0FF';
+      case 'BOTH': return Colors.backgroundSoft;
       default: return Colors.background;
     }
   };
@@ -157,19 +158,7 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
 
   return (
     <SafeAreaView style={s.container}>
-      {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Icon name={AppIcons.forward} size={18} color={Colors.primary} />
-        </TouchableOpacity>
-        <View style={{ flex: 1, marginRight: 14 }}>
-          <Text style={s.headerTitle} numberOfLines={1}>{contentName}</Text>
-          <Text style={s.headerSub}>
-            كود: {contentCode} • {contentDetails?._count.scheduleSlots || 0} محاضرة
-          </Text>
-        </View>
-        <View style={{ width: 38 }} />
-      </View>
+      <ScreenHeader title={contentName} subtitle={`كود: ${contentCode} • ${contentDetails?._count.scheduleSlots || 0} محاضرة`} onBack={onBack} />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* Loading */}
@@ -273,32 +262,20 @@ const ContentLecturesScreen: React.FC<ContentLecturesScreenProps> = ({
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
-  },
-  backBtn: {
-    width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.primary50,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
-  headerSub: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
+  header: { display: 'none' as any },
+  backBtn: { display: 'none' as any },
+  backIcon: { fontSize: 0 },
+  headerTitle: { fontSize: 0 },
+  headerSub: { fontSize: 0 },
   scroll: { padding: 18, paddingBottom: 32 },
   // Chapter
   chapterCard: {
     backgroundColor: Colors.white,
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.borderLight,
     overflow: 'hidden',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3,
   },
   chapterHeader: {
     flexDirection: 'row',

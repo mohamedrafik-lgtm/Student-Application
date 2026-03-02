@@ -7,6 +7,7 @@ import { API_CONFIG } from '../services/apiConfig';
 import { TraineeDocument } from '../types/auth';
 import { Colors } from '../styles/colors';
 import Icon, { AppIcons } from '../components/shared/Icon';
+import ScreenHeader from '../components/shared/ScreenHeader';
 
 interface Props {
   accessToken: string;
@@ -124,17 +125,7 @@ const DocumentsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
 
   return (
     <SafeAreaView style={s.container} edges={['bottom']}>
-      {/* Header */}
-      <View style={s.header}>
-        <View style={s.headerRow}>
-          <View style={s.headerSpacer} />
-          <View style={s.headerTitleArea}>
-            <Text style={s.headerTitle}>الوثائق</Text>
-            <Text style={s.headerSubtitle}>مستنداتك الرسمية</Text>
-          </View>
-          <TouchableOpacity style={s.backBtn} onPress={onBack}><Icon name={AppIcons.back} size={20} color={Colors.primary} /></TouchableOpacity>
-        </View>
-      </View>
+      <ScreenHeader title="الوثائق" subtitle="مستنداتك الرسمية" onBack={onBack} />
 
       {loading ? (
         <View style={s.center}>
@@ -174,16 +165,20 @@ const DocumentsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: { backgroundColor: Colors.white, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
-  headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-  headerTitleArea: { flex: 1, alignItems: 'flex-end', marginRight: 12 },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right' },
-  headerSubtitle: { fontSize: 13, color: Colors.textHint, marginTop: 4, textAlign: 'right' },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' },
-  backBtnText: { fontSize: 20, color: Colors.textPrimary, fontWeight: '600' },
-  headerSpacer: { width: 38 },
+  header: { display: 'none' as any },
+  headerRow: { display: 'none' as any },
+  headerTitleArea: { display: 'none' as any },
+  headerTitle: { fontSize: 0 },
+  headerSubtitle: { fontSize: 0 },
+  backBtn: { display: 'none' as any },
+  backBtnText: { fontSize: 0 },
+  headerSpacer: { display: 'none' as any },
   listContent: { padding: 16, paddingBottom: 32 },
-  card: { backgroundColor: Colors.white, borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
+  card: {
+    backgroundColor: Colors.white, borderRadius: 20, padding: 16, flexDirection: 'row', alignItems: 'center',
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3,
+    borderWidth: 1, borderColor: Colors.borderLight,
+  },
   cardLeft: { marginLeft: 14 },
   docIconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary50, alignItems: 'center', justifyContent: 'center' },
   docIcon: { fontSize: 20 },

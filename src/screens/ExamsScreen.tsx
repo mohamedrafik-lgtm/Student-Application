@@ -17,6 +17,9 @@ import {
   StartQuizResponse,
   QuizAttemptAnswer,
 } from '../types/quizzes';
+import Icon from '../components/shared/Icon';
+import ScreenHeader from '../components/shared/ScreenHeader';
+import {Colors} from '../styles/colors';
 
 interface ExamsScreenProps {
   accessToken: string;
@@ -51,10 +54,10 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
       setIsLoading(true);
       setError(null);
 
-      console.log('🔍 Loading available quizzes...');
+      console.log('Loading available quizzes...');
       const response = await quizService.getAvailableQuizzes(accessToken);
       console.log(
-        '✅ Quizzes loaded successfully!',
+        'Quizzes loaded successfully!',
         response.quizzes?.length || 0,
       );
 
@@ -66,11 +69,11 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
         setError(errorMessage);
         setQuizzes([]);
       } else {
-        console.warn('⚠️ Invalid response structure or no quizzes found');
+        console.warn('Invalid response structure or no quizzes found');
         setQuizzes([]);
       }
     } catch (err) {
-      console.error('❌ Failed to load quizzes:', err);
+      console.error('Failed to load quizzes:', err);
       const apiError = err as QuizError;
 
       let errorMessage = 'حدث خطأ أثناء تحميل الاختبارات';
@@ -97,15 +100,15 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
   const getStatusColor = (status: QuizStatus) => {
     switch (status) {
       case QuizStatus.AVAILABLE:
-        return '#10B981';
+        return Colors.primaryLight;
       case QuizStatus.COMPLETED:
-        return '#3B82F6';
+        return Colors.info;
       case QuizStatus.UPCOMING:
-        return '#F59E0B';
+        return Colors.accent;
       case QuizStatus.ENDED:
-        return '#EF4444';
+        return Colors.error;
       default:
-        return '#8E95A2';
+        return Colors.textLight;
     }
   };
 
@@ -127,15 +130,15 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
   const getStatusIcon = (status: QuizStatus) => {
     switch (status) {
       case QuizStatus.AVAILABLE:
-        return '✅';
+        return 'check-circle';
       case QuizStatus.COMPLETED:
-        return '✔️';
+        return 'check-circle-outline';
       case QuizStatus.UPCOMING:
-        return '⏰';
+        return 'clock-outline';
       case QuizStatus.ENDED:
-        return '❌';
+        return 'close-circle';
       default:
-        return '📝';
+        return 'file-document-edit-outline';
     }
   };
 
@@ -161,7 +164,8 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
     } else if (quiz.status === QuizStatus.COMPLETED && quiz.result) {
       Alert.alert(
         'نتيجة الاختبار',
-        `الدرجة: ${quiz.result.score}\nالنسبة: ${quiz.result.percentage}%\n${quiz.result.passed ? '✅ ناجح' : '❌ راسب'}`,
+        `الدرجة: ${quiz.result.score}\nالنسبة: ${quiz.result.percentage}%\n${quiz.result.passed ? 'ناجح' : 'راسب'}`,
+
         [{text: 'حسناً'}],
       );
     } else {
@@ -176,9 +180,9 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
   const startQuiz = async (quiz: AvailableQuiz) => {
     try {
       setIsLoading(true);
-      console.log('🚀 Starting quiz:', quiz.id);
+      console.log('Starting quiz:', quiz.id);
       const response = await quizService.startQuiz(quiz.id, accessToken);
-      console.log('✅ Quiz started successfully:', response);
+      console.log('Quiz started successfully:', response);
 
       setQuizAttempt(response);
       setCurrentQuestionIndex(0);
@@ -186,7 +190,7 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
       setSelectedAnswer(null);
       setTimeRemaining(response.quiz.duration * 60);
     } catch (err) {
-      console.error('❌ Failed to start quiz:', err);
+      console.error('Failed to start quiz:', err);
       const errorMessage =
         (err as any).message || 'فشل في بدء الاختبار';
       Alert.alert('خطأ', errorMessage);
@@ -228,9 +232,9 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
         },
         accessToken,
       );
-      console.log('✅ Answer saved successfully');
+      console.log('Answer saved successfully');
     } catch (err) {
-      console.error('❌ Failed to save answer:', err);
+      console.error('Failed to save answer:', err);
     }
   };
 
@@ -294,7 +298,7 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
 
     try {
       setIsLoading(true);
-      console.log('📤 Submitting quiz:', {
+      console.log('Submitting quiz:', {
         attemptId: quizAttempt.id,
         answers: answers.length,
       });
@@ -303,12 +307,12 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
         quizAttempt.id,
         accessToken,
       );
-      console.log('✅ Quiz submitted successfully');
+      console.log('Quiz submitted successfully');
 
       setQuizResult(result);
       setQuizAttempt(null);
     } catch (err) {
-      console.error('❌ Failed to submit quiz:', err);
+      console.error('Failed to submit quiz:', err);
       const errorMessage =
         (err as any).message || 'فشل في تسليم الاختبار';
       Alert.alert('خطأ', errorMessage.toString());
@@ -361,9 +365,9 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
           <View
             style={[
               s.resultIconBox,
-              {backgroundColor: isPassed ? '#D1FAE5' : '#FEE2E2'},
+              {backgroundColor: isPassed ? Colors.primary100 : Colors.errorLight},
             ]}>
-            <Text style={s.resultIcon}>{isPassed ? '🎉' : '📝'}</Text>
+            <Icon name={isPassed ? 'party-popper' : 'file-document-edit-outline'} size={52} color={isPassed ? Colors.primaryLight : Colors.accent} />
           </View>
 
           <Text style={s.resultTitle}>نتيجة الاختبار</Text>
@@ -378,26 +382,26 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
           {/* Details Grid */}
           <View style={s.detailsGrid}>
             <View style={s.detailItem}>
-              <Text style={s.detailEmoji}>📊</Text>
+              <Icon name="chart-bar" size={28} color={Colors.primary} />
               <Text style={s.detailValue}>
                 {scoreValue}/{totalValue}
               </Text>
               <Text style={s.detailLabel}>الدرجة</Text>
             </View>
             <View style={s.detailItem}>
-              <Text style={s.detailEmoji}>🎯</Text>
+              <Icon name="target" size={28} color={Colors.primary} />
               <Text style={s.detailValue}>
                 {quizResult.quiz?.passingScore || 0}%
               </Text>
               <Text style={s.detailLabel}>درجة النجاح</Text>
             </View>
             <View style={s.detailItem}>
-              <Text style={s.detailEmoji}>⏱️</Text>
+              <Icon name="clock-outline" size={28} color={Colors.primary} />
               <Text style={s.detailValue}>{durationValue} دقيقة</Text>
               <Text style={s.detailLabel}>الوقت المستغرق</Text>
             </View>
             <View style={s.detailItem}>
-              <Text style={s.detailEmoji}>❓</Text>
+              <Icon name="help-circle-outline" size={28} color={Colors.primary} />
               <Text style={s.detailValue}>
                 {quizResult.answers?.length || 0}
               </Text>
@@ -462,7 +466,8 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
             </Text>
             {currentQuestion.question.image && (
               <View style={s.questionImgBox}>
-                <Text style={s.questionImgPlaceholder}>🖼️ صورة</Text>
+                <Icon name="image-outline" size={48} color={Colors.primary} />
+                <Text style={s.questionImgPlaceholder}>صورة</Text>
               </View>
             )}
           </View>
@@ -645,7 +650,7 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
         {/* Loading */}
         {isLoading && (
           <View style={s.centerBox}>
-            <ActivityIndicator size="large" color="#2563EB" />
+            <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={s.loadingText}>جاري تحميل الاختبارات...</Text>
           </View>
         )}
@@ -653,7 +658,7 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
         {/* Error */}
         {error && !isLoading && (
           <View style={s.centerBox}>
-            <Text style={s.errorEmoji}>⚠️</Text>
+            <Icon name="alert-circle-outline" size={56} color="#F59E0B" />
             <Text style={s.errorMsg}>{error}</Text>
             <TouchableOpacity style={s.retryBtn} onPress={loadQuizzes}>
               <Text style={s.retryBtnText}>إعادة المحاولة</Text>
@@ -664,7 +669,7 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
         {/* Empty */}
         {!isLoading && !error && quizzes.length === 0 && (
           <View style={s.centerBox}>
-            <Text style={s.emptyEmoji}>📝</Text>
+            <Icon name="file-document-edit-outline" size={56} color={Colors.primary} />
             <Text style={s.emptyTitle}>لا توجد اختبارات متاحة</Text>
             <Text style={s.emptyMsg}>
               لا توجد اختبارات إلكترونية متاحة لك في الوقت الحالي
@@ -684,7 +689,7 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
                 {/* Card Header */}
                 <View style={s.quizCardHeader}>
                   <View style={s.quizTitleRow}>
-                    <Text style={s.quizEmoji}>📝</Text>
+                    <Icon name="file-document-edit-outline" size={22} color={Colors.primary} />
                     <Text style={s.quizTitle} numberOfLines={2}>
                       {quiz.title}
                     </Text>
@@ -697,9 +702,7 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
                           getStatusColor(quiz.status) + '18',
                       },
                     ]}>
-                    <Text style={s.statusIcon}>
-                      {getStatusIcon(quiz.status)}
-                    </Text>
+                    <Icon name={getStatusIcon(quiz.status)} size={11} color={getStatusColor(quiz.status)} />
                     <Text
                       style={[
                         s.statusText,
@@ -722,17 +725,17 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
                 {/* Info Row */}
                 <View style={s.infoRow}>
                   <View style={s.infoItem}>
-                    <Text style={s.infoIcon}>⏱️</Text>
+                    <Icon name="clock-outline" size={14} color={Colors.primary} />
                     <Text style={s.infoText}>{quiz.duration} دقيقة</Text>
                   </View>
                   <View style={s.infoItem}>
-                    <Text style={s.infoIcon}>❓</Text>
+                    <Icon name="help-circle-outline" size={14} color={Colors.primary} />
                     <Text style={s.infoText}>
                       {quiz._count.questions} سؤال
                     </Text>
                   </View>
                   <View style={s.infoItem}>
-                    <Text style={s.infoIcon}>🎯</Text>
+                    <Icon name="target" size={14} color={Colors.primary} />
                     <Text style={s.infoText}>
                       {quiz.passingScore}% نجاح
                     </Text>
@@ -762,8 +765,8 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
                       s.resultBadge,
                       {
                         backgroundColor: quiz.result.passed
-                          ? '#D1FAE5'
-                          : '#FEE2E2',
+                          ? Colors.primary100
+                          : Colors.errorLight,
                       },
                     ]}>
                     <Text
@@ -771,11 +774,12 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
                         s.resultBadgeText,
                         {
                           color: quiz.result.passed
-                            ? '#10B981'
-                            : '#EF4444',
+                            ? Colors.primaryLight
+                            : Colors.error,
                         },
                       ]}>
-                      {quiz.result.passed ? '✅ ناجح' : '❌ راسب'} •{' '}
+                      <Icon name={quiz.result.passed ? 'check-circle' : 'close-circle'} size={14} color={quiz.result.passed ? Colors.primaryLight : Colors.error} />{' '}
+                      {quiz.result.passed ? 'ناجح' : 'راسب'} •{' '}
                       {quiz.result.percentage}%
                     </Text>
                   </View>
@@ -802,7 +806,7 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
           quizzes.length > 0 &&
           filteredQuizzes.length === 0 && (
             <View style={s.centerBox}>
-              <Text style={s.emptyEmoji}>🔍</Text>
+              <Icon name="magnify" size={56} color={Colors.primary} />
               <Text style={s.emptyTitle}>لا توجد نتائج</Text>
               <Text style={s.emptyMsg}>
                 لا توجد اختبارات تطابق الفلتر المحدد
@@ -817,7 +821,7 @@ const ExamsScreen: React.FC<ExamsScreenProps> = ({accessToken, onBack}) => {
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F6FA',
+    backgroundColor: Colors.background,
   },
   scroll: {
     flex: 1,
@@ -834,7 +838,7 @@ const s = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#8E95A2',
+    color: Colors.textLight,
   },
   errorEmoji: {
     fontSize: 56,
@@ -842,13 +846,13 @@ const s = StyleSheet.create({
   },
   errorMsg: {
     fontSize: 15,
-    color: '#EF4444',
+    color: Colors.error,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
   },
   retryBtn: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 12,
@@ -865,78 +869,51 @@ const s = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     marginBottom: 8,
     textAlign: 'center',
   },
   emptyMsg: {
     fontSize: 14,
-    color: '#8E95A2',
+    color: Colors.textLight,
     textAlign: 'center',
     lineHeight: 22,
   },
 
-  /* Header */
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#F0F4FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backArrow: {
-    fontSize: 18,
-    color: '#2563EB',
-    fontWeight: '700',
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'flex-end',
-    marginRight: 12,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1D26',
-  },
+  /* Header - replaced by ScreenHeader */
+  header: { display: 'none' as any },
+  backBtn: { display: 'none' as any },
+  backArrow: { fontSize: 0 },
+  headerCenter: { display: 'none' as any },
+  headerTitle: { fontSize: 0 },
 
   /* Filter */
   filterRow: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
+    borderBottomColor: Colors.borderLight,
     paddingVertical: 12,
   },
   filterContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     gap: 8,
   },
   filterChip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F4F6FA',
+    borderRadius: 24,
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
   },
   filterChipActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   filterChipText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#8E95A2',
+    fontWeight: '700',
+    color: Colors.textLight,
   },
   filterChipTextActive: {
     color: '#FFF',
@@ -944,16 +921,19 @@ const s = StyleSheet.create({
 
   /* Quiz List */
   quizList: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 16,
     gap: 12,
   },
   quizCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06, shadowRadius: 10, elevation: 3,
   },
   quizCardHeader: {
     flexDirection: 'row',
@@ -974,7 +954,7 @@ const s = StyleSheet.create({
   quizTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     flex: 1,
   },
   statusBadge: {
@@ -999,12 +979,12 @@ const s = StyleSheet.create({
   },
   courseLabel: {
     fontSize: 13,
-    color: '#8E95A2',
+    color: Colors.textLight,
     marginRight: 6,
   },
   courseText: {
     fontSize: 13,
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     fontWeight: '600',
     flex: 1,
   },
@@ -1023,14 +1003,14 @@ const s = StyleSheet.create({
   },
   infoText: {
     fontSize: 12,
-    color: '#8E95A2',
+    color: Colors.textLight,
   },
   datesRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
+    borderTopColor: Colors.borderLight,
     marginBottom: 4,
   },
   dateItem: {
@@ -1038,12 +1018,12 @@ const s = StyleSheet.create({
   },
   dateLabel: {
     fontSize: 11,
-    color: '#8E95A2',
+    color: Colors.textLight,
     marginBottom: 2,
   },
   dateText: {
     fontSize: 12,
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     fontWeight: '500',
   },
   resultBadge: {
@@ -1063,16 +1043,16 @@ const s = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
+    borderTopColor: Colors.borderLight,
   },
   actionHintText: {
     fontSize: 13,
-    color: '#2563EB',
+    color: Colors.primary,
     fontWeight: '600',
   },
   actionHintArrow: {
     fontSize: 16,
-    color: '#2563EB',
+    color: Colors.primary,
     fontWeight: '700',
   },
 
@@ -1085,16 +1065,16 @@ const s = StyleSheet.create({
     paddingVertical: 14,
     backgroundColor: '#FFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
+    borderBottomColor: Colors.borderLight,
   },
   exitBtn: {
     paddingHorizontal: 14,
     paddingVertical: 8,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: Colors.errorLight,
     borderRadius: 10,
   },
   exitBtnText: {
-    color: '#EF4444',
+    color: Colors.error,
     fontWeight: '700',
     fontSize: 14,
   },
@@ -1104,27 +1084,27 @@ const s = StyleSheet.create({
   },
   quizProgressText: {
     fontSize: 13,
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     textAlign: 'center',
     marginBottom: 8,
     fontWeight: '600',
   },
   progressBarBg: {
     height: 6,
-    backgroundColor: '#EEF2F6',
+    backgroundColor: Colors.backgroundAlt,
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#2563EB',
+    backgroundColor: Colors.primary,
     borderRadius: 3,
   },
   quizPoints: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#2563EB',
-    backgroundColor: '#F0F4FF',
+    color: Colors.primary,
+    backgroundColor: Colors.backgroundSoft,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 8,
@@ -1138,10 +1118,10 @@ const s = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
   },
   questionNumBadge: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 8,
@@ -1155,7 +1135,7 @@ const s = StyleSheet.create({
   },
   questionText: {
     fontSize: 17,
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     lineHeight: 28,
     textAlign: 'right',
     fontWeight: '600',
@@ -1163,11 +1143,11 @@ const s = StyleSheet.create({
   questionImgBox: {
     marginTop: 16,
     padding: 40,
-    backgroundColor: '#F4F6FA',
+    backgroundColor: Colors.backgroundAlt,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
     borderStyle: 'dashed',
   },
   questionImgPlaceholder: {
@@ -1183,40 +1163,40 @@ const s = StyleSheet.create({
     backgroundColor: '#FFF',
     borderRadius: 14,
     borderWidth: 2,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
   },
   optionBtnSelected: {
-    borderColor: '#2563EB',
-    backgroundColor: '#F0F4FF',
+    borderColor: Colors.primary,
+    backgroundColor: Colors.backgroundSoft,
   },
   optionRadio: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
+    borderColor: Colors.borderDark,
     marginRight: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   optionRadioSelected: {
-    borderColor: '#2563EB',
+    borderColor: Colors.primary,
   },
   optionRadioDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#2563EB',
+    backgroundColor: Colors.primary,
   },
   optionText: {
     flex: 1,
     fontSize: 15,
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     textAlign: 'right',
     lineHeight: 24,
   },
   optionTextSelected: {
-    color: '#2563EB',
+    color: Colors.primary,
     fontWeight: '600',
   },
 
@@ -1228,29 +1208,29 @@ const s = StyleSheet.create({
     paddingVertical: 14,
     backgroundColor: '#FFF',
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
+    borderTopColor: Colors.borderLight,
     gap: 12,
   },
   navBtn: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#F4F6FA',
+    backgroundColor: Colors.backgroundAlt,
     alignItems: 'center',
   },
   navBtnDisabled: {
     opacity: 0.4,
   },
   navBtnPrimary: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Colors.primary,
   },
   navBtnSubmit: {
-    backgroundColor: '#10B981',
+    backgroundColor: Colors.primaryLight,
   },
   navBtnText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
   },
   navBtnTextLight: {
     color: '#FFF',
@@ -1277,13 +1257,13 @@ const s = StyleSheet.create({
   resultTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     marginBottom: 6,
     textAlign: 'center',
   },
   resultSub: {
     fontSize: 15,
-    color: '#8E95A2',
+    color: Colors.textLight,
     marginBottom: 28,
     textAlign: 'center',
   },
@@ -1295,17 +1275,17 @@ const s = StyleSheet.create({
     marginBottom: 20,
     width: '100%',
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
   },
   scorePct: {
     fontSize: 48,
     fontWeight: '800',
-    color: '#2563EB',
+    color: Colors.primary,
     marginBottom: 6,
   },
   scoreLabel: {
     fontSize: 14,
-    color: '#8E95A2',
+    color: Colors.textLight,
     fontWeight: '600',
   },
   detailsGrid: {
@@ -1323,7 +1303,7 @@ const s = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
   },
   detailEmoji: {
     fontSize: 28,
@@ -1332,15 +1312,15 @@ const s = StyleSheet.create({
   detailValue: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     marginBottom: 4,
   },
   detailLabel: {
     fontSize: 12,
-    color: '#8E95A2',
+    color: Colors.textLight,
   },
   resultBackBtn: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Colors.primary,
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 14,

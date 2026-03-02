@@ -30,9 +30,11 @@ import PaymentDueDatesScreen from '../screens/PaymentDueDatesScreen';
 import RegisterAttendanceScreen from '../screens/RegisterAttendanceScreen';
 import AcademicResultsScreen from '../screens/AcademicResultsScreen';
 import GradeAppealsScreen from '../screens/GradeAppealsScreen';
+import SurveyScreen from '../screens/SurveyScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
 import { BranchType } from '../types/auth';
+import { Storage } from '../utils/storage';
 import TopNavigationBar, { TopNavTab } from '../components/TopNavigationBar';
 
 interface UserInfo {
@@ -44,7 +46,7 @@ interface UserInfo {
   traineeId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates' | 'register-attendance' | 'academic-results' | 'grade-appeals';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates' | 'register-attendance' | 'academic-results' | 'grade-appeals' | 'survey';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -61,37 +63,35 @@ const AppNavigator: React.FC = () => {
   const initializeApp = async () => {
     try {
       setIsLoading(true);
-      
-      // التحقق من وجود فرع محفوظ
+
+      // 1. Restore branch
       const savedBranch = await BranchService.getSavedBranch();
       if (savedBranch) {
         setSelectedBranch(savedBranch);
-        
-        // الانتقال مباشرة لشاشة تسجيل الدخول بدون التحقق من الخادم
-        // سيتم التحقق من الخادم عند محاولة تسجيل الدخول فعلياً
+      }
+
+      // 2. Restore session
+      const session = await Storage.getSession();
+      if (session && session.accessToken && savedBranch) {
+        setUserInfo({
+          nameAr: session.nameAr,
+          nameEn: session.nameEn,
+          nationalId: session.nationalId,
+          accessToken: session.accessToken,
+          classroomId: session.classroomId,
+          traineeId: session.traineeId,
+        });
+        setIsAuthenticated(true);
+        setCurrentScreen('home');
+      } else if (savedBranch) {
         setCurrentScreen('login');
       } else {
-        // لا يوجد فرع محفوظ، عرض شاشة اختيار الفرع
         setCurrentScreen('branch-selection');
       }
-      
-      // التحقق من حالة تسجيل الدخول
-      await checkAuthStatus();
     } catch (error) {
-      console.error('❌ Failed to initialize app:', error);
+      console.error('Failed to initialize app:', error);
       setCurrentScreen('branch-selection');
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const checkAuthStatus = async () => {
-    try {
-      // TODO: Check AsyncStorage for saved auth data
-      // For now, we'll start with login screen
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error checking auth status:', error);
       setIsLoading(false);
     }
   };
@@ -109,18 +109,23 @@ const AppNavigator: React.FC = () => {
     setUserInfo(userData);
     setIsAuthenticated(true);
     setCurrentScreen('home');
-    
-    // TODO: Save to AsyncStorage
-    console.log('User logged in successfully:', userData);
+
+    // Persist session
+    Storage.saveSession({
+      accessToken: userData.accessToken,
+      nameAr: userData.nameAr,
+      nameEn: userData.nameEn,
+      nationalId: userData.nationalId,
+      classroomId: userData.classroomId,
+      traineeId: userData.traineeId,
+    }).catch(err => console.log('Failed to save session', err));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setUserInfo(null);
     setIsAuthenticated(false);
     setCurrentScreen('login');
-    
-    // TODO: Clear AsyncStorage
-    console.log('User logged out');
+    await Storage.clearSession().catch(() => {});
   };
 
   const handleNavigateToProfile = () => {
@@ -210,6 +215,14 @@ const AppNavigator: React.FC = () => {
   };
 
   const handleBackFromGradeAppeals = () => {
+    setCurrentScreen('home');
+  };
+
+  const handleNavigateToSurvey = () => {
+    setCurrentScreen('survey');
+  };
+
+  const handleBackFromSurvey = () => {
     setCurrentScreen('home');
   };
 
@@ -339,6 +352,14 @@ const AppNavigator: React.FC = () => {
             accessToken={userInfo.accessToken}
             traineeId={userInfo.traineeId}
             onBack={handleBackFromGradeAppeals}
+          />
+        );
+        break;
+      case 'survey':
+        screenElement = (
+          <SurveyScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackFromSurvey}
           />
         );
         break;

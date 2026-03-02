@@ -9,7 +9,8 @@ import {
 import { gradesService } from '../services/gradesService';
 import { Colors } from '../styles/colors';
 import Icon, { AppIcons } from '../components/shared/Icon';
-import { HomeService, GradeAppealItem } from '../services/homeService';
+import { HomeService } from '../services/homeService';
+import ScreenHeader from '../components/shared/ScreenHeader';
 import {
   GradesResponse, ClassroomWithContents, ContentWithGrades,
   GradeType, GRADE_TYPE_INFO, Grades, MaxMarks,
@@ -46,19 +47,14 @@ const GRADE_COLUMNS: GradeColumn[] = [
 
 /* ══════════════════════════════════ HELPERS ══════════════════════════════════ */
 const getPassStatus = (pct: number): { text: string; color: string; bg: string } => {
-  if (pct >= 85) return { text: 'ممتاز', color: Colors.success, bg: '#DCFCE7' };
+  if (pct >= 85) return { text: 'ممتاز', color: Colors.success, bg: Colors.successLight };
   if (pct >= 75) return { text: 'جيد جداً', color: Colors.secondary, bg: Colors.successLight };
   if (pct >= 65) return { text: 'جيد', color: Colors.primary, bg: Colors.infoLight };
   if (pct >= PASS) return { text: 'مقبول', color: Colors.warning, bg: Colors.warningLight };
-  return { text: 'راسب', color: Colors.error, bg: '#FEE2E2' };
+  return { text: 'راسب', color: Colors.error, bg: Colors.errorLight };
 };
 
-const extractAppeals = (res: any): GradeAppealItem[] => {
-  if (Array.isArray(res)) return res;
-  if (res?.data && Array.isArray(res.data)) return res.data;
-  if (res?.appeals && Array.isArray(res.appeals)) return res.appeals;
-  return [];
-};
+
 
 /** Which columns actually have data > 0 in at least one content row */
 const getActiveColumns = (contents: ContentWithGrades[]): GradeColumn[] => {
@@ -73,7 +69,7 @@ const getActiveColumns = (contents: ContentWithGrades[]): GradeColumn[] => {
 /* ══════════════════════════════════ COMPONENT ══════════════════════════════════ */
 const AcademicResultsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
   const [gradesData, setGradesData] = useState<GradesResponse | null>(null);
-  const [appeals, setAppeals] = useState<GradeAppealItem[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,10 +88,7 @@ const AcademicResultsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
     try {
       if (!silent) { setIsLoading(true); setError(null); }
 
-      const [gradesRes, appealsRes] = await Promise.all([
-        gradesService.getMyGrades(accessToken),
-        HomeService.getMyGradeAppeals(accessToken).catch(() => ({ data: [], total: 0 })),
-      ]);
+      const gradesRes = await gradesService.getMyGrades(accessToken);
 
       if (gradesRes.success && gradesRes.data) {
         setGradesData(gradesRes.data);
@@ -103,7 +96,6 @@ const AcademicResultsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
         setGradesData(null);
       }
 
-      setAppeals(extractAppeals(appealsRes));
       Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
     } catch (err: any) {
       const code = err?.statusCode;
@@ -141,13 +133,7 @@ const AcademicResultsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
     allContents.filter(c => c.percentage >= PASS),
   [allContents]);
 
-  // Appeal subject names
-  const appealedSubjectNames = useMemo(() =>
-    appeals.map(a =>
-      a.grade?.trainingContent?.name ??
-      a.grade?.paperExam?.title ??
-      `درجة #${a.grade?.id ?? a.id}`
-    ), [appeals]);
+
 
   /* ── Appeal ── */
   const openAppealModal = (content: ContentWithGrades) => {
@@ -221,33 +207,15 @@ const AcademicResultsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
     </View>
   );
 
-  /* ── 4. Previous Appeals ── */
-  const renderPreviousAppeals = () => {
-    if (appeals.length === 0) return null;
-    return (
-      <View style={st.prevAppealsCard}>
-        <View style={st.prevAppealsHeader}>
-          <View style={st.prevAppealsBadge}>
-            <Text style={st.prevAppealsBadgeText}>{appeals.length} تظلمات</Text>
-          </View>
-          <Text style={st.prevAppealsTitle}>⚖️  التظلمات السابقة</Text>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={st.prevAppealsChips}>
-            {appealedSubjectNames.map((name, i) => (
-              <View key={i} style={st.prevAppealsChip}>
-                <Text style={st.prevAppealsChipText}>{name}</Text>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-      </View>
-    );
-  };
+
 
   /* ── 5. Term Header + Table per Classroom ── */
   const renderClassroom = (cl: ClassroomWithContents, clIdx: number) => {
     if (!cl.contents || cl.contents.length === 0) return null;
+
+    // Hide term if all grades are zero (results not published yet)
+    const hasAnyGrades = cl.contents.some(c => (c.grades?.totalMarks ?? 0) > 0);
+    if (!hasAnyGrades) return null;
 
     const activeColumns = getActiveColumns(cl.contents);
     const tableWidth = COL_SUBJECT + (activeColumns.length * COL_GRADE) + COL_TOTAL + COL_PCT + COL_RATING + COL_STATUS;
@@ -263,21 +231,18 @@ const AcademicResultsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
         {/* TERM HEADER CARD */}
         <View style={st.termCard}>
           <View style={st.termTitleRow}>
-            <Text style={st.termTitle}>الترم الأول</Text>
-            {cl.classroom?.name ? (
-              <Text style={st.termClassroomName}>{cl.classroom.name}</Text>
-            ) : null}
+            <Text style={st.termTitle}>{cl.classroom?.name || `الترم ${clIdx + 1}`}</Text>
           </View>
 
           <View style={st.termStatsRow}>
             {/* Left: pass/fail badges */}
             <View style={st.termStatBadges}>
-              <View style={[st.termStatBadge, { backgroundColor: '#DCFCE7' }]}>
+              <View style={[st.termStatBadge, { backgroundColor: Colors.successLight }]}>
                 <Text style={[st.termStatValue, { color: Colors.success }]}>{clPassed}</Text>
                 <Text style={[st.termStatLabel, { color: Colors.success }]}>ناجح</Text>
                 <Text style={st.termStatEmoji}>✅</Text>
               </View>
-              <View style={[st.termStatBadge, { backgroundColor: '#FEE2E2' }]}>
+              <View style={[st.termStatBadge, { backgroundColor: Colors.errorLight }]}>
                 <Text style={[st.termStatValue, { color: Colors.error }]}>{clFailed}</Text>
                 <Text style={[st.termStatLabel, { color: Colors.error }]}>راسب</Text>
                 <Text style={st.termStatEmoji}>❌</Text>
@@ -337,7 +302,7 @@ const AcademicResultsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
                 <View key={cg.content.id} style={[st.tRow, idx % 2 === 1 && st.tRowAlt, isFailed && st.tRowFailed]}>
                   {/* Status */}
                   <View style={[st.tCell, { width: COL_STATUS }]}>
-                    <View style={[st.statusBadge, { backgroundColor: isFailed ? '#FEE2E2' : '#DCFCE7' }]}>
+                    <View style={[st.statusBadge, { backgroundColor: isFailed ? Colors.errorLight : Colors.successLight }]}>
                       <Text style={[st.statusBadgeText, { color: isFailed ? Colors.error : Colors.success }]}>
                         {isFailed ? 'راسب' : 'ناجح'}
                       </Text>
@@ -378,7 +343,7 @@ const AcademicResultsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
                             {earned}/{max}
                           </Text>
                         ) : (
-                          <Text style={[st.tCellText, { color: '#D1D5DB' }]}>-</Text>
+                          <Text style={[st.tCellText, { color: Colors.borderDark }]}>-</Text>
                         )}
                       </View>
                     );
@@ -395,7 +360,7 @@ const AcademicResultsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
             {/* SUMMARY ROW */}
             <View style={st.tSummaryRow}>
               <View style={[st.tCell, { width: COL_STATUS }]}>
-                <View style={[st.statusBadge, { backgroundColor: clPct >= PASS ? '#DCFCE7' : '#FEE2E2' }]}>
+                <View style={[st.statusBadge, { backgroundColor: clPct >= PASS ? Colors.successLight : Colors.errorLight }]}>
                   <Text style={[st.statusBadgeText, { color: clPct >= PASS ? Colors.success : Colors.error }]}>
                     {clPct >= PASS ? 'ناجح' : 'راسب'}
                   </Text>
@@ -545,11 +510,7 @@ const AcademicResultsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
   /* ══════════════════════════════════ MAIN RENDER ══════════════════════════════════ */
   return (
     <View style={st.container}>
-      {/* Header */}
-      <View style={st.header}>
-        <Text style={st.headerTitle}>النتائج الدراسية</Text>
-        <Text style={st.headerSub}>عرض الدرجات المعتمدة للفصول الدراسية الخاصة بك</Text>
-      </View>
+      <ScreenHeader title="النتائج الدراسية" subtitle="عرض الدرجات المعتمدة للفصول الدراسية الخاصة بك" onBack={onBack} />
 
       {/* Loading */}
       {isLoading && (
@@ -584,8 +545,7 @@ const AcademicResultsScreen: React.FC<Props> = ({ accessToken, onBack }) => {
             {/* Pass Criteria */}
             {allContents.length > 0 && renderCriteria()}
 
-            {/* Previous Appeals */}
-            {renderPreviousAppeals()}
+
 
             {/* Classroom Term + Table */}
             {classrooms.map((cl, idx) => renderClassroom(cl, idx))}
@@ -619,17 +579,9 @@ const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.borderLight },
 
   /* Header */
-  header: {
-    backgroundColor: Colors.white,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderMedium,
-    alignItems: 'center',
-  },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: Colors.textPrimary, textAlign: 'center', marginBottom: 4 },
-  headerSub: { fontSize: 12, color: Colors.textLight, textAlign: 'center' },
+  header: { display: 'none' as any },
+  headerTitle: { fontSize: 0 },
+  headerSub: { fontSize: 0 },
 
   scroll: { padding: 16, paddingBottom: 32 },
 
@@ -721,7 +673,7 @@ const st = StyleSheet.create({
     borderBottomWidth: 1, borderLeftWidth: 1, borderRightWidth: 1, borderColor: Colors.borderLight,
     alignItems: 'center',
   },
-  tRowAlt: { backgroundColor: '#FAFAFA' },
+  tRowAlt: { backgroundColor: Colors.backgroundAlt },
   tRowFailed: { backgroundColor: Colors.errorLight },
   tCell: { alignItems: 'center', justifyContent: 'center' },
   tCellText: { fontSize: 11, color: Colors.textSecondary, fontWeight: '600', textAlign: 'center' },
@@ -754,7 +706,7 @@ const st = StyleSheet.create({
   failedDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.error },
   failedCourseName: { flex: 1, fontSize: 13, fontWeight: '600', color: Colors.textPrimary, textAlign: 'right' },
   failedPctLabel: { fontSize: 10, color: Colors.textHint },
-  failedPctBadge: { backgroundColor: '#FEE2E2', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  failedPctBadge: { backgroundColor: Colors.errorLight, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
   failedPctText: { fontSize: 11, fontWeight: '700', color: Colors.error },
 
   /* 9. Bottom Note */

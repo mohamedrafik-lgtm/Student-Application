@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {Colors} from '../styles/colors';
+import ScreenHeader from '../components/shared/ScreenHeader';
 import {authService} from '../services/authService';
 import {API_CONFIG} from '../services/apiConfig';
 import {ScheduleDebugger} from '../utils/scheduleDebugger';
@@ -227,7 +229,7 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
     return (
       <SafeAreaView style={s.container}>
         <View style={s.centerBox}>
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color={Colors.primary} />
           <Text style={s.loadingText}>جاري تحميل الجدول...</Text>
         </View>
       </SafeAreaView>
@@ -275,30 +277,11 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
 
   return (
     <SafeAreaView style={s.container}>
+      <ScreenHeader title="الجدول الدراسي" subtitle="جدول المحاضرات الأسبوعي" onBack={onBack} />
       <ScrollView
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={s.header}>
-          <TouchableOpacity style={s.backBtn} onPress={onBack}>
-            <Text style={s.backArrow}>→</Text>
-          </TouchableOpacity>
-          <View style={s.headerCenter}>
-            <Text style={s.headerTitle}>الجدول الدراسي</Text>
-            <Text style={s.headerSub}>جدول المحاضرات الأسبوعي</Text>
-          </View>
-          <View style={s.headerActions}>
-            {__DEV__ && (
-              <TouchableOpacity style={s.debugBtn} onPress={handleDebugTest}>
-                <Text style={s.debugBtnText}>🐛</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={s.refreshBtn} onPress={loadSchedule}>
-              <Text style={s.refreshBtnText}>🔄</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
 
         {/* Stats Card */}
         <View style={s.statsCard}>
@@ -426,7 +409,7 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F6FA',
+    backgroundColor: Colors.background,
   },
   scroll: {
     flex: 1,
@@ -443,7 +426,7 @@ const s = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#8E95A2',
+    color: Colors.textLight,
     textAlign: 'center',
   },
   errorIcon: {
@@ -453,22 +436,22 @@ const s = StyleSheet.create({
   errorTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     marginBottom: 8,
     textAlign: 'center',
   },
   errorMsg: {
     fontSize: 15,
-    color: '#8E95A2',
+    color: Colors.textLight,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
   },
   retryBtn: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: 12,
   },
   retryBtnText: {
@@ -480,7 +463,7 @@ const s = StyleSheet.create({
     paddingVertical: 8,
   },
   backLinkText: {
-    color: '#2563EB',
+    color: Colors.primary,
     fontSize: 15,
     fontWeight: '600',
   },
@@ -491,91 +474,41 @@ const s = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1A1D26',
+    color: Colors.textPrimary,
     marginBottom: 8,
     textAlign: 'center',
   },
   emptyMsg: {
     fontSize: 15,
-    color: '#8E95A2',
+    color: Colors.textLight,
     textAlign: 'center',
     marginBottom: 24,
   },
 
-  /* Header */
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#F0F4FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backArrow: {
-    fontSize: 18,
-    color: '#2563EB',
-    fontWeight: '700',
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'flex-end',
-    marginRight: 12,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1D26',
-  },
-  headerSub: {
-    fontSize: 13,
-    color: '#8E95A2',
-    marginTop: 2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  debugBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#FFF7ED',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  debugBtnText: {
-    fontSize: 18,
-  },
-  refreshBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#F0F4FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  refreshBtnText: {
-    fontSize: 18,
-  },
+  /* Header - replaced by ScreenHeader component */
+  header: { display: 'none' as any },
+  backBtn: { display: 'none' as any },
+  backArrow: { fontSize: 0 },
+  headerCenter: { display: 'none' as any },
+  headerTitle: { fontSize: 0 },
+  headerSub: { fontSize: 0 },
+  headerActions: { display: 'none' as any },
+  debugBtn: { display: 'none' as any },
+  debugBtnText: { fontSize: 0 },
+  refreshBtn: { display: 'none' as any },
+  refreshBtnText: { fontSize: 0 },
 
   /* Stats */
   statsCard: {
-    backgroundColor: '#FFF',
-    marginHorizontal: 20,
+    backgroundColor: Colors.white,
+    marginHorizontal: 16,
     marginTop: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4,
   },
   statsRow: {
     flexDirection: 'row',
@@ -588,42 +521,42 @@ const s = StyleSheet.create({
   statValue: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#2563EB',
+    color: Colors.primary,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 13,
-    color: '#8E95A2',
-    fontWeight: '500',
+    color: Colors.textLight,
+    fontWeight: '600',
   },
   statDivider: {
     width: 1,
     height: 36,
-    backgroundColor: '#EEF2F6',
+    backgroundColor: Colors.borderLight,
   },
 
   /* Toggle */
   toggleRow: {
     flexDirection: 'row',
-    marginHorizontal: 20,
+    marginHorizontal: 16,
     marginTop: 16,
-    backgroundColor: '#EEF2F6',
-    borderRadius: 12,
+    backgroundColor: Colors.backgroundSoft,
+    borderRadius: 14,
     padding: 4,
   },
   toggleBtn: {
     flex: 1,
     paddingVertical: 10,
     alignItems: 'center',
-    borderRadius: 10,
+    borderRadius: 12,
   },
   toggleBtnActive: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Colors.primary,
   },
   toggleBtnText: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#8E95A2',
+    fontWeight: '700',
+    color: Colors.textLight,
   },
   toggleBtnTextActive: {
     color: '#FFF',
@@ -642,26 +575,26 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: '#FFF',
+    borderRadius: 14,
+    backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: '#EEF2F6',
+    borderColor: Colors.borderLight,
     gap: 6,
   },
   dayChipActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   dayChipText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1A1D26',
+    fontWeight: '700',
+    color: Colors.textPrimary,
   },
   dayChipTextActive: {
     color: '#FFF',
   },
   dayBadge: {
-    backgroundColor: '#EEF2F6',
+    backgroundColor: Colors.backgroundSoft,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -675,7 +608,7 @@ const s = StyleSheet.create({
   dayBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#2563EB',
+    color: Colors.primary,
   },
   dayBadgeTextActive: {
     color: '#FFF',

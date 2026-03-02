@@ -9,6 +9,7 @@ import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import { Colors } from '../styles/colors';
 import Icon, { AppIcons } from '../components/shared/Icon';
+import ScreenHeader from '../components/shared/ScreenHeader';
 
 interface CreatePaymentDeferralScreenProps {
   accessToken: string;
@@ -59,17 +60,7 @@ const CreatePaymentDeferralScreen: React.FC<CreatePaymentDeferralScreenProps> = 
 
   return (
     <SafeAreaView style={s.container}>
-      {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={onBack} activeOpacity={0.7} style={s.backBtn}>
-          <Icon name={AppIcons.back} size={18} color={Colors.primary} />
-        </TouchableOpacity>
-        <View style={{ flex: 1, marginRight: 14 }}>
-          <Text style={s.headerTitle}>طلب تأجيل سداد</Text>
-          <Text style={s.headerSub}>قدم طلب تأجيل موعد سداد أحد الرسوم</Text>
-        </View>
-        <View style={{ width: 38 }} />
-      </View>
+      <ScreenHeader title="طلب تأجيل سداد" subtitle="قدم طلب تأجيل موعد سداد أحد الرسوم" onBack={onBack} />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll}>
         <View style={s.formCard}>
@@ -139,20 +130,15 @@ const CreatePaymentDeferralScreen: React.FC<CreatePaymentDeferralScreenProps> = 
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
-    paddingHorizontal: 18, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
-  },
-  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.backgroundSoft, alignItems: 'center', justifyContent: 'center' },
-  backIcon: { fontSize: 18, color: Colors.primary, fontWeight: '700' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
-  headerSub: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
+  header: { display: 'none' as any },
+  backBtn: { display: 'none' as any },
+  backIcon: { fontSize: 0 },
+  headerTitle: { fontSize: 0 },
+  headerSub: { fontSize: 0 },
   scroll: { padding: 18, paddingBottom: 32 },
   formCard: {
-    backgroundColor: Colors.white, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: Colors.borderLight,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
+    backgroundColor: Colors.white, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: Colors.borderLight,
+    shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 14, elevation: 4,
   },
   label: { fontSize: 14, fontWeight: '700', color: Colors.textPrimary, marginBottom: 10, textAlign: 'right' },
   hint: { fontSize: 11, color: Colors.textHint, marginTop: 6, textAlign: 'right', fontStyle: 'italic' },

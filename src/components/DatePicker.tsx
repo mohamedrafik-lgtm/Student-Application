@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.2)',
+    borderColor: Colors.borderMedium,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   modalHeader: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(99, 102, 241, 0.1)',
+    borderBottomColor: Colors.borderMedium,
   },
   modalTitle: {
     fontSize: 18,
@@ -315,9 +315,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     marginBottom: 4,
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+    backgroundColor: Colors.primarySoft,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.1)',
+    borderColor: Colors.borderMedium,
   },
   pickerItemSelected: {
     backgroundColor: Colors.primary,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(99, 102, 241, 0.1)',
+    borderTopColor: Colors.borderMedium,
     gap: 12,
   },
   actionButton: {
@@ -347,9 +347,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    backgroundColor: Colors.primarySoft,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.2)',
+    borderColor: Colors.borderPrimary,
   },
   cancelButtonText: {
     fontSize: 16,
