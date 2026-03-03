@@ -194,6 +194,7 @@ export interface TraineePayment {
   status: PaymentStatus;
   paidAmount: number;
   paidAt?: string;
+  dueDate?: string;
   notes?: string;
   createdAt: string;
   fee: TraineeFee;

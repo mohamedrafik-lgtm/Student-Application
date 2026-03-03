@@ -3,8 +3,11 @@
 // 2. Open/Closed: Can be extended with new screens without modification
 // 3. Dependency Inversion: Depends on abstractions (screens) not concretions
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
+import PaymentReminderModal from '../components/PaymentReminderModal';
+import { AuthService } from '../services/authService';
+import { TraineePayment } from '../types/auth';
 import LoginScreen from '../screens/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -56,10 +59,60 @@ const AppNavigator: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen>('branch-selection');
   const [selectedBranch, setSelectedBranch] = useState<BranchType | null>(null);
 
+  // Payment reminder modal state
+  const [showPaymentReminder, setShowPaymentReminder] = useState(false);
+  const [upcomingPayment, setUpcomingPayment] = useState<TraineePayment | null>(null);
+  const [paymentDaysRemaining, setPaymentDaysRemaining] = useState(0);
+  const [paymentReminderChecked, setPaymentReminderChecked] = useState(false);
+
   useEffect(() => {
     // Check if user is already logged in and has a saved branch
     initializeApp();
   }, []);
+
+  // Check for upcoming payment due dates when user is authenticated
+  const checkUpcomingPayments = useCallback(async (accessToken: string) => {
+    if (paymentReminderChecked) { return; }
+    try {
+      const profileData = await AuthService.getProfile(accessToken);
+      const payments = profileData?.trainee?.traineePayments || [];
+      const now = new Date();
+      const REMINDER_DAYS = 5;
+
+      // Find pending payments with due dates within REMINDER_DAYS
+      let closestPayment: TraineePayment | null = null;
+      let closestDays = Infinity;
+
+      for (const p of payments) {
+        if (p.status !== 'PENDING' || !p.dueDate) { continue; }
+        const remaining = p.amount - p.paidAmount;
+        if (remaining <= 0) { continue; }
+        const due = new Date(p.dueDate);
+        const diffMs = due.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        if (diffDays >= 0 && diffDays <= REMINDER_DAYS && diffDays < closestDays) {
+          closestDays = diffDays;
+          closestPayment = p;
+        }
+      }
+
+      if (closestPayment) {
+        setUpcomingPayment(closestPayment);
+        setPaymentDaysRemaining(closestDays);
+        setShowPaymentReminder(true);
+      }
+    } catch (err) {
+      console.log('Payment reminder check failed:', err);
+    } finally {
+      setPaymentReminderChecked(true);
+    }
+  }, [paymentReminderChecked]);
+
+  useEffect(() => {
+    if (isAuthenticated && userInfo?.accessToken && !paymentReminderChecked) {
+      checkUpcomingPayments(userInfo.accessToken);
+    }
+  }, [isAuthenticated, userInfo, paymentReminderChecked, checkUpcomingPayments]);
 
   const initializeApp = async () => {
     try {
@@ -584,6 +637,18 @@ const AppNavigator: React.FC = () => {
           onNavigateToProfile={handleNavigateToProfile}
         />
         {screenElement}
+
+        {/* Payment Reminder Modal */}
+        <PaymentReminderModal
+          visible={showPaymentReminder}
+          payment={upcomingPayment}
+          daysRemaining={paymentDaysRemaining}
+          onClose={() => setShowPaymentReminder(false)}
+          onViewDetails={() => {
+            setShowPaymentReminder(false);
+            setCurrentScreen('payments');
+          }}
+        />
       </View>
     );
   }

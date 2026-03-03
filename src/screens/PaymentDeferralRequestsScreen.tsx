@@ -1,7 +1,7 @@
 // PaymentDeferralRequestsScreen – payment deferral requests list
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Animated, ActivityIndicator,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { requestsService } from '../services/requestsService';
@@ -10,7 +10,6 @@ import {
 } from '../types/requests';
 import CustomButton from '../components/CustomButton';
 import { Colors } from '../styles/colors';
-import Icon, { AppIcons } from '../components/shared/Icon';
 import ScreenHeader from '../components/shared/ScreenHeader';
 
 interface PaymentDeferralRequestsScreenProps {
@@ -25,10 +24,8 @@ const PaymentDeferralRequestsScreen: React.FC<PaymentDeferralRequestsScreenProps
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [requests, setRequests] = useState<PaymentDeferralRequest[]>([]);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
     loadRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -38,8 +35,24 @@ const PaymentDeferralRequestsScreen: React.FC<PaymentDeferralRequestsScreenProps
       setIsLoading(true);
       setError(null);
       const response = await requestsService.getMyDeferralRequests(accessToken);
-      if (Array.isArray(response)) setRequests(response as PaymentDeferralRequest[]);
-      else setError('صيغة استجابة غير صحيحة من الخادم');
+
+      // Handle both array and wrapped responses: { data: [...] } or [...]
+      let items: any[] = [];
+      if (Array.isArray(response)) {
+        items = response;
+      } else if (response && typeof response === 'object') {
+        const wrapped = response as any;
+        if (Array.isArray(wrapped.data)) {
+          items = wrapped.data;
+        } else if (Array.isArray(wrapped.requests)) {
+          items = wrapped.requests;
+        } else if (Array.isArray(wrapped.items)) {
+          items = wrapped.items;
+        }
+      }
+
+      console.log('📝 Deferral Requests loaded:', items.length, 'items');
+      setRequests(items as PaymentDeferralRequest[]);
     } catch (err: any) {
       const apiError = err as RequestError;
       let msg = 'حدث خطأ أثناء تحميل الطلبات';
@@ -76,16 +89,16 @@ const PaymentDeferralRequestsScreen: React.FC<PaymentDeferralRequestsScreenProps
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* Create button */}
         {!isLoading && !error && (
-          <Animated.View style={{ opacity: fadeAnim }}>
+          <View>
             <TouchableOpacity
               style={s.createBtn}
               onPress={() => onNavigateToCreateDeferral && onNavigateToCreateDeferral()}
               activeOpacity={0.8}
             >
-              <Icon name={AppIcons.add} size={18} color={Colors.white} />
+              <Text style={{ fontSize: 18, color: Colors.white }}>＋</Text>
               <Text style={s.createBtnText}>إنشاء طلب تأجيل سداد جديد</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         )}
 
         {/* Loading */}
@@ -99,7 +112,7 @@ const PaymentDeferralRequestsScreen: React.FC<PaymentDeferralRequestsScreenProps
         {/* Error */}
         {error && !isLoading && (
           <View style={s.center}>
-            <View style={s.errorCircle}><Icon name={AppIcons.warning} size={32} color={Colors.warning} /></View>
+            <View style={s.errorCircle}><Text style={{ fontSize: 28 }}>⚠️</Text></View>
             <Text style={s.errorText}>{error}</Text>
             <CustomButton title="إعادة المحاولة" onPress={loadRequests} variant="outline" size="medium" />
           </View>
@@ -107,14 +120,14 @@ const PaymentDeferralRequestsScreen: React.FC<PaymentDeferralRequestsScreenProps
 
         {/* Requests */}
         {!isLoading && !error && requests.length > 0 && (
-          <Animated.View style={{ opacity: fadeAnim, gap: 12, marginTop: 16 }}>
+          <View style={{ gap: 12, marginTop: 16 }}>
             {requests.map((req) => {
               const color = sc(req.status);
               return (
                 <View key={req.id} style={s.card}>
                   <View style={s.cardTop}>
                     <View style={s.cardLeft}>
-                      <View style={s.cardIcon}><Icon name={AppIcons.payments} size={20} color={Colors.warning} /></View>
+                      <View style={s.cardIcon}><Text style={{ fontSize: 18 }}>💰</Text></View>
                       <View style={{ flex: 1 }}>
                         <Text style={s.cardTitle}>{req.fee?.name || 'رسم غير محدد'}</Text>
                         <Text style={s.cardAmount}>{req.fee?.amount || 0} جنيه</Text>
@@ -153,13 +166,13 @@ const PaymentDeferralRequestsScreen: React.FC<PaymentDeferralRequestsScreenProps
                 </View>
               );
             })}
-          </Animated.View>
+          </View>
         )}
 
         {/* Empty */}
         {!isLoading && !error && requests.length === 0 && (
           <View style={s.center}>
-            <Icon name={AppIcons.payments} size={56} color={Colors.warning} style={{ marginBottom: 16 }} />
+            <Text style={{ fontSize: 48, marginBottom: 16 }}>💳</Text>
             <Text style={s.emptyTitle}>لا توجد طلبات</Text>
             <Text style={s.emptyDesc}>لا توجد طلبات تأجيل سداد حالياً</Text>
           </View>

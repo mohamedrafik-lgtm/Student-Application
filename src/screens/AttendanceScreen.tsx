@@ -375,14 +375,14 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
                 {renderStatCard(
                   'غياب',
                   attendanceData.stats.absent,
-                  '✕',
+                  <Text style={{ fontSize: 12, color: Colors.error }}>✕</Text>,
                   Colors.errorLight,
                   Colors.error,
                 )}
                 {renderStatCard(
                   'حضور',
                   attendanceData.stats.present,
-                  '✓',
+                  <Text style={{ fontSize: 12, color: Colors.success }}>✓</Text>,
                   Colors.successLight,
                   Colors.success,
                 )}

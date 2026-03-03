@@ -1,12 +1,12 @@
 // StudentRequestsScreen – free-type requests list + create buttons
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Animated, ActivityIndicator,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { requestsService } from '../services/requestsService';
 import {
-  StudentRequest, PaymentDeferralStatus, RequestError, REQUEST_TYPE_INFO,
+  PaymentDeferralStatus, RequestError, REQUEST_TYPE_INFO, RequestType,
 } from '../types/requests';
 import CustomButton from '../components/CustomButton';
 import { Colors } from '../styles/colors';
@@ -29,11 +29,9 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [requests, setRequests] = useState<StudentRequest[]>([]);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [requests, setRequests] = useState<any[]>([]);
 
   useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
     loadRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -43,12 +41,24 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
       setIsLoading(true);
       setError(null);
       const response = await requestsService.getMyRequests(accessToken);
+
+      // Handle both array and wrapped responses: { data: [...] } or [...]
+      let items: any[] = [];
       if (Array.isArray(response)) {
-        const freeRequests = response.filter(req => 'type' in req && !('feeId' in req));
-        setRequests(freeRequests as any[]);
-      } else {
-        setError('صيغة استجابة غير صحيحة من الخادم');
+        items = response;
+      } else if (response && typeof response === 'object') {
+        const wrapped = response as any;
+        if (Array.isArray(wrapped.data)) {
+          items = wrapped.data;
+        } else if (Array.isArray(wrapped.requests)) {
+          items = wrapped.requests;
+        } else if (Array.isArray(wrapped.items)) {
+          items = wrapped.items;
+        }
       }
+
+      console.log('📝 Free Requests loaded:', items.length, 'items');
+      setRequests(items as any[]);
     } catch (err: any) {
       const apiError = err as RequestError;
       let msg = 'حدث خطأ أثناء تحميل الطلبات';
@@ -61,20 +71,20 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
     }
   };
 
-  const statusColor = (status: PaymentDeferralStatus) => {
+  const statusColor = (status: string) => {
     switch (status) {
-      case PaymentDeferralStatus.PENDING: return Colors.warning;
-      case PaymentDeferralStatus.APPROVED: return Colors.primaryLight;
-      case PaymentDeferralStatus.REJECTED: return Colors.error;
+      case 'PENDING': return Colors.warning;
+      case 'APPROVED': return Colors.primaryLight;
+      case 'REJECTED': return Colors.error;
       default: return Colors.textHint;
     }
   };
-  const statusLabel = (status: PaymentDeferralStatus) => {
+  const statusLabel = (status: string) => {
     switch (status) {
-      case PaymentDeferralStatus.PENDING: return 'قيد المراجعة';
-      case PaymentDeferralStatus.APPROVED: return 'مقبول';
-      case PaymentDeferralStatus.REJECTED: return 'مرفوض';
-      default: return status;
+      case 'PENDING': return 'قيد المراجعة';
+      case 'APPROVED': return 'مقبول';
+      case 'REJECTED': return 'مرفوض';
+      default: return status || 'غير محدد';
     }
   };
   const fmtDate = (d: string) => new Date(d).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -93,7 +103,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* Create Request Buttons */}
         {!isLoading && !error && (
-          <Animated.View style={[s.typesGrid, { opacity: fadeAnim }]}>
+          <View style={s.typesGrid}>
             {typeButtons.map((t, i) => (
               <TouchableOpacity
                 key={i}
@@ -101,12 +111,12 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
                 activeOpacity={0.7}
                 onPress={() => t.onPress && t.onPress()}
               >
-                <View style={s.typeIcon}><Text style={{ fontSize: 22 }}>{t.icon}</Text></View>
+                <View style={s.typeIcon}><Text style={s.typeIconText}>{t.icon}</Text></View>
                 <Text style={s.typeLabel}>{t.label}</Text>
-                <Text style={s.typeHint}>إنشاء طلب</Text>
+                <Text style={s.typeHint}>{'إنشاء طلب'}</Text>
               </TouchableOpacity>
             ))}
-          </Animated.View>
+          </View>
         )}
 
         {/* Loading */}
@@ -128,70 +138,74 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
 
         {/* Requests List */}
         {!isLoading && !error && requests.length > 0 && (
-          <Animated.View style={{ opacity: fadeAnim, gap: 12 }}>
+          <View style={{ gap: 12 }}>
             <Text style={s.sectionTitle}>طلباتك ({requests.length})</Text>
-            {requests.map((request) => {
-              const isTrainee = 'type' in request;
+            {requests.map((request: any, idx: number) => {
               let icon = '📋';
               let title = 'طلب';
-              if (isTrainee) {
-                const t = (request as any).type as keyof typeof REQUEST_TYPE_INFO;
-                if (t && REQUEST_TYPE_INFO[t]) { icon = REQUEST_TYPE_INFO[t].icon; title = REQUEST_TYPE_INFO[t].nameAr; }
+              const reqType = request.type as string | undefined;
+              if (reqType && REQUEST_TYPE_INFO[reqType as RequestType]) {
+                icon = REQUEST_TYPE_INFO[reqType as RequestType].icon;
+                title = REQUEST_TYPE_INFO[reqType as RequestType].nameAr;
               }
               const sc = statusColor(request.status);
               return (
-                <View key={request.id} style={s.reqCard}>
+                <View key={request.id || idx} style={s.reqCard}>
                   <View style={s.reqHeader}>
                     <View style={s.reqLeft}>
                       <View style={s.reqIcon}><Text style={{ fontSize: 20 }}>{icon}</Text></View>
                       <View style={{ flex: 1 }}>
                         <Text style={s.reqTitle}>{title}</Text>
-                        <Text style={s.reqReason} numberOfLines={1}>{request.reason}</Text>
+                        {request.reason ? <Text style={s.reqReason} numberOfLines={1}>{request.reason}</Text> : null}
                       </View>
                     </View>
-                    <View style={[s.statusBadge, { backgroundColor: sc + '15', borderColor: sc }]}>
+                    <View style={[s.statusBadge, { backgroundColor: sc + '20', borderColor: sc }]}>
                       <View style={[s.statusDot, { backgroundColor: sc }]} />
                       <Text style={[s.statusText, { color: sc }]}>{statusLabel(request.status)}</Text>
                     </View>
                   </View>
 
-                  {/* Stats */}
-                  <View style={s.statsRow}>
-                    <View style={s.statBox}>
-                      <Text style={s.statLabel}>الأيام</Text>
-                      <Text style={s.statVal}>{request.requestedExtensionDays}</Text>
+                  {/* Info row - type specific */}
+                  {(request.examType || request.examDate) && (
+                    <View style={s.statsRow}>
+                      {request.examType && (
+                        <View style={s.statBox}>
+                          <Text style={s.statLabel}>نوع الاختبار</Text>
+                          <Text style={s.statVal}>{request.examType === 'MIDTERM' ? 'ميد تيرم' : request.examType === 'FINAL' ? 'نهائي' : request.examType}</Text>
+                        </View>
+                      )}
+                      {request.examDate && (
+                        <View style={s.statBox}>
+                          <Text style={s.statLabel}>تاريخ الاختبار</Text>
+                          <Text style={s.statVal}>{fmtDate(request.examDate)}</Text>
+                        </View>
+                      )}
                     </View>
-                    {request.requestedDeadline && (
-                      <View style={s.statBox}>
-                        <Text style={s.statLabel}>الموعد الجديد</Text>
-                        <Text style={s.statVal}>{fmtDate(request.requestedDeadline)}</Text>
-                      </View>
-                    )}
-                  </View>
+                  )}
 
                   {/* Admin response */}
-                  {request.adminResponse && (
+                  {request.adminResponse ? (
                     <View style={s.adminBox}>
-                      <Text style={s.adminLabel}>💬 رد الإدارة:</Text>
+                      <Text style={s.adminLabel}>{'💬 رد الإدارة:'}</Text>
                       <Text style={s.adminText}>{request.adminResponse}</Text>
                     </View>
-                  )}
+                  ) : null}
 
                   {/* Reviewer */}
-                  {request.reviewer && (
+                  {request.reviewer ? (
                     <View style={s.reviewerBox}>
-                      <Text style={s.reviewerLabel}>👤 المراجع: {request.reviewer.name}</Text>
-                      {request.reviewedAt && <Text style={s.reviewerDate}>{fmtDate(request.reviewedAt)}</Text>}
+                      <Text style={s.reviewerLabel}>{'👤 المراجع: '}{request.reviewer.name}</Text>
+                      {request.reviewedAt ? <Text style={s.reviewerDate}>{fmtDate(request.reviewedAt)}</Text> : null}
                     </View>
-                  )}
+                  ) : null}
 
                   <View style={s.reqFooter}>
-                    <Text style={s.footerDate}>📅 {fmtDate(request.createdAt)}</Text>
+                    <Text style={s.footerDate}>{'📅 '}{fmtDate(request.createdAt)}</Text>
                   </View>
                 </View>
               );
             })}
-          </Animated.View>
+          </View>
         )}
 
         {/* Empty */}
@@ -224,6 +238,7 @@ const s = StyleSheet.create({
     width: 52, height: 52, borderRadius: 16, backgroundColor: Colors.background,
     alignItems: 'center', justifyContent: 'center', marginBottom: 10,
   },
+  typeIconText: { fontSize: 22 },
   typeLabel: { fontSize: 14, fontWeight: '700', color: Colors.textPrimary, textAlign: 'center', marginBottom: 3 },
   typeHint: { fontSize: 11, color: Colors.textHint },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right', marginBottom: 10 },

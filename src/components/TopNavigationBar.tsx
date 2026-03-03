@@ -24,7 +24,6 @@ import { Colors } from '../styles/colors';
 export type TopNavTab =
   | 'home'
   | 'schedule'
-  | 'grades'
   | 'academic-results'
   | 'grade-appeals'
   | 'exams'
@@ -49,7 +48,6 @@ const TABS: { id: TopNavTab; label: string }[] = [
   { id: 'home', label: 'الرئيسية' },
   { id: 'schedule', label: 'الجدول' },
   { id: 'training-contents', label: 'المحتوى التدريبي' },
-  { id: 'grades', label: 'الدرجات' },
   { id: 'academic-results', label: 'النتائج الدراسية' },
   { id: 'grade-appeals', label: 'تظلمات الدرجات' },
   { id: 'exams', label: 'الاختبارات' },
