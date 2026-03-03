@@ -11,9 +11,18 @@ export interface IconProps {
   style?: any;
 }
 
-const Icon: React.FC<IconProps> = ({ name, size = 22, color = Colors.textPrimary, style }) => (
-  <MaterialCommunityIcons name={name} size={size} color={color} style={style} />
-);
+const FALLBACK_ICON = 'help-circle-outline';
+
+const Icon: React.FC<IconProps> = ({ name, size = 22, color = Colors.textPrimary, style }) => {
+  return (
+    <MaterialCommunityIcons
+      name={name || FALLBACK_ICON}
+      size={size}
+      color={color}
+      style={style}
+    />
+  );
+};
 
 export default Icon;
 

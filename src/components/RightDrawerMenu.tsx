@@ -18,7 +18,6 @@ export type DrawerTab =
   | 'schedule'
   | 'grades'
   | 'exams'
-  | 'attendance'
   | 'documents'
   | 'payments'
   | 'profile';
@@ -33,7 +32,6 @@ const TABS: { id: DrawerTab; label: string; icon?: string }[] = [
   { id: 'schedule', label: 'الجدول', icon: AppIcons.schedule },
   { id: 'grades', label: 'الدرجات', icon: AppIcons.grades },
   { id: 'exams', label: 'الاختبارات', icon: AppIcons.exam },
-  { id: 'attendance', label: 'سجل الحضور و الغياب', icon: AppIcons.attendance },
   // renamed for clarity per user request
   { id: 'documents', label: 'الوثائق', icon: AppIcons.document },
   { id: 'payments', label: 'المدفوعات', icon: AppIcons.payments },

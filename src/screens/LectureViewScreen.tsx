@@ -46,7 +46,6 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lectureDetails, setLectureDetails] = useState<LectureDetails | null>(null);
-  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
   useEffect(() => {
     Animated.parallel([
@@ -62,28 +61,10 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
       setIsLoading(true);
       setError(null);
 
-      const logs: string[] = [];
-      logs.push(`Loading lecture ID: ${lectureId}`);
-      logs.push(`API URL: ${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LECTURE_DETAILS}/${lectureId}`);
-
       const response = await lecturesService.getLectureDetails(lectureId, accessToken);
-
-      logs.push('Response received');
-      logs.push(`Title: ${response.title}`);
-      logs.push(`Type: ${response.type}`);
-      logs.push(`YouTube: ${response.youtubeUrl || 'N/A'}`);
-      logs.push(`PDF: ${response.pdfFile || 'N/A'}`);
-
-      setDebugInfo(logs);
       setLectureDetails(response);
     } catch (error) {
-      const logs: string[] = debugInfo.length > 0 ? [...debugInfo] : [];
-      logs.push('ERROR');
-
       const apiError = error as TrainingContentsError;
-      logs.push(`Status: ${apiError.statusCode || 'N/A'}`);
-      logs.push(`Message: ${apiError.message || 'N/A'}`);
-      setDebugInfo(logs);
 
       let errorMessage = 'حدث خطأ أثناء تحميل المحاضرة';
       if (apiError.statusCode === 401) {
@@ -176,16 +157,6 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
         {/* Content */}
         {!isLoading && !error && lectureDetails && (
           <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], gap: 16 }}>
-            {/* Debug Panel (dev) */}
-            {debugInfo.length > 0 && __DEV__ && (
-              <View style={s.debugPanel}>
-                <Text style={s.debugTitle}>معلومات التشخيص</Text>
-                {debugInfo.map((log, i) => (
-                  <Text key={i} style={s.debugText}>{log}</Text>
-                ))}
-              </View>
-            )}
-
             {/* Video Section */}
             {lectureDetails.youtubeUrl && (
               <View style={s.card}>
@@ -390,16 +361,6 @@ const s = StyleSheet.create({
   errorDetailLabel: { fontSize: 13, fontWeight: '600', color: Colors.textPrimary, textAlign: 'right', marginBottom: 8 },
   errorDetailVal: {
     fontSize: 11, color: Colors.textHint, textAlign: 'right', marginBottom: 4,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-  },
-  // Debug
-  debugPanel: {
-    backgroundColor: Colors.textPrimary, borderRadius: 12, padding: 14,
-    borderWidth: 1, borderColor: Colors.primaryLight,
-  },
-  debugTitle: { fontSize: 13, fontWeight: '700', color: Colors.primaryLight, marginBottom: 8, textAlign: 'right' },
-  debugText: {
-    fontSize: 10, color: Colors.borderMedium, marginBottom: 3, textAlign: 'right',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
 });

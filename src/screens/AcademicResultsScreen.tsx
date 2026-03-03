@@ -95,7 +95,7 @@ const FIELD_ICONS: Record<string, { icon: string; color: string; bg: string }> =
   quizzes: { icon: 'clipboard-list-outline', color: '#EF4444', bg: '#FEF2F2' },
   finalExam: { icon: 'school-outline', color: '#EC4899', bg: '#FDF2F8' },
   earnedMarks: { icon: 'star-outline', color: '#F59E0B', bg: '#FFFBEB' },
-  percentage: { icon: 'percent-outline', color: '#059669', bg: '#ECFDF5' },
+  percentage: { icon: 'percent', color: '#059669', bg: '#ECFDF5' },
   score: { icon: 'star-outline', color: '#F59E0B', bg: '#FFFBEB' },
   mark: { icon: 'star-outline', color: '#F59E0B', bg: '#FFFBEB' },
   total: { icon: 'calculator-variant-outline', color: '#059669', bg: '#ECFDF5' },
@@ -398,7 +398,7 @@ const AcademicResultsScreen: React.FC<Props> = ({ accessToken, traineeId, onBack
               </View>
               {releaseInfo.requirePayment ? (
                 <View style={styles.paymentBanner}>
-                  <Icon name="cash-clock" size={16} color="#D97706" />
+                  <Icon name="cash-lock" size={16} color="#D97706" />
                   <Text style={styles.paymentText}>يتطلب سداد: {releaseInfo.linkedFeeType}</Text>
                 </View>
               ) : null}
@@ -416,7 +416,7 @@ const AcademicResultsScreen: React.FC<Props> = ({ accessToken, traineeId, onBack
                 <StatCard title="العظمى" value={totalStats.maxTotal}
                   icon="arrow-up-bold-circle-outline" iconColor="#6366F1" bgColor="#EEF2FF" />
                 <StatCard title="النسبة" value={`${totalStats.percentage}%`}
-                  icon="percent-outline"
+                  icon="percent"
                   iconColor={totalStats.percentage >= 60 ? Colors.success : Colors.error}
                   bgColor={totalStats.percentage >= 60 ? Colors.successLight : Colors.errorLight} />
               </View>
