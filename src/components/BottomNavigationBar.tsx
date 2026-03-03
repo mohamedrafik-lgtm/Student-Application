@@ -15,7 +15,7 @@ import { Colors } from '../styles/colors';
 import { theme } from '../styles/theme';
 import Icon, { AppIcons } from './shared/Icon';
 
-export type TabType = 'home' | 'schedule' | 'grades' | 'exams' | 'attendance' | 'documents' | 'payments' | 'profile';
+export type TabType = 'home' | 'schedule' | 'exams' | 'attendance' | 'documents' | 'payments' | 'profile';
 
 interface BottomNavigationBarProps {
   currentTab: TabType;
@@ -31,7 +31,6 @@ interface TabItem {
 const TABS: TabItem[] = [
   { id: 'home', label: 'الرئيسية', iconName: AppIcons.home },
   { id: 'schedule', label: 'الجدول', iconName: AppIcons.schedule },
-  { id: 'grades', label: 'الدرجات', iconName: AppIcons.grades },
   { id: 'exams', label: 'الاختبارات', iconName: AppIcons.exam },
   { id: 'attendance', label: 'الحضور', iconName: AppIcons.attendance },
   { id: 'documents', label: 'الوثائق', iconName: AppIcons.document },

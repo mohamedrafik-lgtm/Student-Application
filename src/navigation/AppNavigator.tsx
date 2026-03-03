@@ -13,7 +13,6 @@ import PaymentsScreen from '../screens/PaymentsScreen';
 import SignupScreen from '../screens/SignupScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
 import ExamsScreen from '../screens/ExamsScreen';
-import GradesScreen from '../screens/GradesScreen';
 import AttendanceScreen from '../screens/AttendanceScreen';
 import BranchSelectionScreen from '../screens/BranchSelectionScreen';
 import TrainingContentsScreen from '../screens/TrainingContentsScreen';
@@ -31,6 +30,7 @@ import RegisterAttendanceScreen from '../screens/RegisterAttendanceScreen';
 import AcademicResultsScreen from '../screens/AcademicResultsScreen';
 import GradeAppealsScreen from '../screens/GradeAppealsScreen';
 import SurveyScreen from '../screens/SurveyScreen';
+import AssignmentsScreen from '../screens/AssignmentsScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
 import { BranchType } from '../types/auth';
@@ -46,7 +46,7 @@ interface UserInfo {
   traineeId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates' | 'register-attendance' | 'academic-results' | 'grade-appeals' | 'survey';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates' | 'register-attendance' | 'academic-results' | 'grade-appeals' | 'survey' | 'assignments';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -176,16 +176,6 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('home');
   };
 
-  const handleNavigateToGrades = () => {
-    console.log('🔍 handleNavigateToGrades called');
-    console.log('🔍 Setting currentScreen to grades');
-    setCurrentScreen('grades');
-  };
-
-  const handleBackToHomeFromGrades = () => {
-    setCurrentScreen('home');
-  };
-
   const handleNavigateToAttendance = () => {
     setCurrentScreen('attendance');
   };
@@ -223,6 +213,14 @@ const AppNavigator: React.FC = () => {
   };
 
   const handleBackFromSurvey = () => {
+    setCurrentScreen('home');
+  };
+
+  const handleNavigateToAssignments = () => {
+    setCurrentScreen('assignments');
+  };
+
+  const handleBackFromAssignments = () => {
     setCurrentScreen('home');
   };
 
@@ -363,6 +361,14 @@ const AppNavigator: React.FC = () => {
           />
         );
         break;
+      case 'assignments':
+        screenElement = (
+          <AssignmentsScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackFromAssignments}
+          />
+        );
+        break;
       case 'academic-results':
         screenElement = (
           <AcademicResultsScreen
@@ -385,14 +391,6 @@ const AppNavigator: React.FC = () => {
           <AttendanceScreen
             accessToken={userInfo.accessToken}
             onBack={handleBackToHomeFromAttendance}
-          />
-        );
-        break;
-      case 'grades':
-        screenElement = (
-          <GradesScreen
-            accessToken={userInfo.accessToken}
-            onBack={handleBackToHomeFromGrades}
           />
         );
         break;
@@ -544,7 +542,6 @@ const AppNavigator: React.FC = () => {
             userInfo={userInfo}
             onNavigateToSchedule={handleNavigateToSchedule}
             onNavigateToExams={handleNavigateToExams}
-            onNavigateToGrades={handleNavigateToGrades}
             onNavigateToAttendance={handleNavigateToAttendance}
             onNavigateToProfile={handleNavigateToProfile}
             onNavigateToTrainingContents={handleNavigateToTrainingContents}

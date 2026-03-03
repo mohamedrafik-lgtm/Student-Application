@@ -74,12 +74,19 @@ export const API_CONFIG = {
     MY_DEFERRAL_REQUESTS: '/api/deferral-requests/my-requests',
     CREATE_TRAINEE_REQUEST: '/api/trainee-requests',
     REQUEST_DETAILS: '/api/trainee-auth/request',
-    GRADE_APPEALS: '/api/grade-appeals/my-appeals',
-    CREATE_GRADE_APPEAL: '/api/grade-appeals',
-    GRADE_APPEALS_STATUS: '/api/grade-appeals/appeals-status',
+    TRAINEE_PORTAL_GRADES: '/api/trainee-portal/my-grades',
+    TRAINEE_PORTAL_APPEALS: '/api/trainee-portal/appeals',
     ACCESS_CHECK: '/api/trainee-platform/access-check',
     VERIFY_ATTENDANCE_CODE: '/api/trainee-auth/verify-attendance-code',
     TRAINEE_GRADES: '/api/grades/trainee', // + /{traineeId}
+    MY_SURVEYS: '/api/surveys/my-surveys',
+    SUBMIT_SURVEY: '/api/surveys', // + /{surveyId}/submit
+    TRAINEE_ME: '/api/trainees/me',
+    MY_RESULTS: '/api/exam-results/my-results',
+    MY_ASSIGNMENTS: '/api/assignments/my-assignments',
+    SUBMIT_ASSIGNMENT: '/api/assignments', // + /{assignmentId}/submit
+    TRAINEE_RELEASED_GRADES: '/api/trainee-grades', // + /{traineeId}/released
+    MERCY_GRADES: '/api/trainee-grades', // + /{traineeId}/mercy-grades
   },
   
   // Request timeout in milliseconds

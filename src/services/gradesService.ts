@@ -181,6 +181,77 @@ export class GradesService implements IGradesService {
     console.warn('ℹ️ Normalized grades response shape for UI compatibility');
     return normalized;
   }
+
+  /**
+   * الحصول على درجات متدرب بواسطة ID
+   * يستخدم endpoint: /api/grades/trainee/{traineeId}
+   */
+  async getTraineeGrades(traineeId: number, accessToken: string): Promise<MyGradesResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TRAINEE_GRADES}/${traineeId}`;
+
+    console.log('🔍 Trainee Grades API Request:', {
+      url,
+      traineeId,
+      hasToken: !!accessToken,
+    });
+
+    const response = await GradesService.makeRequest<any>(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    console.log('📡 Trainee Grades API Response received');
+
+    // Normalize response shape
+    const raw: any = response;
+
+    if (raw && typeof raw.success === 'boolean' && raw.data) {
+      if (!raw.data.classrooms || !Array.isArray(raw.data.classrooms)) {
+        raw.data.classrooms = [];
+      }
+      return raw as MyGradesResponse;
+    }
+
+    // Fallback: build normalized response
+    let classrooms: any[] = [];
+    if (Array.isArray(raw)) {
+      classrooms = raw;
+    } else if (raw && raw.classrooms && Array.isArray(raw.classrooms)) {
+      classrooms = raw.classrooms;
+    } else if (raw && raw.classroom && raw.contents) {
+      classrooms = [raw];
+    }
+
+    const overallStats = {
+      totalEarned: 0,
+      totalMax: 0,
+      percentage: 0,
+      totalContents: 0,
+    };
+
+    classrooms.forEach((cl: any) => {
+      const s = cl.stats || {};
+      overallStats.totalEarned += s.totalEarned || 0;
+      overallStats.totalMax += s.totalMax || 0;
+      overallStats.totalContents += s.contentCount || (Array.isArray(cl.contents) ? cl.contents.length : 0);
+    });
+    if (overallStats.totalMax > 0) {
+      overallStats.percentage = Math.round((overallStats.totalEarned / overallStats.totalMax) * 10000) / 100;
+    }
+
+    const trainee = (raw && raw.trainee) ? raw.trainee : { id: traineeId, nameAr: '', nameEn: '', nationalId: '', program: null } as any;
+
+    return {
+      success: true,
+      data: {
+        trainee,
+        overallStats,
+        classrooms,
+      },
+    };
+  }
 }
 
 // Export a default instance for easier usage

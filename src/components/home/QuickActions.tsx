@@ -17,19 +17,17 @@ interface QuickAction {
 interface Props {
   onSchedule?: () => void;
   onExams?: () => void;
-  onGrades?: () => void;
   onRequests?: () => void;
   onContents?: () => void;
   onProfile?: () => void;
 }
 
 const QuickActions: React.FC<Props> = ({
-  onSchedule, onExams, onGrades, onRequests, onContents, onProfile,
+  onSchedule, onExams, onRequests, onContents, onProfile,
 }) => {
   const actions: QuickAction[] = [
     { icon: AppIcons.schedule, label: 'الجدول', onPress: onSchedule, bgColor: Colors.infoLight, iconColor: Colors.info },
     { icon: AppIcons.exams, label: 'الاختبارات', onPress: onExams, bgColor: Colors.warningLight, iconColor: Colors.warning },
-    { icon: AppIcons.grades, label: 'الدرجات', onPress: onGrades, bgColor: Colors.backgroundSoft, iconColor: Colors.primary },
     { icon: AppIcons.requests, label: 'الطلبات', onPress: onRequests, bgColor: Colors.secondarySoft, iconColor: Colors.secondary },
     { icon: AppIcons.content, label: 'المحتوى', onPress: onContents, bgColor: Colors.errorLight, iconColor: Colors.error },
     { icon: AppIcons.profile, label: 'الملف', onPress: onProfile, bgColor: Colors.primary50, iconColor: Colors.primaryDark },

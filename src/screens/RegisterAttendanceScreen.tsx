@@ -2,14 +2,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
-  Animated, ActivityIndicator, ScrollView, Dimensions,
+  Animated, ActivityIndicator, ScrollView,
 } from 'react-native';
 
 import { HomeService } from '../services/homeService';
 import { Colors } from '../styles/colors';
 import ScreenHeader from '../components/shared/ScreenHeader';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface RegisterAttendanceScreenProps {
   accessToken: string;
@@ -125,21 +123,6 @@ const RegisterAttendanceScreen: React.FC<RegisterAttendanceScreenProps> = ({
     setErrorMessage(null);
     setSuccessMessage(null);
     inputRefs.current[0]?.focus();
-  };
-
-  const handleQrSubmit = async (code: string) => {
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    try {
-      await HomeService.verifyAttendanceCode(accessToken, code);
-      setSuccessMessage('تم تسجيل الحضور بنجاح ✅');
-    } catch (err: any) {
-      const msg = err?.message || 'رمز QR غير صحيح أو منتهي الصلاحية';
-      setErrorMessage(msg);
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
 

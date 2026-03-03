@@ -24,7 +24,6 @@ import { Colors } from '../styles/colors';
 export type TopNavTab =
   | 'home'
   | 'schedule'
-  | 'grades'
   | 'academic-results'
   | 'grade-appeals'
   | 'exams'
@@ -36,7 +35,8 @@ export type TopNavTab =
   | 'profile'
   | 'training-contents'
   | 'requests-hub'
-  | 'survey';
+  | 'survey'
+  | 'assignments';
 
 interface TopNavigationBarProps {
   currentTab: TopNavTab;
@@ -49,7 +49,6 @@ const TABS: { id: TopNavTab; label: string }[] = [
   { id: 'home', label: 'الرئيسية' },
   { id: 'schedule', label: 'الجدول' },
   { id: 'training-contents', label: 'المحتوى التدريبي' },
-  { id: 'grades', label: 'الدرجات' },
   { id: 'academic-results', label: 'النتائج الدراسية' },
   { id: 'grade-appeals', label: 'تظلمات الدرجات' },
   { id: 'exams', label: 'الاختبارات' },
@@ -57,6 +56,7 @@ const TABS: { id: TopNavTab; label: string }[] = [
   { id: 'register-attendance', label: 'تسجيل الحضور' },
   { id: 'requests-hub', label: 'الطلبات' },
   { id: 'survey', label: 'الاستبيان' },
+  { id: 'assignments', label: 'المهام والتكليفات' },
   { id: 'documents', label: 'الوثائق' },
   { id: 'payments', label: 'المدفوعات' },
   { id: 'payment-due-dates', label: 'مواعيد السداد' },

@@ -20,7 +20,6 @@ interface HomeScreenProps {
   };
   onNavigateToSchedule?: () => void;
   onNavigateToExams?: () => void;
-  onNavigateToGrades?: () => void;
   onNavigateToAttendance?: () => void;
   onNavigateToProfile?: () => void;
   onNavigateToDocuments?: () => void;
@@ -32,7 +31,7 @@ interface HomeScreenProps {
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
-  userInfo, onNavigateToSchedule, onNavigateToExams, onNavigateToGrades,
+  userInfo, onNavigateToSchedule, onNavigateToExams,
   onNavigateToAttendance, onNavigateToProfile, onNavigateToDocuments,
   onNavigateToPayments, onNavigateToTrainingContents, onNavigateToStudentRequests,
   onNavigateToRegisterAttendance, onNavigateToAcademicResults,
@@ -140,13 +139,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         <AIAssistantSection />
 
         {gradeAppeals.length > 0 && (
-          <AppealsSection appeals={gradeAppeals} onViewAll={onNavigateToGrades} />
+          <AppealsSection appeals={gradeAppeals} />
         )}
 
         <QuickActions
           onSchedule={onNavigateToSchedule}
           onExams={onNavigateToExams}
-          onGrades={onNavigateToGrades}
           onRequests={onNavigateToStudentRequests}
           onContents={onNavigateToTrainingContents}
           onProfile={onNavigateToProfile}
