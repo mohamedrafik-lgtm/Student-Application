@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Animated, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BranchService } from '../services/branchService';
 import { BranchType, BranchInfo } from '../types/auth';
 import CustomButton from '../components/CustomButton';
@@ -73,7 +74,11 @@ const BranchSelectionScreen: React.FC<BranchSelectionScreenProps> = ({ onBranchS
       >
         <View style={s.branchCardInner}>
           <View style={[s.branchIcon, { backgroundColor: isSelected ? branch.color : Colors.infoLight }]}>
-            <Text style={[s.branchIconText, { color: isSelected ? Colors.white : branch.color }]}>{branch.icon}</Text>
+            <MaterialCommunityIcons
+              name={branch.icon as any}
+              size={24}
+              color={isSelected ? Colors.white : branch.color}
+            />
           </View>
           <View style={s.branchInfo}>
             <Text style={[s.branchName, isSelected && s.branchNameSelected]}>{branch.nameAr}</Text>
@@ -147,7 +152,6 @@ const s = StyleSheet.create({
   branchCardSelected: { borderColor: Colors.primary, shadowColor: Colors.primaryDark, shadowOpacity: 0.15 },
   branchCardInner: { padding: 20, flexDirection: 'row', alignItems: 'center' },
   branchIcon: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center', marginLeft: 16 },
-  branchIconText: { fontSize: 24 },
   branchInfo: { flex: 1, alignItems: 'flex-end' },
   branchName: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary, marginBottom: 4, textAlign: 'right' },
   branchNameSelected: { color: Colors.primary },

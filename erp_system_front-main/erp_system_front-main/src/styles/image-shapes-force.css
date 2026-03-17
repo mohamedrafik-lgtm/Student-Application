@@ -1,0 +1,97 @@
+/* إجبار تطبيق أشكال الصور بقوة قصوى */
+
+/* الحواف الناعمة */
+.image-shape-rounded {
+  border-radius: inherit !important;
+  overflow: hidden !important;
+  -webkit-border-radius: inherit !important;
+  -moz-border-radius: inherit !important;
+}
+
+/* الدائرية */
+.image-shape-circle {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  -webkit-border-radius: 50% !important;
+  -moz-border-radius: 50% !important;
+}
+
+/* المربعة */
+.image-shape-square {
+  border-radius: 0 !important;
+  -webkit-border-radius: 0 !important;
+  -moz-border-radius: 0 !important;
+}
+
+/* قواعد عامة قوية */
+div[style*="border-radius: 10px"] {
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  -webkit-border-radius: 10px !important;
+  -moz-border-radius: 10px !important;
+}
+
+div[style*="border-radius: 15px"] {
+  border-radius: 15px !important;
+  overflow: hidden !important;
+  -webkit-border-radius: 15px !important;
+  -moz-border-radius: 15px !important;
+}
+
+div[style*="border-radius: 20px"] {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  -webkit-border-radius: 20px !important;
+  -moz-border-radius: 20px !important;
+}
+
+div[style*="border-radius: 25px"] {
+  border-radius: 25px !important;
+  overflow: hidden !important;
+  -webkit-border-radius: 25px !important;
+  -moz-border-radius: 25px !important;
+}
+
+div[style*="border-radius: 30px"] {
+  border-radius: 30px !important;
+  overflow: hidden !important;
+  -webkit-border-radius: 30px !important;
+  -moz-border-radius: 30px !important;
+}
+
+div[style*="border-radius: 50%"] {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  -webkit-border-radius: 50% !important;
+  -moz-border-radius: 50% !important;
+}
+
+/* للطباعة */
+@media print {
+  .image-shape-rounded {
+    border-radius: inherit !important;
+    overflow: hidden !important;
+    -webkit-border-radius: inherit !important;
+    -moz-border-radius: inherit !important;
+  }
+
+  .image-shape-circle {
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    -webkit-border-radius: 50% !important;
+    -moz-border-radius: 50% !important;
+  }
+
+  .image-shape-square {
+    border-radius: 0 !important;
+    -webkit-border-radius: 0 !important;
+    -moz-border-radius: 0 !important;
+  }
+
+  div[style*="border-radius"] {
+    border-radius: inherit !important;
+    overflow: hidden !important;
+    -webkit-border-radius: inherit !important;
+    -moz-border-radius: inherit !important;
+  }
+}

@@ -88,7 +88,7 @@ const TrainingContentsScreen: React.FC<TrainingContentsScreenProps> = ({
       if (profile && profile.trainee && profile.trainee.programId) {
         const programId = profile.trainee.programId;
         setUserProgramId(programId);
-        setUserProgramName(profile.trainee.program.nameAr);
+        setUserProgramName(profile.trainee.program?.nameAr || 'برنامج غير محدد');
 
         const response = await trainingContentsService.getTrainingContents(programId, accessToken);
 

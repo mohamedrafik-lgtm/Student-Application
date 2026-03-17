@@ -1,0 +1,166 @@
+/* تحسينات خاصة لمنصة المتدربين */
+
+/* تحسين عرض الكونتينر الرئيسي */
+.trainee-container {
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* تحسين الاستجابة للشاشات الكبيرة */
+@media (min-width: 1920px) {
+  .trainee-container {
+    max-width: 1800px;
+  }
+}
+
+/* تحسين الاستجابة للشاشات المتوسطة */
+@media (min-width: 1280px) and (max-width: 1919px) {
+  .trainee-container {
+    max-width: 1200px;
+  }
+}
+
+/* تحسين الاستجابة للشاشات الصغيرة */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .trainee-container {
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+}
+
+/* تحسين الاستجابة للهواتف */
+@media (max-width: 767px) {
+  .trainee-container {
+    max-width: 100%;
+    padding: 0 0.75rem;
+  }
+}
+
+/* تحسين عرض الكروت */
+.responsive-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-grid {
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-grid {
+    gap: 2rem;
+  }
+}
+
+/* تحسين عرض الكروت الرئيسية */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* تحسين عرض الأنشطة والإجراءات */
+.activities-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1280px) {
+  .activities-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* تحسين عرض الإجراءات السريعة */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* تحسينات للنصوص والمحتوى */
+.responsive-text {
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .responsive-text {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-text {
+    font-size: 1.125rem;
+  }
+}
+
+/* تحسينات للمساحات */
+.responsive-spacing {
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-spacing {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-spacing {
+    padding: 2rem;
+  }
+}
+
+/* تحسينات خاصة للهواتف */
+@media (max-width: 639px) {
+  .mobile-optimized {
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+  }
+  
+  .mobile-text {
+    font-size: 0.875rem;
+  }
+  
+  .mobile-title {
+    font-size: 1.25rem;
+  }
+}

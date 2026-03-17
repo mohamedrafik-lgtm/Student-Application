@@ -56,7 +56,7 @@ const TABS: { id: TopNavTab; label: string }[] = [
   { id: 'survey', label: 'الاستبيان' },
   { id: 'assignments', label: 'المهام والتكليفات' },
   { id: 'documents', label: 'الوثائق' },
-  { id: 'payments', label: 'المدفوعات' },
+  { id: 'payments', label: 'المدفوعات والرسوم' },
   { id: 'payment-due-dates', label: 'مواعيد السداد' },
   { id: 'profile', label: 'الملف' },
 ];

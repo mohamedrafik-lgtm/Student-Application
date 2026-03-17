@@ -1,0 +1,964 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * ═══════════════════════════════════════════════════════════
+ *  FORCE CAIRO FONT EVERYWHERE — خط كايرو إجباري على كل شيء
+ *  هذه القواعد خارج @layer لضمان أولوية أعلى من كل المكتبات
+ * ═══════════════════════════════════════════════════════════
+ */
+html,
+body,
+*,
+*::before,
+*::after,
+button,
+input,
+select,
+textarea,
+a,
+p,
+h1, h2, h3, h4, h5, h6,
+span,
+div,
+label,
+li,
+td, th,
+[data-nextui-provider],
+[data-nextui-provider] *,
+[data-slot],
+[data-slot] *,
+.font-sans {
+  font-family: var(--font-cairo), 'Cairo', system-ui, -apple-system, sans-serif !important;
+}
+
+:root {
+  /* ===== اللون الأساسي ===== */
+  --color-blue-25: 240 245 255;
+  --color-blue-50: 239 246 255;
+  --color-blue-100: 219 234 254;
+  --color-blue-200: 191 219 254;
+  --color-blue-300: 147 197 253;
+  --color-blue-400: 96 165 250;
+  --color-blue-500: 59 130 246;
+  --color-blue-600: 37 99 235;      /* ← PRIMARY */
+  --color-blue-700: 29 78 216;
+  --color-blue-800: 30 64 175;
+  --color-blue-900: 30 58 138;
+  --color-blue-950: 23 37 84;
+
+  /* ===== ألوان shadcn/ui (موحّدة مع الأزرق) ===== */
+  --background: 210 40% 98.8%;       /* slate-50 */
+  --foreground: 222 47% 11.2%;       /* slate-900 */
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11.2%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11.2%;
+  --primary: 217 91% 60%;             /* blue-600 ← الأساسي */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 214 95% 93%;           /* blue-50 */
+  --secondary-foreground: 217 91% 60%;
+  --muted: 210 40% 96.1%;             /* slate-100 */
+  --muted-foreground: 215 16% 47%;    /* slate-500 */
+  --accent: 214 95% 93%;              /* blue-50 */
+  --accent-foreground: 217 91% 60%;
+  --destructive: 347 77% 50%;         /* rose-600 */
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 91%;              /* slate-200 */
+  --input: 214 32% 91%;
+  --ring: 217 91% 60%;                /* blue-600 */
+  --radius: 0.5rem;
+
+  /* ===== Charts ===== */
+  --chart-1: 217 91% 60%;   /* blue-600 */
+  --chart-2: 201 96% 32%;   /* cyan-700 */
+  --chart-3: 172 66% 50%;   /* teal-500 */
+  --chart-4: 199 89% 48%;   /* sky-500 */
+  --chart-5: 221 83% 53%;   /* indigo-500 */
+
+  /* ===== المسافات ===== */
+  --spacing-page-x: 1rem;
+  --spacing-page-y: 1rem;
+  --spacing-card: 1.25rem;
+  --spacing-section: 1.5rem;
+
+  /* ===== الحركات ===== */
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-smooth: 300ms;
+  --easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ===== نقاط التوقف ===== */
+@media (min-width: 768px) {
+  :root {
+    --spacing-page-x: 1.5rem;
+    --spacing-page-y: 1.5rem;
+    --spacing-card: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --spacing-page-x: 2rem;
+    --spacing-page-y: 1.5rem;
+    --spacing-card: 1.25rem;
+  }
+}
+
+/* تعطيل الوضع الداكن */
+.dark {
+  --background: 210 40% 98.8%;
+  --foreground: 222 47% 11.2%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11.2%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11.2%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 214 95% 93%;
+  --secondary-foreground: 217 91% 60%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 214 95% 93%;
+  --accent-foreground: 217 91% 60%;
+  --destructive: 347 77% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 217 91% 60%;
+}
+
+@layer base {
+  body {
+    @apply rtl:text-right;
+    color: #1f2937;
+  }
+  
+  /* إصلاح مشكلة ألوان التسميات والنصوص */
+  label, .label {
+    color: #374151 !important;
+    font-weight: 500;
+  }
+  
+  /* إصلاح ألوان حقول الإدخال */
+  input, select, textarea {
+    color: #1f2937 !important;
+    background-color: white !important;
+    border-color: #d1d5db !important;
+  }
+  
+  input::placeholder, textarea::placeholder {
+    color: #9ca3af !important;
+  }
+  
+  /* إصلاح شامل لعناصر select */
+  select {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+  }
+  
+  select option {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+    font-weight: 500 !important;
+  }
+  
+  /* إصلاح لجميع المتصفحات */
+  select, select * {
+    color: #000000 !important;
+  }
+  
+  /* تعريفات الألوان الأساسية */
+
+  /* شارة العد داخل الأزرار */
+  .count-badge {
+    color: #111827 !important;
+    background-color: #ffffff !important;
+    border-radius: 9999px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    min-width: 24px;
+    text-align: center;
+    display: inline-block;
+  }
+
+  .text-foreground {
+    color: rgb(var(--foreground));
+  }
+  
+  .text-muted {
+    color: rgb(var(--muted));
+  }
+  
+  .text-muted-foreground {
+    color: rgb(var(--muted-foreground));
+  }
+  
+  .bg-background {
+    background-color: rgb(var(--background));
+  }
+  
+  .bg-card {
+    background-color: rgb(var(--card));
+  }
+  
+  .border-border {
+    border-color: rgb(var(--border));
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-md transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-600 hover:bg-secondary-700 text-white font-medium py-2 px-4 rounded-md transition-colors;
+  }
+  
+  .btn-outline {
+    @apply border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden;
+  }
+  
+  .card-header {
+    @apply p-4 border-b border-gray-200 bg-gray-50;
+  }
+  
+  .card-body {
+    @apply p-4;
+  }
+  
+  .input-field {
+    @apply w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  }
+  
+  /* تنسيقات لوحة التحكم */
+  .dashboard-container {
+    @apply p-6 bg-gray-50 min-h-screen;
+  }
+  
+  .dashboard-grid {
+    @apply grid gap-6;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  
+  .stat-card {
+    @apply relative p-6 rounded-xl bg-white shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-md;
+  }
+  
+  .stat-card-icon {
+    @apply absolute top-4 left-4 w-12 h-12 rounded-full flex items-center justify-center text-white;
+  }
+  
+  .stat-card-primary .stat-card-icon {
+    @apply bg-primary-500;
+  }
+  
+  .stat-card-secondary .stat-card-icon {
+    @apply bg-secondary-500;
+  }
+}
+
+/* تأثيرات إضافية */
+.neumorphic {
+  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.1), 
+              -6px -6px 12px rgba(255, 255, 255, 0.8);
+}
+
+.neumorphic-inset {
+  box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.1), 
+              inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+/* Dropdown Menu Styles */
+.fixed.transform.-translate-x-1\/2 {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  z-index: 9999 !important;
+}
+
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-10deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1) rotate(5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(20px, -20px) rotate(5deg); }
+  50% { transform: translate(-10px, 30px) rotate(-5deg); }
+  75% { transform: translate(-30px, -10px) rotate(3deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes pulse-glow {
+  0% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
+  100% { opacity: 0.2; transform: scale(1); }
+}
+
+@keyframes wave {
+  0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+  100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 0.8s ease-out forwards;
+}
+
+.animate-fade-in-left {
+  animation: fadeInLeft 0.8s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.6s ease-out forwards;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 1s ease-out forwards;
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 20s linear infinite;
+}
+
+.animate-spin-slow-reverse {
+  animation: spinSlow 15s linear infinite reverse;
+}
+
+.animate-bounce-once {
+  animation: bounceOnce 0.6s ease-out;
+}
+
+@keyframes bounceOnce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-500 { animation-delay: 0.5s; }
+.delay-700 { animation-delay: 0.7s; }
+.delay-900 { animation-delay: 0.9s; }
+.delay-1000 { animation-delay: 1s; }
+.delay-1200 { animation-delay: 1.2s; }
+
+.animate-float {
+  animation: float 20s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float 25s ease-in-out infinite reverse;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 8s ease-in-out infinite;
+}
+
+.animate-wave {
+  animation: wave 25s linear infinite;
+}
+
+.bg-gradient-radial {
+  background: radial-gradient(circle at center, var(--tw-gradient-from) 0%, var(--tw-gradient-to) 100%);
+}
+
+.backdrop-blur-xl {
+  backdrop-filter: blur(24px);
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none;
+  }
+}
+
+/* Background Patterns */
+.bg-pattern {
+  background-color: rgb(var(--background));
+  background-image: 
+    radial-gradient(rgba(var(--primary-500), 0.03) 2px, transparent 2px),
+    radial-gradient(rgba(var(--primary-500), 0.03) 2px, transparent 2px);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
+}
+
+.bg-grid-white\/\[0\.05\] {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+
+.bg-grid-pattern {
+  background-size: 20px 20px;
+  background-image: 
+    linear-gradient(to right, rgba(10, 38, 71, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(10, 38, 71, 0.05) 1px, transparent 1px);
+}
+
+.dark .bg-pattern {
+  background-image: 
+    radial-gradient(rgba(var(--primary-500), 0.05) 2px, transparent 2px),
+    radial-gradient(rgba(var(--primary-500), 0.05) 2px, transparent 2px);
+}
+
+.dark .bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Animations */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Custom Hover Effects */
+.hover-lift {
+  transition: transform 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Gradient Text Effect */
+.text-gradient {
+  background: linear-gradient(135deg, #2563EB, #1E40AF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Smooth Transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* تم دمج المتغيرات في :root الرئيسي أعلاه - لا توجد تعريفات مكررة */
+
+/* تعريف الفئات لدعم مكونات shadcn */
+@layer utilities {
+  .text-foreground {
+    color: hsl(var(--foreground));
+  }
+  
+  .bg-background {
+    background-color: hsl(var(--background));
+  }
+}
+
+/* React Select Custom Styling */
+.tiba-select__value-container {
+  padding-right: 12px !important;
+  direction: rtl !important;
+}
+
+.tiba-select__control {
+  background-color: white !important;
+  border-color: #d1d5db !important;
+  border-radius: 0.5rem !important;
+  min-height: 48px !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.tiba-select__control:hover {
+  border-color: #3b82f6 !important;
+}
+
+.tiba-select__control--is-focused {
+  border-color: #1e3a8a !important;
+  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
+}
+
+.tiba-select__control--is-disabled {
+  background-color: #f9fafb !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+}
+
+.tiba-select__menu {
+  background-color: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  z-index: 9999 !important;
+  margin-top: 4px !important;
+}
+
+.tiba-select__menu-list {
+  padding: 8px 0 !important;
+  max-height: 240px !important;
+}
+
+.tiba-select__option {
+  background-color: white !important;
+  color: #374151 !important;
+  padding: 12px 16px !important;
+  cursor: pointer !important;
+  text-align: right !important;
+  direction: rtl !important;
+  border-bottom: 1px solid #f3f4f6 !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.tiba-select__option:last-child {
+  border-bottom: none !important;
+}
+
+.tiba-select__option:hover {
+  background-color: #f8fafc !important;
+  color: #1f2937 !important;
+}
+
+.tiba-select__option--is-focused {
+  background-color: #f8fafc !important;
+  color: #1f2937 !important;
+}
+
+.tiba-select__option--is-selected {
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+  font-weight: 600 !important;
+}
+
+.tiba-select__option--is-disabled {
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+}
+
+.tiba-select__single-value {
+  color: #1f2937 !important;
+  text-align: right !important;
+  direction: rtl !important;
+  overflow: visible !important;
+  max-width: 100% !important;
+}
+
+.tiba-select__multi-value {
+  background-color: #eff6ff !important;
+  border-radius: 0.375rem !important;
+  margin: 2px !important;
+}
+
+.tiba-select__multi-value__label {
+  color: #1d4ed8 !important;
+  font-weight: 500 !important;
+  padding: 4px 8px !important;
+}
+
+.tiba-select__multi-value__remove {
+  color: #1d4ed8 !important;
+  padding: 4px !important;
+}
+
+.tiba-select__multi-value__remove:hover {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+  border-radius: 0.25rem !important;
+}
+
+.tiba-select__placeholder {
+  color: #9ca3af !important;
+  text-align: right !important;
+  direction: rtl !important;
+}
+
+.tiba-select__input {
+  color: #1f2937 !important;
+  text-align: right !important;
+  direction: rtl !important;
+}
+
+.tiba-select__indicator-separator {
+  display: none !important;
+}
+
+.tiba-select__dropdown-indicator {
+  color: #9ca3af !important;
+  padding: 0 8px !important;
+  transition: transform 0.2s ease !important;
+}
+
+.tiba-select__dropdown-indicator svg {
+  transition: transform 0.2s ease !important;
+}
+
+.tiba-select__control--menu-is-open .tiba-select__dropdown-indicator svg {
+  transform: rotate(180deg) !important;
+}
+
+.tiba-select__clear-indicator {
+  color: #9ca3af !important;
+  padding: 0 8px !important;
+}
+
+.tiba-select__clear-indicator:hover {
+  color: #ef4444 !important;
+}
+
+.tiba-select__no-options-message {
+  color: #6b7280 !important;
+  text-align: center !important;
+  padding: 16px !important;
+}
+
+.tiba-select__loading-message {
+  color: #6b7280 !important;
+  text-align: center !important;
+  padding: 16px !important;
+}
+
+/* Custom scrollbar for react-select menu */
+.tiba-select__menu-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tiba-select__menu-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.tiba-select__menu-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.tiba-select__menu-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animation for react-select dropdown */
+.tiba-select__menu {
+  animation: selectDropdownEnter 0.2s ease-out;
+}
+
+@keyframes selectDropdownEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Error state styling */
+.tiba-select__control--error {
+  border-color: #ef4444 !important;
+}
+
+.tiba-select__control--error:hover {
+  border-color: #ef4444 !important;
+}
+
+.tiba-select__control--error.tiba-select__control--is-focused {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* أنيميشن سريع للقوائم المنسدلة */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fadeOutScale {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+}
+
+.animate-fade-in-fast {
+  animation: fadeInScale 0.15s ease-out forwards;
+}
+
+.animate-fade-out-fast {
+  animation: fadeOutScale 0.15s ease-in forwards;
+}
+
+/* أنيميشن التوست المحسّن */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.animate-enter {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+.animate-leave {
+  animation: slideOutRight 0.3s ease-in forwards;
+}
+
+/* تحسين الأنيميشن للأزرار */
+.btn-fast-transition {
+  transition: all 0.15s ease-out;
+}
+
+.btn-fast-transition:hover {
+  transform: translateY(-1px);
+}
+
+.btn-fast-transition:active {
+  transform: translateY(0);
+  transition-duration: 0.05s;
+}
+
+/* تخصيص شريط التمرير - رمادي بسيط */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #D1D5DB transparent;
+}
+
+/* تنسيقات خاصة بصفحة المتدرب */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.activities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

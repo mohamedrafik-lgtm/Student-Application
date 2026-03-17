@@ -8,14 +8,13 @@ import {
   TouchableOpacity,
   Animated,
   ActivityIndicator,
-  Alert,
   Platform,
   Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
 import { Colors } from '../styles/colors';
-import Icon, { AppIcons } from '../components/shared/Icon';
 import { lecturesService } from '../services/lecturesService';
 import { API_CONFIG } from '../services/apiConfig';
 import ScreenHeader from '../components/shared/ScreenHeader';
@@ -33,6 +32,29 @@ interface LectureViewScreenProps {
   onBackToAllContents?: () => void;
 }
 
+let SafePdf: any = null;
+if (Platform.OS === 'ios') {
+  try {
+    SafePdf = require('react-native-pdf').default;
+  } catch {
+    SafePdf = null;
+  }
+}
+
+let SafeWebView: any = null;
+try {
+  SafeWebView = require('react-native-webview').WebView;
+} catch {
+  SafeWebView = null;
+}
+
+let SafeInAppBrowser: any = null;
+try {
+  SafeInAppBrowser = require('react-native-inappbrowser-reborn');
+} catch {
+  SafeInAppBrowser = null;
+}
+
 const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
   lectureId,
   accessToken,
@@ -40,12 +62,20 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
   onBackToAllLectures,
   onBackToAllContents,
 }) => {
+  const VIDEO_EMBEDDED_VIEWER_ENABLED = !!SafeWebView;
+  const PDF_EMBEDDED_VIEWER_ENABLED = Platform.OS === 'ios' ? !!SafePdf : !!SafeWebView;
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lectureDetails, setLectureDetails] = useState<LectureDetails | null>(null);
+  const [activeViewer, setActiveViewer] = useState<'none' | 'video' | 'pdf'>('none');
+  const [videoLoadError, setVideoLoadError] = useState<string | null>(null);
+  const [pdfLoadError, setPdfLoadError] = useState<string | null>(null);
+  const [videoViewerUrl, setVideoViewerUrl] = useState('');
+  const [hasTriedVideoFallback, setHasTriedVideoFallback] = useState(false);
 
   useEffect(() => {
     Animated.parallel([
@@ -91,25 +121,319 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
     }
   };
 
-  const handleWatchVideo = async () => {
-    if (!lectureDetails?.youtubeUrl) {
-      Alert.alert('تنبيه', 'لا يوجد رابط فيديو لهذه المحاضرة');
+  const extractYouTubeVideoId = (url: string): string => {
+    const standardPattern = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^&]+)/;
+    const shortPattern = /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([^?]+)/;
+    const embedPattern = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([^?]+)/;
+
+    const match = url.match(standardPattern) || url.match(shortPattern) || url.match(embedPattern);
+    return match && match[1] ? match[1] : '';
+  };
+
+  const getYouTubeInAppUrl = (url: string): string => {
+    const videoId = extractYouTubeVideoId(url);
+
+    if (!videoId) {
+      return '';
+    }
+
+    // Use no-cookie embed URL with autoplay disabled for better WebView compatibility.
+    return `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&controls=1&autoplay=0`;
+  };
+
+  const getYouTubeWatchInAppUrl = (url: string): string => {
+    const videoId = extractYouTubeVideoId(url);
+    if (!videoId) {
+      return '';
+    }
+    return `https://m.youtube.com/watch?v=${videoId}`;
+  };
+
+  const normalizeExternalUrl = (rawUrl: string): string => {
+    const trimmedUrl = rawUrl.trim();
+    if (!trimmedUrl) {
+      return '';
+    }
+
+    if (/^https?:\/\//i.test(trimmedUrl)) {
+      return trimmedUrl;
+    }
+
+    if (/^www\./i.test(trimmedUrl)) {
+      return `https://${trimmedUrl}`;
+    }
+
+    // Backend may return youtube links without scheme.
+    if (/^(youtube\.com|m\.youtube\.com|youtu\.be)\//i.test(trimmedUrl)) {
+      return `https://${trimmedUrl}`;
+    }
+
+    return trimmedUrl;
+  };
+
+  const getYouTubeExternalUrl = (url: string): string => {
+    const watchUrl = getYouTubeWatchInAppUrl(url);
+    if (watchUrl) {
+      return watchUrl;
+    }
+    return normalizeExternalUrl(url);
+  };
+
+  const getPdfUrl = (pdfFile: string): string => {
+    if (pdfFile.startsWith('http')) {
+      return pdfFile;
+    }
+
+    if (pdfFile.startsWith('/')) {
+      return `${API_CONFIG.BASE_URL}${pdfFile}`;
+    }
+
+    return `${API_CONFIG.BASE_URL}/${pdfFile}`;
+  };
+
+  const getPdfInAppUrl = (url: string): string => {
+    if (!url) {
+      return '';
+    }
+    if (Platform.OS === 'ios') {
+      return url;
+    }
+    // Android: render PDF inside app through Google Docs viewer WebView.
+    return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(url)}`;
+  };
+
+  const pdfUrl = lectureDetails?.pdfFile ? getPdfUrl(lectureDetails.pdfFile) : '';
+  const pdfInAppUrl = pdfUrl ? getPdfInAppUrl(pdfUrl) : '';
+  const youtubeInAppUrl = lectureDetails?.youtubeUrl ? getYouTubeInAppUrl(lectureDetails.youtubeUrl) : '';
+  const youtubeWatchInAppUrl = lectureDetails?.youtubeUrl ? getYouTubeWatchInAppUrl(lectureDetails.youtubeUrl) : '';
+  const youtubeExternalUrl = lectureDetails?.youtubeUrl ? getYouTubeExternalUrl(lectureDetails.youtubeUrl) : '';
+
+  useEffect(() => {
+    setVideoViewerUrl(youtubeInAppUrl);
+    setHasTriedVideoFallback(false);
+  }, [youtubeInAppUrl]);
+
+  const openExternalUrl = async (url: string, typeLabel: string) => {
+    const resolvedUrl = normalizeExternalUrl(url);
+    if (!resolvedUrl) {
+      Alert.alert('رابط غير متاح', `لا يوجد رابط ${typeLabel} صالح حالياً.`);
       return;
     }
+
     try {
-      await Linking.openURL(lectureDetails.youtubeUrl);
+      const isWebUrl = /^https?:\/\//i.test(resolvedUrl);
+
+      // canOpenURL may return false on some Android devices for valid web links.
+      if (isWebUrl) {
+        await Linking.openURL(resolvedUrl);
+        return;
+      }
+
+      const supported = await Linking.canOpenURL(resolvedUrl);
+      if (!supported) {
+        Alert.alert('تعذر الفتح', `لا يمكن فتح ${typeLabel} على هذا الجهاز.`);
+        return;
+      }
+
+      await Linking.openURL(resolvedUrl);
     } catch {
-      Alert.alert('خطأ', 'لا يمكن فتح الفيديو');
+      Alert.alert('خطأ', `حدث خطأ أثناء فتح ${typeLabel}.`);
     }
   };
 
-  const handleDownloadPDF = () => {
-    if (!lectureDetails?.pdfFile) {
-      Alert.alert('تنبيه', 'لا يوجد ملف PDF لهذه المحاضرة');
+  const openInAppOrExternalUrl = async (url: string, typeLabel: string) => {
+    const resolvedUrl = normalizeExternalUrl(url);
+    if (!resolvedUrl) {
+      Alert.alert('رابط غير متاح', `لا يوجد رابط ${typeLabel} صالح حالياً.`);
       return;
     }
-    Alert.alert('قريباً', 'ميزة تحميل PDF ستكون متاحة قريباً');
+
+    const isWebUrl = /^https?:\/\//i.test(resolvedUrl);
+    if (!isWebUrl || !SafeInAppBrowser?.isAvailable || !SafeInAppBrowser?.open) {
+      await openExternalUrl(resolvedUrl, typeLabel);
+      return;
+    }
+
+    try {
+      const available = await SafeInAppBrowser.isAvailable();
+      if (!available) {
+        await openExternalUrl(resolvedUrl, typeLabel);
+        return;
+      }
+
+      await SafeInAppBrowser.open(resolvedUrl, {
+        dismissButtonStyle: 'close',
+        preferredBarTintColor: Colors.primary,
+        preferredControlTintColor: Colors.white,
+        showTitle: true,
+        toolbarColor: Colors.primary,
+        secondaryToolbarColor: Colors.primaryDark,
+        navigationBarColor: Colors.backgroundDark,
+        navigationBarDividerColor: Colors.borderLight,
+        enableUrlBarHiding: true,
+        enableDefaultShare: false,
+        forceCloseOnRedirection: false,
+      });
+    } catch (inAppError) {
+      console.log('In-app browser failed, fallback to external URL:', inAppError);
+      await openExternalUrl(resolvedUrl, typeLabel);
+    }
   };
+
+  const closeViewer = () => {
+    setActiveViewer('none');
+    setVideoLoadError(null);
+    setPdfLoadError(null);
+  };
+
+  if (VIDEO_EMBEDDED_VIEWER_ENABLED && activeViewer === 'video') {
+    return (
+      <SafeAreaView style={s.container}>
+        <ScreenHeader
+          title={lectureDetails?.title || 'فيديو المحاضرة'}
+          subtitle="عرض الفيديو داخل التطبيق"
+          onBack={closeViewer}
+        />
+
+        {SafeWebView && youtubeInAppUrl ? (
+          <SafeWebView
+            source={{ uri: videoViewerUrl || youtubeInAppUrl }}
+            style={s.videoWebView}
+            javaScriptEnabled
+            domStorageEnabled
+            allowsFullscreenVideo
+            allowsInlineMediaPlayback
+            mediaPlaybackRequiresUserAction={false}
+            setSupportMultipleWindows={false}
+            originWhitelist={["https://*", "http://*"]}
+            startInLoadingState
+            onShouldStartLoadWithRequest={(request: any) => {
+              const url = request?.url || '';
+              if (url.startsWith('intent:') || url.startsWith('vnd.youtube')) {
+                return false;
+              }
+              return true;
+            }}
+            onHttpError={() => {
+              setVideoLoadError('تعذر تحميل الفيديو داخل التطبيق.');
+            }}
+            onError={() => {
+              setVideoLoadError('حدث خطأ أثناء تحميل الفيديو داخل التطبيق.');
+            }}
+            injectedJavaScript={`
+              (function () {
+                try {
+                  var t = (document && document.body && document.body.innerText) ? document.body.innerText : '';
+                  if (t && t.indexOf('Error 153') !== -1) {
+                    window.ReactNativeWebView && window.ReactNativeWebView.postMessage('YT_ERROR_153');
+                  }
+                } catch (e) {}
+                true;
+              })();
+            `}
+            onMessage={(event: any) => {
+              if (event?.nativeEvent?.data === 'YT_ERROR_153') {
+                if (!hasTriedVideoFallback && youtubeWatchInAppUrl) {
+                  setHasTriedVideoFallback(true);
+                  setVideoLoadError('تم التحويل تلقائيا لصيغة تشغيل بديلة داخل التطبيق...');
+                  setVideoViewerUrl(youtubeWatchInAppUrl);
+                } else {
+                  setVideoLoadError('يوتيوب رفض العرض داخل العارض الحالي (Error 153).');
+                }
+              }
+            }}
+            onRenderProcessGone={() => {
+              setVideoLoadError('تم إيقاف عارض الفيديو تلقائياً بسبب ضغط الذاكرة.');
+            }}
+            renderLoading={() => (
+              <View style={s.centeredViewer}>
+                <ActivityIndicator size="large" color={Colors.primary} />
+                <Text style={s.viewerLoadingText}>جاري تحميل الفيديو...</Text>
+              </View>
+            )}
+          />
+        ) : (
+          <View style={s.centeredViewer}>
+            <Text style={s.errorText}>رابط الفيديو غير صالح أو العارض غير متاح.</Text>
+          </View>
+        )}
+
+        <View style={s.viewerFooter}>
+          <CustomButton
+            title="فتح على يوتيوب"
+            onPress={() => openExternalUrl(youtubeExternalUrl, 'الفيديو')}
+            variant="outline"
+            size="medium"
+          />
+          {videoLoadError ? <Text style={s.viewerErrorText}>{videoLoadError}</Text> : null}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (PDF_EMBEDDED_VIEWER_ENABLED && activeViewer === 'pdf') {
+    return (
+      <SafeAreaView style={s.container}>
+        <ScreenHeader
+          title={lectureDetails?.title || 'ملف PDF'}
+          subtitle="عرض ملف PDF داخل التطبيق"
+          onBack={closeViewer}
+        />
+
+        {Platform.OS === 'ios' && SafePdf && pdfUrl ? (
+          <View style={s.pdfViewerWrap}>
+            <SafePdf
+              source={{ uri: pdfUrl, cache: true }}
+              style={s.pdfViewer}
+              trustAllCerts={false}
+              onError={(pdfError: any) => {
+                const message = pdfError?.message || 'تعذر تحميل ملف PDF';
+                setPdfLoadError(message);
+              }}
+            />
+          </View>
+        ) : SafeWebView && pdfInAppUrl ? (
+          <SafeWebView
+            source={{ uri: pdfInAppUrl }}
+            style={s.videoWebView}
+            javaScriptEnabled
+            domStorageEnabled
+            startInLoadingState
+            originWhitelist={["https://*", "http://*"]}
+            onError={() => {
+              setPdfLoadError('حدث خطأ أثناء تحميل PDF داخل التطبيق.');
+            }}
+            onHttpError={() => {
+              setPdfLoadError('تعذر تحميل PDF داخل التطبيق.');
+            }}
+            onRenderProcessGone={() => {
+              setPdfLoadError('تم إيقاف عارض PDF تلقائياً بسبب ضغط الذاكرة.');
+            }}
+            renderLoading={() => (
+              <View style={s.centeredViewer}>
+                <ActivityIndicator size="large" color={Colors.primary} />
+                <Text style={s.viewerLoadingText}>جاري تحميل ملف PDF...</Text>
+              </View>
+            )}
+          />
+        ) : (
+          <View style={s.centeredViewer}>
+            <Text style={s.errorText}>عارض PDF غير متاح حالياً.</Text>
+          </View>
+        )}
+
+        <View style={s.viewerFooter}>
+          <CustomButton
+            title="فتح PDF خارج التطبيق"
+            onPress={() => openExternalUrl(pdfUrl, 'ملف PDF')}
+            variant="outline"
+            size="medium"
+          />
+          {pdfLoadError ? <Text style={s.viewerErrorText}>{pdfLoadError}</Text> : null}
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={s.container}>
@@ -166,16 +490,34 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={s.cardHeadTitle}>فيديو المحاضرة</Text>
-                    <Text style={s.cardHeadSub}>مشاهدة فيديو المحاضرة</Text>
+                    <Text style={s.cardHeadSub}>تشغيل الفيديو داخل التطبيق</Text>
                   </View>
                 </View>
-                <TouchableOpacity style={s.videoBtn} onPress={handleWatchVideo} activeOpacity={0.9}>
-                  <View style={s.playCircle}>
-                    <Text style={{ fontSize: 28, color: Colors.white, marginLeft: 3 }}>▶</Text>
-                  </View>
-                  <Text style={s.videoBtnText}>مشاهدة الفيديو</Text>
-                  <Text style={s.videoBtnHint}>سيتم فتح الفيديو في YouTube</Text>
-                </TouchableOpacity>
+                <View style={s.fallbackBox}>
+                  <Text style={s.fallbackText}>
+                    {VIDEO_EMBEDDED_VIEWER_ENABLED
+                      ? 'سيتم فتح الفيديو داخل عارض داخلي مخصص.'
+                      : 'عارض الفيديو غير متاح حالياً، سيتم فتحه خارج التطبيق.'}
+                  </Text>
+                </View>
+
+                <View style={{ marginTop: 10 }}>
+                  <CustomButton
+                    title={VIDEO_EMBEDDED_VIEWER_ENABLED ? 'تشغيل الفيديو' : 'فتح الفيديو'}
+                    onPress={() => {
+                      setVideoLoadError(null);
+                      if (VIDEO_EMBEDDED_VIEWER_ENABLED) {
+                        setVideoViewerUrl(youtubeInAppUrl);
+                        setHasTriedVideoFallback(false);
+                        setActiveViewer('video');
+                      } else {
+                        openInAppOrExternalUrl(youtubeExternalUrl, 'الفيديو');
+                      }
+                    }}
+                    variant="outline"
+                    size="medium"
+                  />
+                </View>
               </View>
             )}
 
@@ -188,13 +530,38 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={s.cardHeadTitle}>مادة PDF</Text>
-                    <Text style={s.cardHeadSub}>تحميل المادة العلمية</Text>
+                    <Text style={s.cardHeadSub}>عرض ملف PDF داخل التطبيق</Text>
                   </View>
                 </View>
-                <TouchableOpacity style={s.pdfBtn} onPress={handleDownloadPDF} activeOpacity={0.8}>
-                  <Text style={{ fontSize: 16 }}>📥</Text>
-                  <Text style={s.pdfBtnText}>تحميل ملف PDF</Text>
-                </TouchableOpacity>
+                {PDF_EMBEDDED_VIEWER_ENABLED && SafePdf && pdfUrl ? (
+                  <View style={s.fallbackBox}>
+                    <Text style={s.fallbackText}>سيتم فتح ملف PDF داخل عارض داخلي مخصص.</Text>
+                  </View>
+                ) : (
+                  <View style={s.fallbackBox}>
+                    <Text style={s.fallbackText}>
+                      {PDF_EMBEDDED_VIEWER_ENABLED
+                        ? 'سيتم عرض PDF داخل التطبيق.'
+                        : 'عارض PDF غير متاح حالياً، سيتم فتحه خارج التطبيق.'}
+                    </Text>
+                  </View>
+                )}
+
+                <View style={{ marginTop: 10 }}>
+                  <CustomButton
+                    title={PDF_EMBEDDED_VIEWER_ENABLED ? 'عرض ملف PDF' : 'فتح ملف PDF'}
+                    onPress={() => {
+                      setPdfLoadError(null);
+                      if (PDF_EMBEDDED_VIEWER_ENABLED) {
+                        setActiveViewer('pdf');
+                      } else {
+                        openInAppOrExternalUrl(pdfUrl, 'ملف PDF');
+                      }
+                    }}
+                    variant="outline"
+                    size="medium"
+                  />
+                </View>
               </View>
             )}
 
@@ -295,28 +662,74 @@ const s = StyleSheet.create({
   cardHeadIcon: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   cardHeadTitle: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
   cardHeadSub: { fontSize: 12, color: Colors.textHint, textAlign: 'right', marginTop: 2 },
-  // Video button
-  videoBtn: {
-    backgroundColor: Colors.textPrimary,
-    borderRadius: 14,
+  fallbackBox: {
+    borderRadius: 12,
+    backgroundColor: Colors.errorLight,
+    paddingVertical: 18,
+    paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 32,
+  },
+  fallbackText: { fontSize: 13, fontWeight: '600', color: Colors.error, textAlign: 'center' },
+  pdfFrame: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    backgroundColor: Colors.backgroundAlt,
+    minHeight: 480,
+  },
+  pdfView: {
+    width: '100%',
+    height: 480,
+    backgroundColor: Colors.backgroundAlt,
+  },
+  pdfErrorText: {
+    marginTop: 10,
+    fontSize: 12,
+    color: Colors.error,
+    textAlign: 'right',
+    fontWeight: '600',
+  },
+  videoWebView: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  centeredViewer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 20,
+    backgroundColor: Colors.background,
   },
-  playCircle: {
-    width: 64, height: 64, borderRadius: 32, backgroundColor: Colors.error,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
-    shadowColor: Colors.error, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 6,
+  viewerLoadingText: {
+    marginTop: 10,
+    color: Colors.textHint,
+    fontWeight: '600',
   },
-  videoBtnText: { fontSize: 15, fontWeight: '700', color: Colors.white, marginBottom: 4 },
-  videoBtnHint: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
-  // PDF button
-  pdfBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: Colors.primary, borderRadius: 12, paddingVertical: 13, gap: 8,
+  viewerFooter: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+    backgroundColor: Colors.white,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
-  pdfBtnText: { fontSize: 14, fontWeight: '700', color: Colors.white },
+  viewerErrorText: {
+    marginTop: 10,
+    fontSize: 12,
+    color: Colors.error,
+    textAlign: 'right',
+    fontWeight: '600',
+  },
+  pdfViewerWrap: {
+    flex: 1,
+    backgroundColor: Colors.backgroundAlt,
+  },
+  pdfViewer: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: Colors.backgroundAlt,
+  },
   // Info rows
   sectionLabel: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right', marginBottom: 14 },
   subLabel: { fontSize: 13, fontWeight: '600', color: Colors.textPrimary, textAlign: 'right', marginBottom: 10 },

@@ -1,0 +1,3576 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// نوع الحساب
+enum AccountType {
+  STAFF      // موظف إداري (الوصول الكامل للوحة التحكم)
+  INSTRUCTOR // محاضر (وصول محدود للوحة تحكم المحاضرين)
+}
+
+model User {
+  id                 String             @id @default(cuid())
+  name               String
+  email              String             @unique
+  phone              String?            @unique // رقم الهاتف (اختياري ومميز)
+  password           String
+  photoUrl           String?            // رابط الصورة الشخصية
+  accountType        AccountType        @default(STAFF) // نوع الحساب
+  isActive           Boolean            @default(true) // حالة نشاط المستخدم
+  isArchived         Boolean            @default(false) // حالة أرشفة الحساب
+  lastLoginAt        DateTime?          // آخر تسجيل دخول
+  // إعادة تعيين كلمة المرور
+  resetCode          String?            // كود إعادة تعيين كلمة المرور
+  resetCodeExpiresAt DateTime?          // تاريخ انتهاء كود إعادة التعيين
+  resetCodeGeneratedAt DateTime?        // تاريخ توليد الكود
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @default(now()) @updatedAt
+  AuditLog           AuditLog[]
+  instructorContents TrainingContent[]
+  questions          Question[] // Relación con las preguntas creadas por el usuario
+  attendanceRecords  AttendanceRecord[] // علاقة مع سجلات الحضور التي قام بإنشائها
+
+  // علاقات مسؤولي تسجيل الحضور (القديم - محتفظ به)
+  theoryAttendanceRecords    TrainingContent[] @relation("TheoryAttendanceRecorder")
+  practicalAttendanceRecords TrainingContent[] @relation("PracticalAttendanceRecorder")
+  
+  // علاقة مع مسؤولية تسجيل الحضور (جديد)
+  attendanceResponsibilities TrainingContentAttendance[] // المحتويات التدريبية المسؤول عن حضورها
+
+  // العلاقة مع عمليات طباعة الكارنيهات
+  idCardPrints IdCardPrint[]
+  
+  // العلاقة مع عمليات تسليم الكارنيهات
+  deliveredIdCards IdCardPrint[] @relation("CardDeliverer")
+
+  // علاقات نظام الصلاحيات الجديد
+  userRoles       UserRole[]       // الأدوار المعينة للمستخدم
+  userPermissions UserPermission[] // الصلاحيات المباشرة للمستخدم
+  assignedRoles   UserRole[]       @relation("RoleAssigner") // الأدوار التي قام بتعيينها
+  assignedUserPermissions UserPermission[] @relation("PermissionAssigner") // الصلاحيات التي قام بتعيينها
+  
+  // العلاقة مع القيود المالية
+  financialEntries FinancialEntry[] // القيود المالية التي قام بإنشائها
+  
+  // العلاقة مع المعاملات المالية
+  createdTransactions Transaction[] @relation("TransactionCreatedBy") // المعاملات التي قام بإنشائها
+  
+  // علاقات سجل الأنشطة
+  permissionLogsAsUser  PermissionLog[] @relation("PermissionLogUser") // السجلات كمستخدم متأثر
+  permissionLogsAsActor PermissionLog[] @relation("PermissionLogActor") // السجلات كفاعل
+  
+  // العلاقة مع أرشيف الوثائق
+  uploadedDocuments     TraineeDocument[] // الوثائق التي قام برفعها
+  
+  // العلاقة مع ملاحظات المتدربين
+  traineeNotes          TraineeNote[] // الملاحظات التي قام بتسجيلها
+  
+  // العلاقة مع إنشاء وتعديل المتدربين
+  createdTrainees       Trainee[] @relation("TraineeCreatedBy") // المتدربون الذين قام بإنشائهم
+  updatedTrainees       Trainee[] @relation("TraineeUpdatedBy") // المتدربون الذين قام بتعديلهم
+  traineeEditHistory    TraineeEditHistory[] // سجل تعديلات المتدربين
+  
+  // العلاقة مع نظام الحضور
+  recordedAttendance    Attendance[] // سجلات الحضور التي قام بتسجيلها
+  updatedAttendance     Attendance[] @relation("AttendanceUpdates") // سجلات الحضور التي قام بتعديلها
+  attendanceCodes       AttendanceCode[] // أكواد الحضور التي أنشأها
+  
+  // العلاقة مع طلبات تأجيل السداد
+  reviewedDeferralRequests PaymentDeferralRequest[] // طلبات التأجيل التي راجعها
+  
+  // العلاقة مع مسؤولية تسليم الأدوات الدراسية
+  responsibleForMaterials  StudyMaterialResponsible[] // الأدوات الدراسية المسؤول عن تسليمها
+  
+  // العلاقة مع طلبات المتدربين المجانية
+  reviewedTraineeRequests TraineeRequest[] // طلبات المتدربين المجانية التي راجعها
+  
+  // العلاقة مع الشكاوي والاقتراحات
+  reviewedComplaints ComplaintSuggestion[] // الشكاوي والاقتراحات التي راجعها
+
+  // العلاقة مع تظلمات الدرجات
+  reviewedGradeAppeals GradeAppeal[] @relation("GradeAppealReviewer")
+
+  // العلاقة مع الاستبيانات
+  createdSurveys Survey[] @relation("SurveyCreator") // الاستبيانات التي أنشأها
+
+  // العلاقة مع النسخ الاحتياطية
+  backups BackupLog[] @relation("UserBackups") // النسخ الاحتياطية التي قام بإنشائها
+
+  // العلاقة مع قيود الدور الثاني
+  secondRoundFeeApplications SecondRoundFeeApplication[] @relation("SecondRoundFeeAppliedBy")
+
+  // العلاقة مع البرامج التدريبية المسموح الوصول إليها
+  allowedPrograms UserProgramAccess[] // البرامج التدريبية المسموح للمستخدم بالوصول إليها
+
+  // نظام حضور الموظفين
+  staffAttendanceEnrollment  StaffAttendanceEnrollment?  @relation("StaffAttendanceEnrollment")
+  staffAttendanceEnrollments StaffAttendanceEnrollment[] @relation("StaffAttendanceEnroller")
+  staffAttendanceLogs        StaffAttendanceLog[]        @relation("StaffAttendanceLogs")
+  staffLeaveRequests         StaffLeaveRequest[]         @relation("StaffLeaveRequests")
+  staffLeaveReviews          StaffLeaveRequest[]         @relation("StaffLeaveReviewer")
+}
+
+// جدول منفصل للمتدربين مع نظام مصادقة خاص بهم
+model TraineeAuth {
+  id                 String             @id @default(cuid())
+  nationalId         String             @unique // الرقم القومي (مطلوب وفريد)
+  birthDate          DateTime           // تاريخ الميلاد للتحقق
+  password           String?            // كلمة المرور (اختيارية في البداية)
+  isActive           Boolean            @default(true) // حالة نشاط المتدرب
+  lastLoginAt        DateTime?          // آخر تسجيل دخول
+  // إعادة تعيين كلمة المرور
+  resetCode          String?            // كود إعادة تعيين كلمة المرور
+  resetCodeExpiresAt DateTime?          // تاريخ انتهاء كود إعادة التعيين
+  resetCodeGeneratedAt DateTime?        // تاريخ توليد الكود
+  // ربط مع بيانات المتدرب الأساسية
+  traineeId          Int                @unique // ربط مع جدول Trainee
+  trainee            Trainee            @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // العلاقات الجديدة للتتبع
+  sessions           TraineeSession[]   // جلسات المتدرب
+  stats              TraineeStats?      // إحصائيات المتدرب
+  
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @default(now()) @updatedAt
+
+  @@map("trainee_auth")
+}
+
+model Registration {
+  id             Int      @id @default(autoincrement())
+  traineeName    String
+  phoneNumber    String
+  altPhoneNumber String?
+  qualification  String // متوسط / عالي
+  branch         String // المنصورة / الزقازيق
+  program        String // مساعد خدمات صحية / المساحة والانشاءات / تكنولوجيا المعلومات
+  friendName     String?
+  friendPhone    String?
+  createdAt      DateTime @default(now())
+
+  @@map("registrations")
+}
+
+model Job {
+  id           Int      @id @default(autoincrement())
+  title        String   @db.VarChar(255)
+  company      String   @db.VarChar(255)
+  location     String   @db.VarChar(255)
+  type         String   @db.VarChar(100)
+  salary       String?  @db.VarChar(100)
+  description  String   @db.Text
+  requirements String   @db.Text
+  applyUrl     String   @db.VarChar(255)
+  category     String   @db.VarChar(100)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@map("jobs")
+}
+
+model News {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(255)
+  content     String   @db.Text
+  excerpt     String   @db.Text
+  image       String   @db.VarChar(255)
+  imageCloudinaryId String? // معرف صورة الخبر في Cloudinary
+  author      String   @db.VarChar(100)
+  slug        String   @unique @db.VarChar(255)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@map("news")
+}
+
+// Training Program Models
+model TrainingProgram {
+  id               Int               @id @default(autoincrement())
+  nameAr           String
+  nameEn           String
+  price            Float
+  description      String?
+  numberOfClassrooms Int            @default(0) // عدد الفصول الدراسية
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @default(now()) @updatedAt
+  trainees         Trainee[]
+  trainingContents TrainingContent[]
+  traineeFees      TraineeFee[]
+  idCardDesigns    IdCardDesign[]    // تصاميم الكارنيهات المرتبطة بهذا البرنامج
+  distributions    TraineeDistribution[] // توزيعات المتدربين على القاعات
+  classrooms       Classroom[]       // الفصول الدراسية
+  studyMaterials   StudyMaterial[]   // الأدوات الدراسية المرتبطة بهذا البرنامج
+  gradeReleaseSettings GradeReleaseSettings[] // إعدادات إعلان الدرجات
+  surveys          SurveyProgram[]   // الاستبيانات المرتبطة بهذا البرنامج
+  gradeAppealFeeConfig GradeAppealFeeConfig? // إعدادات رسوم التظلمات
+  allowedUsers         UserProgramAccess[]   // المستخدمون المسموح لهم بالوصول لهذا البرنامج
+}
+
+// جدول ربط المستخدمين بالبرامج التدريبية المسموح لهم بالوصول إليها
+// إذا لم يكن للمستخدم أي سجلات هنا = مسموح له بكل البرامج
+model UserProgramAccess {
+  id        Int              @id @default(autoincrement())
+  userId    String
+  programId Int
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program   TrainingProgram  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+
+  @@unique([userId, programId])
+  @@index([userId])
+  @@index([programId])
+}
+
+model Classroom {
+  id          Int            @id @default(autoincrement())
+  name        String         // اسم الفصل (يُنشأ تلقائياً: الفصل 1، الفصل 2...)
+  classNumber Int            // رقم الفصل
+  programId   Int            // البرنامج التدريبي
+  program     TrainingProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  startDate   DateTime?      // تاريخ بداية الفصل الدراسي
+  endDate     DateTime?      // تاريخ نهاية الفصل الدراسي
+  trainingContents TrainingContent[] // المحتوى التدريبي المرتبط بهذا الفصل
+  scheduleSlots    ScheduleSlot[]    // الجدول الدراسي (الفترات الأسبوعية)
+  grades           TraineeGrades[]   // درجات المتدربين في هذا الفصل
+  distributions    TraineeDistribution[] // توزيعات المتدربين لهذا الفصل
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([programId, classNumber]) // فصل واحد لكل رقم في كل برنامج
+  @@map("classrooms")
+}
+
+enum EnrollmentType {
+  REGULAR // انتظام
+  DISTANCE // انتساب
+  BOTH // الكل
+}
+
+enum MaritalStatus {
+  SINGLE // أعزب
+  MARRIED // متزوج
+  DIVORCED // مطلق
+  WIDOWED // أرمل
+}
+
+enum ProgramType {
+  SUMMER // برنامج صيفي
+  WINTER // برنامج شتوي
+  ANNUAL // عقد سنة
+}
+
+enum Gender {
+  MALE // ذكر
+  FEMALE // أنثى
+}
+
+enum Religion {
+  ISLAM // الإسلام
+  CHRISTIANITY // المسيحية
+  JUDAISM // اليهودية
+}
+
+enum EducationType {
+  PREPARATORY // اعدادي
+  INDUSTRIAL_SECONDARY // ثانوي فني صناعي
+  COMMERCIAL_SECONDARY // ثانوي فني تجاري
+  AGRICULTURAL_SECONDARY // ثانوي فني زراعي
+  AZHAR_SECONDARY // ثانوي أزهري
+  GENERAL_SECONDARY // ثانوي عام
+  UNIVERSITY // بكالوريوس - ليسانس
+  INDUSTRIAL_APPRENTICESHIP // تلمذة صناعية
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN_SUCCESS
+  LOGIN_FAILURE
+}
+
+model AuditLog {
+  id        Int         @id @default(autoincrement())
+  action    AuditAction // CREATE, UPDATE, DELETE, LOGIN_SUCCESS, etc.
+  entity    String // e.g., "Trainee", "Program", "User"
+  entityId  String // ID of the affected entity
+  details   Json? // Store before/after state as JSON
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime    @default(now())
+}
+
+// حالة المتدرب
+enum TraineeStatus {
+  NEW // مستجد
+  CURRENT // مستمر
+  GRADUATE // خريج
+  WITHDRAWN // منسحب
+}
+
+model Trainee {
+  id                  Int             @id @default(autoincrement())
+  nameAr              String // الاسم بالعربية
+  nameEn              String // الاسم بالإنجليزية
+  enrollmentType      EnrollmentType // نطاق الالتحاق
+  maritalStatus       MaritalStatus // الحالة الاجتماعية
+  nationalId          String          @unique // الرقم القومي
+  idIssueDate         DateTime // تاريخ إصدار البطاقة
+  idExpiryDate        DateTime // تاريخ انتهاء البطاقة
+  programType         ProgramType // نوع البرنامج
+  nationality         String // الجنسية
+  gender              Gender // النوع
+  birthDate           DateTime // تاريخ الميلاد
+  residenceAddress    String // محل الإقامة
+  photoUrl            String? // صورة المتدرب
+  photoCloudinaryId   String? // معرف الصورة في Cloudinary
+  religion            Religion        @default(ISLAM) // الديانة
+  programId           Int // البرنامج
+  program             TrainingProgram @relation(fields: [programId], references: [id])
+  country             String // الدولة
+  governorate         String? // المحافظة
+  city                String // المدينة
+  address             String // العنوان
+  phone               String // رقم الهاتف
+  email               String?         @unique // البريد الإلكتروني
+  guardianPhone       String // رقم هاتف ولي الأمر
+  guardianEmail       String? // بريد ولي الأمر
+  guardianJob         String? // وظيفة ولي الأمر
+  guardianRelation    String // صلة القرابة
+  guardianName        String  // اسم ولي الأمر
+  landline            String? // الهاتف الأرضي
+  whatsapp            String? // رقم الواتساب
+  facebook            String? // حساب فيسبوك
+  educationType       EducationType // نوع المؤهل
+  schoolName          String // اسم المدرسة/المعهد
+  educationalAdministration String? // الإدارة التعليمية
+  graduationDate      DateTime // تاريخ التخرج
+  totalGrade          Float? // المجموع الكلي
+  gradePercentage     Float? // النسبة المئوية
+  sportsActivity      String? // النشاط الرياضي
+  culturalActivity    String? // النشاط الثقافي
+  educationalActivity String? // النشاط التعليمي
+  notes               String? // ملاحظات
+  traineeStatus       TraineeStatus   @default(NEW) // حالة المتدرب (مستجد/مستمر/خريج/منسحب)
+  classLevel          Year            @default(FIRST) // الفرقة الدراسية
+  academicYear        String? // العام الدراسي (مثل "2025/2026")
+
+  // ربط مع موظف التسويق المسؤول عن جلب المتدرب
+  marketingEmployeeId Int? // معرف موظف التسويق (اختياري)
+  marketingEmployee   MarketingEmployee? @relation(fields: [marketingEmployeeId], references: [id], onDelete: SetNull)
+
+  // نظام التواصل الأول والثاني للتسويق
+  firstContactEmployeeId  Int? // معرف موظف التواصل الأول
+  firstContactEmployee    MarketingEmployee? @relation("FirstContact", fields: [firstContactEmployeeId], references: [id], onDelete: SetNull)
+  secondContactEmployeeId Int? // معرف موظف التواصل الثاني
+  secondContactEmployee   MarketingEmployee? @relation("SecondContact", fields: [secondContactEmployeeId], references: [id], onDelete: SetNull)
+  
+  // علاقات العمولات
+  commissions             Commission[]
+
+  // تتبع من أنشأ وعدّل المتدرب
+  createdById         String? // من أنشأ المتدرب
+  createdBy           User?   @relation("TraineeCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedById         String? // آخر من عدّل المتدرب
+  updatedBy           User?   @relation("TraineeUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  // العلاقة مع سجلات الحضور
+  attendanceRecords AttendanceRecord[]
+  idCardPrints      IdCardPrint[] // العلاقة مع عمليات طباعة الكارنيه
+  
+  // إضافة العلاقة مع مدفوعات المتدربين
+  traineePayments   TraineePayment[]
+  
+  // العلاقة مع أرشيف الوثائق
+  documents         TraineeDocument[]
+  
+  // العلاقة مع نظام المصادقة الخاص بالمتدربين
+  traineeAuth       TraineeAuth?
+  
+  // العلاقة مع حملات الواتساب
+  campaignRecipients CampaignRecipient[]
+  
+  // العلاقة مع توزيع القاعات
+  distributionAssignments DistributionAssignment[]
+  
+  // سجلات الحضور
+  attendance      Attendance[]
+  
+  // العلاقة مع ملاحظات المتدربين
+  traineeNotes TraineeNote[]
+  
+  // العلاقة مع سجل التعديلات
+  editHistory TraineeEditHistory[]
+  
+  // العلاقة مع درجات المتدربين
+  grades TraineeGrades[]
+  
+  // العلاقة مع محاولات الاختبارات
+  quizAttempts QuizAttempt[]
+  
+  // العلاقة مع الاختبارات الورقية
+  paperAnswerSheets PaperAnswerSheet[] // أوراق الإجابة الورقية
+  
+  // العلاقة مع الأدوات الدراسية
+  studyMaterialDeliveries StudyMaterialDelivery[]
+  
+  // العلاقة مع استثناءات مواعيد السداد
+  paymentExceptions TraineePaymentException[]
+  
+  // العلاقة مع طلبات تأجيل السداد
+  deferralRequests PaymentDeferralRequest[]
+  
+  // العلاقة مع رسائل التذكير التلقائية
+  reminderDeliveries PaymentReminderDelivery[] // الرسائل المرسلة لهذا المتدرب
+  
+  // العلاقة مع الإجراءات العقابية
+  disciplinaryActions DisciplinaryAction[] // الإجراءات العقابية المتخذة ضد المتدرب
+  
+  // العلاقة مع الطلبات المجانية
+  traineeRequests TraineeRequest[] // طلبات المتدرب المجانية (تأجيل اختبار، إجازة، إثبات قيد، إفادة)
+  
+  // العلاقة مع الشكاوي والاقتراحات
+  complaints ComplaintSuggestion[] // شكاوي واقتراحات المتدرب
+
+  // العلاقة مع تظلمات الدرجات
+  gradeAppeals GradeAppeal[] // تظلمات الدرجات المقدمة من المتدرب
+
+  // العلاقة مع إجابات الاستبيانات
+  surveyResponses SurveyResponse[] // إجابات المتدرب على الاستبيانات
+
+  // العلاقة مع قيود الدور الثاني
+  secondRoundFeeApplications SecondRoundFeeApplication[] // قيود الدور الثاني المطبقة
+}
+
+// نموذج سجل تعديلات المتدربين
+model TraineeEditHistory {
+  id         String   @id @default(cuid())
+  traineeId  Int
+  trainee    Trainee  @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String   // CREATE أو UPDATE
+  changes    Json     // التغييرات التي تمت (قبل وبعد)
+  createdAt  DateTime @default(now())
+
+  @@index([traineeId])
+  @@index([userId])
+  @@map("trainee_edit_history")
+}
+
+// نموذج ملاحظات المتدربين
+model TraineeNote {
+  id        String   @id @default(cuid())
+  traineeId Int
+  trainee   Trainee  @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  content   String   @db.Text // محتوى الملاحظة
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([traineeId])
+  @@index([userId])
+  @@map("trainee_notes")
+}
+
+// نموذج درجات المتدربين
+model TraineeGrades {
+  id                  Int             @id @default(autoincrement())
+  traineeId           Int             // المتدرب
+  trainee             Trainee         @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  trainingContentId   Int             // المادة التدريبية
+  trainingContent     TrainingContent @relation(fields: [trainingContentId], references: [id], onDelete: Cascade)
+  
+  classroomId         Int             // الفصل الدراسي
+  classroom           Classroom       @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  
+  // الدرجات الفعلية التي حصل عليها المتدرب
+  yearWorkMarks       Float?          @default(0) // درجات أعمال السنة
+  practicalMarks      Float?          @default(0) // درجات العملي
+  writtenMarks        Float?          @default(0) // درجات التحريري
+  attendanceMarks     Float?          @default(0) // درجات الحضور
+  quizzesMarks        Float?          @default(0) // درجات اختبارات مصغرة
+  finalExamMarks      Float?          @default(0) // درجات الميد تيرم
+  
+  // الدرجة النهائية
+  totalMarks          Float?          @default(0) // مجموع الدرجات
+  
+  notes               String?         @db.Text // ملاحظات على الدرجات
+  
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  
+  // فهرس مركب لضمان عدم تكرار السجلات
+  @@unique([traineeId, trainingContentId, classroomId])
+  @@index([traineeId])
+  @@index([trainingContentId])
+  @@index([classroomId])
+  @@map("trainee_grades")
+}
+
+model SystemSettings {
+  id                               Int     @id @default(autoincrement())
+  centerName                       String // اسم المركز
+  centerManagerName                String // اسم مدير المركز
+  centerAddress                    String // عنوان المركز
+  centerLogo                       String? // صورة لوجو المركز
+  centerLogoCloudinaryId           String? // معرف لوجو المركز في Cloudinary
+  facebookPageUrl                  String? // رابط صفحة الفيسبوك
+  licenseNumber                    String? // رقم ترخيص المركز (اختياري)
+  loginUrl                         String? // رابط تسجيل الدخول
+  managerPhoneNumber               String? // رقم هاتف مدير المركز
+  showTraineeDebtsToTraineeAffairs Boolean @default(false) // إظهار بنود مديونية المتدربين لشؤون المتدربين
+  printingAmount                   Float   @default(0) // مبلغ المطبوعات
+  timezone                         String  @default("Africa/Cairo") // المنطقة الزمنية للنظام
+  acceptDeferralRequests           Boolean @default(true) // قبول طلبات تأجيل السداد من المتدربين
+  acceptGradeAppeals               Boolean @default(true) // قبول تظلمات الدرجات من المتدربين
+
+  // إعدادات كارنيه الطالب
+  idCardBackgroundImage        String? // صورة خلفية الكارنيه
+  idCardBackgroundCloudinaryId String? // معرف خلفية الكارنيه في Cloudinary
+  idCardLogoPosition           Json? // موضع اللوجو في الكارنيه (x, y)
+  idCardNamePosition           Json? // موضع اسم الطالب في الكارنيه (x, y)
+  idCardPhotoPosition          Json? // موضع صورة الطالب في الكارنيه (x, y)
+  idCardNationalIdPosition     Json? // موضع الرقم القومي في الكارنيه (x, y)
+  idCardProgramPosition        Json? // موضع البرنامج التدريبي في الكارنيه (x, y)
+  idCardCenterNamePosition     Json? // موضع اسم المركز في الكارنيه (x, y)
+  idCardAdditionalText         String? // نص إضافي في الكارنيه
+  idCardAdditionalTextPosition Json? // موضع النص الإضافي في الكارنيه (x, y)
+  idCardQrCodePosition         Json? // موضع QR Code في الكارنيه (x, y)
+  idCardWidth                  Int     @default(320) // عرض الكارنيه بالبكسل
+  idCardHeight                 Int     @default(200) // ارتفاع الكارنيه بالبكسل
+
+  // إعدادات حجم عناصر الكارنيه
+  idCardLogoSize           Json? // حجم اللوجو (width, height)
+  idCardPhotoSize          Json? // حجم صورة المتدرب (width, height)
+  idCardNameSize           Int? // حجم خط اسم المتدرب
+  idCardNationalIdSize     Int? // حجم خط الرقم القومي
+  idCardProgramSize        Int? // حجم خط اسم البرنامج
+  idCardCenterNameSize     Int? // حجم خط اسم المركز
+  idCardAdditionalTextSize Int? // حجم خط النص الإضافي
+  idCardQrCodeSize         Json? // حجم QR Code (width, height)
+
+  // إعدادات ظهور عناصر الكارنيه
+  idCardLogoVisible           Boolean? // إظهار لوجو المركز
+  idCardPhotoVisible          Boolean? // إظهار صورة المتدرب
+  idCardNameVisible           Boolean? // إظهار اسم المتدرب
+  idCardNationalIdVisible     Boolean? // إظهار الرقم القومي
+  idCardProgramVisible        Boolean? // إظهار اسم البرنامج
+  idCardCenterNameVisible     Boolean? // إظهار اسم المركز
+  idCardAdditionalTextVisible Boolean? // إظهار النص الإضافي
+  idCardQrCodeVisible         Boolean? // إظهار QR Code
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Semester {
+  FIRST // الفصل الدراسي الأول
+  SECOND // الفصل الدراسي الثاني
+}
+
+enum Year {
+  FIRST // السنة الأولى
+  SECOND // السنة الثانية
+  THIRD // السنة الثالثة
+  FOURTH // السنة الرابعة
+}
+
+enum DayOfWeek {
+  SUNDAY    // الأحد - 0
+  MONDAY    // الاثنين - 1
+  TUESDAY   // الثلاثاء - 2
+  WEDNESDAY // الأربعاء - 3
+  THURSDAY  // الخميس - 4
+  FRIDAY    // الجمعة - 5
+  SATURDAY  // السبت - 6
+}
+
+enum SessionType {
+  THEORY    // نظري
+  PRACTICAL // عملي
+}
+
+enum DistributionMethod {
+  UNSPECIFIED        // غير محدد (للاختبارات القديمة)
+  ALPHABETICAL       // ترتيب أبجدي
+  BY_DISTRIBUTION    // حسب التوزيع الكامل
+  SINGLE_ROOM        // مجموعة واحدة فقط
+  CUSTOM_COMMITTEES  // لجان مخصصة (مجموعة واحدة → لجان)
+  CUSTOM_GROUPS      // مجموعات مخصصة (كل مجموعة → لجان)
+}
+
+enum ContentType {
+  THEORY      // نظري
+  PRACTICAL   // عملي
+  BOTH        // الاثنين معاً
+  UNSPECIFIED // لم يحدد
+}
+
+enum SessionStatus {
+  SCHEDULED  // مجدولة
+  CANCELLED  // ملغاة
+}
+
+// الجدول الدراسي - الفترات الأسبوعية الثابتة
+model ScheduleSlot {
+  id          Int         @id @default(autoincrement())
+  
+  // المادة التدريبية
+  contentId   Int
+  content     TrainingContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  
+  // الفصل الدراسي
+  classroomId Int
+  classroom   Classroom   @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  
+  // المجموعة/القاعة (من نظام التوزيعات)
+  distributionRoomId String?
+  distributionRoom   DistributionRoom? @relation(fields: [distributionRoomId], references: [id], onDelete: SetNull)
+  
+  // تفاصيل الفترة
+  dayOfWeek   DayOfWeek   // يوم الأسبوع
+  startTime   String      // وقت البداية (HH:mm)
+  endTime     String      // وقت النهاية (HH:mm)
+  type        SessionType // نوع الحضور (نظري/عملي)
+  location    String?     // القاعة أو المكان
+  
+  // الجلسات الفعلية المولدة من هذه الفترة
+  sessions    ScheduledSession[]
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@map("schedule_slots")
+}
+
+// المحاضرات المولدة تلقائياً من الجدول
+model ScheduledSession {
+  id              Int            @id @default(autoincrement())
+  
+  // الفترة الأسبوعية الثابتة
+  scheduleSlotId  Int
+  scheduleSlot    ScheduleSlot   @relation(fields: [scheduleSlotId], references: [id], onDelete: Cascade)
+  
+  // تاريخ المحاضرة
+  date            DateTime       // التاريخ الكامل (مثل: 2025-01-15)
+  
+  // الحالة (مجدولة أو ملغاة فقط)
+  isCancelled     Boolean        @default(false)
+  cancellationReason String?     @db.Text
+  
+  // سجلات الحضور
+  attendance      Attendance[]
+  
+  // كود تسجيل الحضور
+  attendanceCode  AttendanceCode?
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  @@unique([scheduleSlotId, date]) // محاضرة واحدة لكل فترة في كل تاريخ
+  @@map("scheduled_sessions")
+}
+
+model TrainingContent {
+  id       Int      @id @default(autoincrement())
+  code     String   @unique // كود المقرر
+  name     String // اسم المحتوى التدريبي
+
+  // علاقة مع البرنامج التدريبي
+  programId Int // البرنامج التدريبي المرتبط
+  program   TrainingProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  // علاقة مع الفصل الدراسي
+  classroomId Int // الفصل الدراسي المرتبط
+  classroom   Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+
+  instructorId String // أستاذ المحتوى التدريبي
+  instructor   User   @relation(fields: [instructorId], references: [id])
+
+  // نوع المحتوى التدريبي (جديد)
+  contentType  ContentType @default(UNSPECIFIED) // نوع المحتوى (نظري/عملي/الاثنين/لم يحدد)
+
+  // مسؤولي تسجيل الحضور (القديم - محتفظ به للتوافق)
+  theoryAttendanceRecorderId    String? // مسؤول تسجيل حضور النظري
+  theoryAttendanceRecorder      User?   @relation("TheoryAttendanceRecorder", fields: [theoryAttendanceRecorderId], references: [id])
+  practicalAttendanceRecorderId String? // مسؤول تسجيل حضور العملي
+  practicalAttendanceRecorder   User?   @relation("PracticalAttendanceRecorder", fields: [practicalAttendanceRecorderId], references: [id])
+
+  // مسؤولو تسجيل الحضور (جدول وسيط - جديد)
+  attendanceRecorders TrainingContentAttendance[] // المسؤولون عن تسجيل الحضور
+
+  theorySessionsPerWeek    Int // مرات حضور النظري في الأسبوع
+  practicalSessionsPerWeek Int // مرات حضور العملي في الأسبوع
+  chaptersCount            Int // عدد الأبواب
+
+  // درجات المقرر
+  yearWorkMarks   Int // درجات أعمال السنة
+  practicalMarks  Int // درجات العملي
+  writtenMarks    Int // درجات التحريري
+  attendanceMarks Int // درجات حضور محاضرات المنصة
+  quizzesMarks    Int // درجات اختبارات مصغرة في المنصة
+  finalExamMarks  Int // درجات امتحان نهائي في المنصة
+
+  questions     Question[]     // علاقة مع الأسئلة
+  sessions      Session[]      // علاقة مع الجلسات
+  lectures      Lecture[]      // علاقة مع المحاضرات
+  scheduleSlots ScheduleSlot[] // فترات الجدول الدراسي
+  grades        TraineeGrades[] // درجات المتدربين في هذه المادة
+  quizzes       Quiz[]          // الاختبارات المصغرة
+  paperExams    PaperExam[]     // الاختبارات الورقية
+  gradeAppealSubjects GradeAppealSubject[] // تظلمات الدرجات المرتبطة بهذه المادة
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("training_contents")
+}
+
+// جدول ربط المحتوى التدريبي بمسؤولي تسجيل الحضور
+model TrainingContentAttendance {
+  id                  String           @id @default(cuid())
+  
+  // المحتوى التدريبي
+  trainingContentId   Int
+  trainingContent     TrainingContent  @relation(fields: [trainingContentId], references: [id], onDelete: Cascade)
+  
+  // الموظف المسؤول
+  userId              String
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // معلومات إضافية
+  assignedAt          DateTime         @default(now()) // تاريخ التعيين
+  assignedBy          String?          // من قام بالتعيين
+  notes               String?          @db.Text // ملاحظات
+  
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  
+  @@unique([trainingContentId, userId]) // مسؤول واحد لكل محتوى (لا تكرار)
+  @@index([trainingContentId])
+  @@index([userId])
+  @@map("training_content_attendance")
+}
+
+// نموذج بنك الأسئلة
+
+enum QuestionType {
+  MULTIPLE_CHOICE // اختيار من متعدد
+  TRUE_FALSE // صح أو خطأ
+}
+
+enum QuestionSkill {
+  RECALL // التذكر
+  COMPREHENSION // الفهم
+  DEDUCTION // الاستنتاج
+}
+
+enum QuestionDifficulty {
+  EASY // سهل
+  MEDIUM // متوسط
+  HARD // صعب
+  VERY_HARD // صعب جدا
+}
+
+model Question {
+  id         Int                @id @default(autoincrement())
+  text       String             @db.Text // نص السؤال
+  type       QuestionType // نوع السؤال
+  skill      QuestionSkill // المهارة
+  difficulty QuestionDifficulty // مستوى الصعوبة
+  chapter    Int // رقم الباب
+
+  // العلاقة مع المحتوى التدريبي
+  contentId Int // رقم المحتوى التدريبي
+  content   TrainingContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  // العلاقة مع المستخدم الذي أنشأ السؤال
+  createdById String // رقم المستخدم الذي أنشأ السؤال
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  // خيارات السؤال
+  options QuestionOption[] // خيارات السؤال
+  
+  // علاقات نظام الاختبارات
+  quizQuestions QuizQuestion[] // الاختبارات التي تحتوي على هذا السؤال
+  quizAnswers   QuizAnswer[]   // إجابات المتدربين على هذا السؤال
+  
+  // علاقات نظام الاختبارات الورقية
+  paperExamQuestions PaperExamQuestion[] // الاختبارات الورقية التي تحتوي على هذا السؤال
+  paperAnswerSheetAnswers PaperAnswerSheetAnswer[] // إجابات ورقية على هذا السؤال
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("questions")
+}
+
+model QuestionOption {
+  id        Int     @id @default(autoincrement())
+  text      String  @db.Text // نص الخيار
+  isCorrect Boolean // هل الخيار صحيح أم لا
+
+  // العلاقة مع السؤال
+  questionId Int // رقم السؤال
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("question_options")
+}
+
+// نموذج الجلسات (محاضرات نظري أو سكاشن عملي)
+model Session {
+  id        Int         @id @default(autoincrement())
+  title     String // عنوان الجلسة (مثل: محاضرة 1، سكشن معمل 2)
+  type      SessionType // نوع الجلسة (نظري/عملي)
+  date      DateTime // تاريخ الجلسة
+  startTime DateTime // وقت بداية الجلسة
+  endTime   DateTime // وقت نهاية الجلسة
+  location  String? // موقع/قاعة الجلسة
+  chapter   Int // رقم الباب المرتبط بالمحتوى
+  notes     String?     @db.Text // ملاحظات عن المحتوى المقدم
+
+  // العلاقة مع المحتوى التدريبي
+  contentId Int // رقم المحتوى التدريبي
+  content   TrainingContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  // العلاقة مع سجلات الحضور
+  attendanceRecords AttendanceRecord[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sessions")
+}
+
+// نموذج سجل الحضور
+// ملاحظة: SessionType enum موجود في الأعلى مع نظام الجدول الدراسي
+model AttendanceRecord {
+  id Int @id @default(autoincrement())
+
+  // العلاقة مع الجلسة
+  sessionId Int
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  // العلاقة مع المتدرب
+  traineeId Int
+  trainee   Trainee @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+
+  status      AttendanceStatus // حالة الحضور
+  arrivalTime DateTime? // وقت الحضور
+  notes       String?          @db.Text // ملاحظات
+
+  createdById String // المستخدم الذي سجل الحضور
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sessionId, traineeId]) // لا يمكن وجود سجل مكرر لنفس المتدرب في نفس الجلسة
+  @@map("attendance_records")
+}
+
+// حالة الحضور
+enum AttendanceStatus {
+  PRESENT // حاضر
+  ABSENT // غائب
+  LATE // متأخر
+  EXCUSED // غياب بعذر
+}
+
+// نموذج المحاضرات التدريبية
+enum LectureType {
+  VIDEO // فيديو يوتيوب
+  PDF // ملف PDF
+  BOTH // كلاهما
+}
+
+model Lecture {
+  id          Int         @id @default(autoincrement())
+  title       String // عنوان المحاضرة
+  description String?     @db.Text // وصف المحاضرة
+  type        LectureType // نوع المحاضرة
+  chapter     Int // رقم الباب المرتبط بالمحاضرة
+  youtubeUrl  String? // رابط فيديو يوتيوب (اختياري)
+  pdfFile     String? // اسم ملف PDF (اختياري)
+  order       Int // ترتيب المحاضرة
+
+  // العلاقة مع المحتوى التدريبي
+  contentId Int // رقم المحتوى التدريبي
+  content   TrainingContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("lectures")
+}
+
+model IdCardPrint {
+  id          Int      @id @default(autoincrement())
+  traineeId   Int // معرف المتدرب
+  trainee     Trainee  @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  printedById String // معرف المستخدم الذي قام بالطباعة
+  printedBy   User     @relation(fields: [printedById], references: [id])
+  printedAt   DateTime @default(now()) // تاريخ ووقت الطباعة
+  notes       String? // ملاحظات إضافية
+  
+  // ربط مع التصميم المستخدم
+  designId       String?       // معرف التصميم المستخدم
+  design         IdCardDesign? @relation(fields: [designId], references: [id])
+  designSnapshot Json?         // نسخة من بيانات التصميم وقت الطباعة
+  
+  // إعدادات التسليم
+  isDelivered    Boolean   @default(false) // هل تم التسليم
+  deliveredAt    DateTime? // تاريخ التسليم
+  deliveredById  String?   // معرف من قام بالتسليم
+  deliveredBy    User?     @relation("CardDeliverer", fields: [deliveredById], references: [id])
+  deliveryNotes  String?   // ملاحظات التسليم
+
+  @@map("id_card_prints")
+}
+
+// نموذج جديد متطور لتصميمات الكارنيهات
+model IdCardDesign {
+  id                    String    @id @default(cuid())
+  name                  String    // اسم التصميم
+  description           String?   // وصف التصميم
+  isDefault             Boolean   @default(false) // هل هو التصميم الافتراضي
+  isActive              Boolean   @default(true)  // حالة التصميم
+  
+  // ربط مع البرنامج التدريبي (إضافة جديدة - آمنة)
+  programId             Int?      // معرف البرنامج التدريبي (null = تصميم عام لكل البرامج)
+  program               TrainingProgram? @relation(fields: [programId], references: [id], onDelete: SetNull)
+  isProgramDefault      Boolean   @default(false) // هل هو التصميم الافتراضي لهذا البرنامج
+  
+  // أبعاد الكارنيه (ISO/IEC 7810 ID-1: 85.60mm × 53.98mm)
+  width                 Int       @default(1011)  // عرض الكارنيه بالبكسل (85.60mm @ 300 DPI)
+  height                Int       @default(638)   // ارتفاع الكارنيه بالبكسل (53.98mm @ 300 DPI)
+  
+  // الخلفية
+  backgroundImage       String?   // مسار صورة الخلفية
+  backgroundImageCloudinaryId String? // معرف الخلفية في Cloudinary
+  backgroundColor       String?   // لون الخلفية (إذا لم تكن هناك صورة)
+  
+  // بيانات التصميم (JSON يحتوي على جميع العناصر وخصائصها)
+  designData            Json      // يحتوي على تفاصيل كل عنصر
+  
+  // معلومات إضافية
+  version               String    @default("1.0") // إصدار التصميم
+  tags                  Json?     // علامات للتصنيف
+  
+  // تواريخ الإنشاء والتحديث
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @default(now()) @updatedAt
+  createdBy             String?   // معرف المستخدم الذي أنشأ التصميم
+  
+  // العلاقات
+  idCardPrints          IdCardPrint[] // الكارنيهات التي تم طباعتها بهذا التصميم
+  
+  @@map("id_card_designs")
+}
+
+// نموذج لقوالب العناصر المحفوظة
+model IdCardElementTemplate {
+  id                    String    @id @default(cuid())
+  name                  String    // اسم القالب
+  type                  String    // نوع العنصر (text, image, qr, logo, etc.)
+  category              String?   // فئة القالب (header, footer, body, etc.)
+  
+  // خصائص القالب
+  templateData          Json      // بيانات القالب
+  previewImage          String?   // صورة معاينة للقالب
+  
+  // معلومات إضافية
+  description           String?   // وصف القالب
+  isPublic              Boolean   @default(false) // هل القالب متاح للجميع
+  usageCount            Int       @default(0)     // عدد مرات الاستخدام
+  
+  // تواريخ
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @default(now()) @updatedAt
+  createdBy             String?   // معرف المستخدم الذي أنشأ القالب
+  
+  @@map("id_card_element_templates")
+}
+
+// نماذج نظام الماليات
+
+// سجل العمليات المالية المفصل
+model FinancialAuditLog {
+  id            String   @id @default(cuid())
+  action        FinancialAction // نوع العملية
+  entityType    String   // نوع الكائن (Safe, TraineeFee, TraineePayment, Transaction)
+  entityId      String   // معرف الكائن
+  oldData       Json?    // البيانات القديمة (قبل التعديل)
+  newData       Json?    // البيانات الجديدة (بعد التعديل)
+  changes       Json?    // التغييرات المحددة
+  description   String?  // وصف العملية
+  amount        Float?   // المبلغ المتعلق بالعملية
+  currency      String?  // العملة
+  
+  // معلومات المستخدم
+  userId        String   // المستخدم الذي قام بالعملية
+  userName      String   // اسم المستخدم وقت العملية
+  userRole      String?  // دور المستخدم وقت العملية
+  
+  // معلومات تقنية
+  ipAddress     String?  // عنوان IP
+  userAgent     String?  // معلومات المتصفح
+  sessionId     String?  // معرف الجلسة
+  
+  // معلومات إضافية
+  relatedEntityType String? // نوع كائن مرتبط (مثل Trainee عند دفع رسوم)
+  relatedEntityId   String? // معرف الكائن المرتبط
+  notes        String?  // ملاحظات إضافية
+  
+  // معلومات المراجعة
+  isReversible Boolean  @default(false) // هل يمكن التراجع عن العملية
+  isReversed   Boolean  @default(false) // هل تم التراجع عن العملية
+  reversedAt   DateTime? // تاريخ التراجع
+  reversedBy   String?  // من قام بالتراجع
+  
+  createdAt    DateTime @default(now())
+  
+  @@map("financial_audit_logs")
+}
+
+// أنواع العمليات المالية للتدقيق
+enum FinancialAction {
+  // عمليات الخزائن
+  SAFE_CREATE
+  SAFE_UPDATE
+  SAFE_DELETE
+  SAFE_BALANCE_UPDATE
+  
+  // عمليات الرسوم
+  FEE_CREATE
+  FEE_UPDATE
+  FEE_DELETE
+  FEE_APPLY
+  FEE_CANCEL
+  
+  // عمليات المدفوعات
+  PAYMENT_CREATE
+  PAYMENT_UPDATE
+  PAYMENT_DELETE
+  PAYMENT_STATUS_CHANGE
+  PAYMENT_REVERSE
+  
+  // عمليات المعاملات
+  TRANSACTION_CREATE
+  TRANSACTION_UPDATE
+  TRANSACTION_DELETE
+  TRANSACTION_REVERSE
+  
+  // عمليات خاصة
+  BULK_OPERATION
+  DATA_IMPORT
+  DATA_EXPORT
+  SYSTEM_ADJUSTMENT
+}
+
+// الخزائن/الحسابات المالية
+model Safe {
+  id          String        @id @default(cuid())
+  name        String        @unique // اسم الخزينة/الحساب
+  description String?       // وصف الخزينة
+  category    SafeCategory  @default(UNSPECIFIED) // تصنيف الخزينة
+  type        SafeCategory  @default(UNSPECIFIED) // نفس category للتوافق مع الكود
+  balance     Float         @default(0) // الرصيد الحالي
+  currency    String        @default("EGP") // العملة
+  isActive    Boolean       @default(true) // حالة الحساب
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // العلاقات
+  sourceTransactions Transaction[] @relation("SourceSafe") // التحويلات الصادرة
+  targetTransactions Transaction[] @relation("TargetSafe") // التحويلات الواردة
+  
+  // العلاقة مع رسوم المتدربين
+  traineeFees TraineeFee[]
+  
+  // العلاقة مع مدفوعات المتدربين
+  traineePayments TraineePayment[]
+  
+  // العلاقة مع القيود المالية
+  fromFinancialEntries FinancialEntry[] @relation("FromSafeEntries") // القيود الصادرة
+  toFinancialEntries   FinancialEntry[] @relation("ToSafeEntries")   // القيود الواردة
+  
+  // علاقات العمولات
+  commissionPayoutsFrom CommissionPayout[] @relation("CommissionPayoutFromSafe")
+  commissionPayoutsTo   CommissionPayout[] @relation("CommissionPayoutToSafe")
+}
+
+// تصنيف الخزائن
+enum SafeCategory {
+  DEBT      // خزائن مديونية
+  INCOME    // خزائن دخل
+  EXPENSE   // خزائن مصروفات
+  ASSETS    // خزائن أصول
+  UNSPECIFIED // غير محدد (للخزائن القديمة)
+}
+
+// نوع التحويل المالي
+enum TransactionType {
+  DEPOSIT      // إيداع
+  WITHDRAW     // سحب
+  TRANSFER     // تحويل بين حسابين
+  TRANSFER_IN  // تحويل وارد (للقيود المالية)
+  TRANSFER_OUT // تحويل صادر (للقيود المالية)
+  FEE          // رسوم متدربين
+  PAYMENT      // دفع رسوم
+}
+
+// التحويلات المالية
+model Transaction {
+  id          String          @id @default(cuid())
+  amount      Float           // قيمة التحويل
+  type        TransactionType // نوع التحويل
+  description String?         @db.Text // وصف التحويل
+  reference   String?         // رقم مرجعي
+  
+  // العلاقة بالحسابات
+  sourceId    String?         // الحساب المصدر (للسحب والتحويل)
+  sourceSafe  Safe?           @relation("SourceSafe", fields: [sourceId], references: [id])
+  
+  targetId    String?         // الحساب الهدف (للإيداع والتحويل)
+  targetSafe  Safe?           @relation("TargetSafe", fields: [targetId], references: [id])
+  
+  // العلاقة برسوم المتدربين
+  traineeFeeId Int?
+  traineeFee   TraineeFee?    @relation(fields: [traineeFeeId], references: [id])
+  
+  // العلاقة بمدفوعات المتدربين
+  traineePaymentId Int?
+  traineePayment   TraineePayment? @relation(fields: [traineePaymentId], references: [id])
+  
+  // معلومات إضافية
+  createdById String?         // المستخدم الذي أنشأ التحويل
+  createdBy   User?           @relation("TransactionCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  // العلاقة مع القيود المالية (كمعاملة مصدر)
+  fromFinancialEntries FinancialEntry[] @relation("FromTransaction")
+  // العلاقة مع القيود المالية (كمعاملة هدف)
+  toFinancialEntries   FinancialEntry[] @relation("ToTransaction")
+}
+
+// القيود المالية - سجل التحويلات بين الخزائن
+model FinancialEntry {
+  id                 Int      @id @default(autoincrement())
+  amount             Float    // المبلغ المحول
+  description        String   @db.Text // وصف العملية
+  type               String   @default("TRANSFER") // نوع القيد (TRANSFER, ADJUSTMENT, etc.)
+  
+  // الخزينة المصدر
+  fromSafeId         String
+  fromSafe           Safe     @relation("FromSafeEntries", fields: [fromSafeId], references: [id])
+  
+  // الخزينة الهدف
+  toSafeId           String
+  toSafe             Safe     @relation("ToSafeEntries", fields: [toSafeId], references: [id])
+  
+  // ربط بالمعاملات المالية
+  fromTransactionId  String?  // معاملة الخصم
+  fromTransaction    Transaction? @relation("FromTransaction", fields: [fromTransactionId], references: [id])
+  
+  toTransactionId    String?  // معاملة الإضافة
+  toTransaction      Transaction? @relation("ToTransaction", fields: [toTransactionId], references: [id])
+  
+  // معلومات المستخدم
+  createdBy          String   // المستخدم الذي أنشأ القيد
+  createdByUser      User     @relation(fields: [createdBy], references: [id])
+  
+  // التوقيت
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// نوع الرسوم
+enum FeeType {
+  TUITION    // رسوم دراسية أساسية
+  SERVICES   // خدمات
+  TRAINING   // تدريب
+  ADDITIONAL // رسوم إضافية
+}
+
+// رسوم المتدربين
+model TraineeFee {
+  id                Int          @id @default(autoincrement())
+  name              String       // اسم الرسوم
+  amount            Float        // قيمة الرسوم
+  type              FeeType      // نوع الرسوم
+  academicYear      String       // العام الدراسي
+  allowMultipleApply Boolean     @default(false) // السماح بتطبيق الرسوم أكثر من مرة
+  
+  // العلاقة بالبرنامج التدريبي
+  programId         Int
+  program           TrainingProgram @relation(fields: [programId], references: [id])
+  
+  // العلاقة بالخزينة التي سيتم خصم الرسوم منها
+  safeId            String
+  safe              Safe         @relation(fields: [safeId], references: [id])
+  
+  // العلاقة بالمتدربين المطبق عليهم الرسوم
+  traineePayments   TraineePayment[]
+  
+  // العلاقة بالتحويلات المالية
+  transactions      Transaction[]
+  
+  // العلاقة بالأدوات الدراسية المرتبطة بهذا الرسم
+  studyMaterials    StudyMaterial[] // الأدوات التي تتطلب سداد هذا الرسم
+  
+  // العلاقة مع جدول مواعيد السداد
+  paymentSchedule   FeePaymentSchedule? // جدول مواعيد السداد المرتبط
+  
+  // العلاقة مع استثناءات المتدربين
+  paymentExceptions TraineePaymentException[] // استثناءات مخصصة للمتدربين
+  
+  // العلاقة مع طلبات تأجيل السداد
+  deferralRequests PaymentDeferralRequest[] // طلبات التأجيل لهذه الرسوم
+  
+  // العلاقة مع رسائل التذكير التلقائية
+  reminderTemplates PaymentReminderTemplate[] // رسائل التذكير المرتبطة بهذا الرسم
+  
+  // إعدادات رسوم التظلمات
+  gradeAppealFeeConfigs GradeAppealFeeConfig[]
+
+  // العلاقة مع قيود الدور الثاني
+  secondRoundFeeApplications SecondRoundFeeApplication[]
+
+  // معلومات إضافية
+  isApplied         Boolean      @default(false) // هل تم تطبيق الرسوم
+  appliedAt         DateTime?    // تاريخ تطبيق الرسوم
+  appliedById       String?      // المستخدم الذي طبق الرسوم
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+// =======================
+// نظام مواعيد سداد الرسوم
+// =======================
+
+// الإجراءات المتخذة عند عدم السداد
+enum NonPaymentAction {
+  DISABLE_ATTENDANCE      // إيقاف نظام الحضور
+  DISABLE_PLATFORM        // إيقاف المنصة الإلكترونية
+  DISABLE_QUIZZES         // إيقاف الاختبارات الإلكترونية
+  DISABLE_ALL             // إيقاف الكل
+  NONE                    // لا شيء (افتراضي)
+}
+
+// ربط الرسوم بمواعيد السداد
+model FeePaymentSchedule {
+  id                    String              @id @default(cuid())
+  
+  // الرسوم المرتبطة
+  feeId                 Int                 @unique // رسوم واحدة لكل جدول
+  fee                   TraineeFee          @relation(fields: [feeId], references: [id], onDelete: Cascade)
+  
+  // مواعيد السداد
+  paymentStartDate      DateTime?           // موعد بداية السداد (null = غير محدد)
+  paymentEndDate        DateTime?           // موعد نهاية السداد (null = غير محدد)
+  gracePeriodDays       Int                 @default(0) // فترة السماح بالأيام (0 = لا توجد)
+  
+  // التاريخ النهائي المحسوب (بعد فترة السماح)
+  finalDeadline         DateTime?           // paymentEndDate + gracePeriodDays
+  
+  // الإجراءات عند عدم السداد (يمكن اختيار أكثر من إجراء)
+  nonPaymentActions     Json?               // قائمة الإجراءات المختارة (array)
+  actionEnabled         Boolean             @default(false) // هل الإجراءات مفعلة؟
+  
+  // ملاحظات وتفاصيل
+  notes                 String?             @db.Text // ملاحظات إضافية
+  
+  // معلومات الإنشاء
+  createdBy             String              // من أنشأ الجدول
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  
+  @@map("fee_payment_schedules")
+}
+
+// نظام استثناءات مواعيد السداد للمتدربين
+model TraineePaymentException {
+  id                String    @id @default(cuid())
+  
+  // المتدرب المستثنى
+  traineeId         Int
+  trainee           Trainee   @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // الرسوم (اختياري - إذا كان null فالاستثناء يطبق على جميع رسوم المتدرب)
+  feeId             Int?
+  fee               TraineeFee? @relation(fields: [feeId], references: [id], onDelete: Cascade)
+  
+  // الموعد الجديد للمتدرب
+  customPaymentEndDate  DateTime?   // موعد نهاية سداد مخصص
+  customGracePeriodDays Int         @default(0) // فترة سماح مخصصة
+  customFinalDeadline   DateTime?   // الموعد النهائي المحسوب
+  
+  // سبب الاستثناء
+  reason            String    @db.Text // سبب منح الاستثناء
+  notes             String?   @db.Text // ملاحظات إضافية
+  
+  // معلومات الإنشاء
+  createdBy         String    // من أنشأ الاستثناء
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@map("trainee_payment_exceptions")
+}
+
+// حالة الدفع
+enum PaymentStatus {
+  PENDING   // قيد الانتظار
+  PAID      // مدفوع
+  PARTIALLY_PAID // مدفوع جزئياً
+  CANCELLED // ملغي
+}
+
+// مدفوعات المتدربين
+model TraineePayment {
+  id          Int           @id @default(autoincrement())
+  amount      Float         // المبلغ المدفوع
+  status      PaymentStatus @default(PENDING) // حالة الدفع
+  
+  // العلاقة برسوم المتدربين
+  feeId       Int
+  fee         TraineeFee    @relation(fields: [feeId], references: [id])
+  
+  // العلاقة بالمتدرب
+  traineeId   Int
+  trainee     Trainee       @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // العلاقة بالخزينة المستلمة للدفع
+  safeId      String
+  safe        Safe          @relation(fields: [safeId], references: [id])
+  
+  // العلاقة بالتحويلات المالية
+  transactions Transaction[]
+  
+  // معلومات إضافية
+  paidAmount  Float         @default(0) // المبلغ المدفوع فعلياً (للدفع الجزئي)
+  paidAt      DateTime?     // تاريخ الدفع
+  paidById    String?       // المستخدم الذي سجل الدفع
+  notes       String?       // ملاحظات
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+// =======================
+// أرشيف المتدربين
+// =======================
+
+// أنواع الوثائق
+enum DocumentType {
+  PERSONAL_PHOTO      // الصورة الشخصية
+  ID_CARD_FRONT       // صورة البطاقة وجه
+  ID_CARD_BACK        // صورة البطاقة ظهر
+  QUALIFICATION_FRONT // صورة المؤهل الدراسي وجه
+  QUALIFICATION_BACK  // صورة المؤهل الدراسي ظهر
+  EXPERIENCE_CERT     // صورة شهادة الخبرة
+  MINISTRY_CERT       // صورة شهادة الوزارة
+  PROFESSION_CARD     // صورة كارنيه مزاولة المهنة
+  SKILL_CERT          // صورة شهادة قياس المهارة
+}
+
+// أرشيف وثائق المتدربين
+model TraineeDocument {
+  id            String       @id @default(cuid())
+  traineeId     Int          // معرف المتدرب
+  trainee       Trainee      @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  documentType  DocumentType // نوع الوثيقة
+  fileName      String       // اسم الملف الأصلي
+  filePath      String       // مسار الملف المخزن
+  cloudinaryId  String?      // معرف الملف في Cloudinary
+  fileSize      Int          // حجم الملف بالبايت
+  mimeType      String       // نوع الملف
+  
+  // معلومات التحديث
+  uploadedAt    DateTime     @default(now()) // تاريخ الرفع
+  uploadedById  String       // المستخدم الذي رفع الوثيقة
+  uploadedBy    User         @relation(fields: [uploadedById], references: [id])
+  
+  // ملاحظات
+  notes         String?      // ملاحظات على الوثيقة
+  isVerified    Boolean      @default(false) // هل تم التحقق من الوثيقة
+  verifiedAt    DateTime?    // تاريخ التحقق
+  verifiedById  String?      // المستخدم الذي تحقق من الوثيقة
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  
+  @@unique([traineeId, documentType]) // وثيقة واحدة من كل نوع لكل متدرب
+}
+
+// =======================
+// نظام الصلاحيات المتقدم
+// =======================
+
+// الأدوار (Roles)
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique // اسم الدور (مثل: admin, manager, instructor)
+  displayName String   // الاسم المعروض (مثل: "مدير النظام", "مشرف", "مدرس")
+  description String?  // وصف الدور
+  color       String?  // لون الدور للعرض في الواجهة
+  icon        String?  // أيقونة الدور
+  priority    Int      @default(0) // أولوية الدور (أعلى رقم = أولوية أكبر)
+  isSystem    Boolean  @default(false) // هل هو دور نظام (لا يمكن حذفه)
+  isActive    Boolean  @default(true) // حالة نشاط الدور
+  
+  // العلاقات
+  rolePermissions RolePermission[] // الصلاحيات المرتبطة بالدور
+  userRoles       UserRole[]       // المستخدمين الذين لديهم هذا الدور
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// الصلاحيات (Permissions)
+model Permission {
+  id          String   @id @default(cuid())
+  resource    String   // الموارد (مثل: dashboard.users, dashboard.trainees)
+  action      String   // الأفعال (مثل: view, create, edit, delete, export)
+  displayName String   // الاسم المعروض
+  description String?  // وصف الصلاحية
+  category    String?  // تصنيف الصلاحية (مثل: "إدارة المستخدمين", "إدارة المتدربين")
+  conditions  Json?    // شروط إضافية للصلاحية (JSON)
+  isSystem    Boolean  @default(false) // هل هي صلاحية نظام
+  
+  // العلاقات
+  rolePermissions RolePermission[] // الأدوار التي لديها هذه الصلاحية
+  userPermissions UserPermission[] // المستخدمين الذين لديهم هذه الصلاحية مباشرة
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([resource, action]) // منع التكرار
+}
+
+// ربط الأدوار بالصلاحيات
+model RolePermission {
+  roleId       String    @map("role_id")
+  permissionId String    @map("permission_id")
+  granted      Boolean   @default(true) // منح أم منع الصلاحية
+  conditions   Json?     // شروط إضافية
+  expiresAt    DateTime? // تاريخ انتهاء الصلاحية
+  
+  // العلاقات
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ربط المستخدمين بالأدوار
+model UserRole {
+  userId      String    @map("user_id")
+  roleId      String    @map("role_id")
+  assignedBy  String?   @map("assigned_by") // من قام بالتعيين
+  assignedAt  DateTime  @default(now()) @map("assigned_at")
+  expiresAt   DateTime? @map("expires_at") // تاريخ انتهاء الدور
+  isActive    Boolean   @default(true) @map("is_active")
+  conditions  Json?     // شروط إضافية
+  
+  // العلاقات
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     Role  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  assigner User? @relation("RoleAssigner", fields: [assignedBy], references: [id])
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+// الصلاحيات المباشرة للمستخدمين (تجاوز الأدوار)
+model UserPermission {
+  userId       String    @map("user_id")
+  permissionId String    @map("permission_id")
+  granted      Boolean   @default(true) // منح أم منع الصلاحية
+  assignedBy   String?   @map("assigned_by") // من قام بالتعيين
+  assignedAt   DateTime  @default(now()) @map("assigned_at")
+  expiresAt    DateTime? @map("expires_at") // تاريخ انتهاء الصلاحية
+  conditions   Json?     // شروط إضافية
+  reason       String?   // سبب منح الصلاحية المباشرة
+  
+  // العلاقات
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  assigner   User?      @relation("PermissionAssigner", fields: [assignedBy], references: [id])
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@id([userId, permissionId])
+  @@map("user_permissions")
+}
+
+// تسجيل أنشطة الصلاحيات
+model PermissionLog {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id") // المستخدم المتأثر
+  actorId      String   @map("actor_id") // من قام بالفعل
+  action       String   // نوع الفعل (grant_role, revoke_role, grant_permission, etc.)
+  resourceType String   @map("resource_type") // نوع المورد (role, permission)
+  resourceId   String   @map("resource_id") // معرف المورد
+  oldValue     Json?    @map("old_value") // القيمة السابقة
+  newValue     Json?    @map("new_value") // القيمة الجديدة
+  reason       String?  // سبب التغيير
+  ipAddress    String?  @map("ip_address") // عنوان IP
+  userAgent    String?  @map("user_agent") // معلومات المتصفح
+  
+  // العلاقات
+  user  User @relation("PermissionLogUser", fields: [userId], references: [id], onDelete: Cascade)
+  actor User @relation("PermissionLogActor", fields: [actorId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@map("permission_logs")
+}
+
+// =======================
+// نظام إدارة التسويق
+// =======================
+
+// موظفي التسويق
+model MarketingEmployee {
+  id                Int      @id @default(autoincrement())
+  name              String   // اسم موظف التسويق
+  phone             String   @unique // رقم الهاتف
+  email             String?  // البريد الإلكتروني (اختياري)
+  isActive          Boolean  @default(true) // حالة نشاط الموظف
+  totalApplications Int      @default(0) // إجمالي عدد التقديمات
+
+  // العلاقة مع أهداف التسويق
+  marketingTargets  MarketingTarget[]
+
+  // العلاقة مع التقديمات
+  applications      MarketingApplication[]
+
+  // العلاقة مع المتدربين المُعيَّنين لهذا الموظف
+  trainees          Trainee[]
+
+  // العلاقة مع التواصل الأول والثاني
+  firstContactTrainees  Trainee[] @relation("FirstContact")
+  secondContactTrainees Trainee[] @relation("SecondContact")
+  
+  // علاقات العمولات
+  commissions           Commission[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("marketing_employees")
+}
+
+// أهداف التسويق الشهرية
+model MarketingTarget {
+  id                Int               @id @default(autoincrement())
+  employeeId        Int               // معرف موظف التسويق
+  employee          MarketingEmployee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  month             Int               // الشهر (1-12)
+  year              Int               // السنة
+  targetAmount      Int               // الهدف المطلوب (عدد التقديمات)
+  achievedAmount    Int               @default(0) // المحقق فعلياً
+
+  // معلومات إضافية
+  notes             String?           // ملاحظات
+  setById           String?           // من قام بتحديد الهدف
+  setAt             DateTime          @default(now()) // تاريخ تحديد الهدف
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@unique([employeeId, month, year]) // هدف واحد لكل موظف في كل شهر
+  @@map("marketing_targets")
+}
+
+// تقديمات التسويق
+model MarketingApplication {
+  id                Int               @id @default(autoincrement())
+  employeeId        Int               // معرف موظف التسويق
+  employee          MarketingEmployee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  // بيانات المتقدم
+  applicantName     String            // اسم المتقدم
+  applicantPhone    String            // رقم هاتف المتقدم
+  applicantEmail    String?           // بريد المتقدم (اختياري)
+
+  // بيانات التقديم
+  programInterest   String?           // البرنامج المهتم به
+  source            String?           // مصدر التقديم (فيسبوك، إعلان، إلخ)
+  status            ApplicationStatus @default(PENDING) // حالة التقديم
+
+  // معلومات إضافية
+  notes             String?           // ملاحظات
+  followUpDate      DateTime?         // تاريخ المتابعة
+  convertedToTrainee Boolean         @default(false) // هل تم تحويله لمتدرب
+  traineeId         Int?              // معرف المتدرب (إذا تم التحويل)
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@map("marketing_applications")
+}
+
+// حالة التقديم
+enum ApplicationStatus {
+  PENDING     // قيد المراجعة
+  CONTACTED   // تم التواصل
+  INTERESTED  // مهتم
+  ENROLLED    // تم التسجيل
+  REJECTED    // مرفوض
+  NO_RESPONSE // لا يرد
+}
+
+// نظام العمولات للمسوقين
+model Commission {
+  id                  Int               @id @default(autoincrement())
+  marketingEmployeeId Int               // معرف موظف التسويق
+  marketingEmployee   MarketingEmployee @relation(fields: [marketingEmployeeId], references: [id], onDelete: Restrict)
+  
+  traineeId           Int?              // معرف المتدرب (nullable للاحتفاظ بالعمولة عند حذف المتدرب)
+  trainee             Trainee?          @relation(fields: [traineeId], references: [id], onDelete: SetNull)
+  
+  type                CommissionType   // نوع العمولة (تواصل أول أو ثاني)
+  amount              Decimal          // قيمة العمولة
+  status              CommissionStatus @default(PENDING) // حالة العمولة
+  
+  description         String?           // وصف العمولة
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  paidAt              DateTime?         // تاريخ الصرف
+  paidBy              String?           // من قام بالصرف
+  
+  // علاقة مع عمليات الصرف
+  payouts             CommissionPayout[]
+  
+  @@map("commissions")
+}
+
+// عمليات صرف العمولات
+model CommissionPayout {
+  id            Int        @id @default(autoincrement())
+  commissionId  Int        // معرف العمولة
+  commission    Commission  @relation(fields: [commissionId], references: [id], onDelete: Restrict)
+  
+  amount        Decimal        // مبلغ الصرف
+  fromSafeId    String        // الخزينة المصروف منها
+  fromSafe      Safe          @relation("CommissionPayoutFromSafe", fields: [fromSafeId], references: [id], onDelete: Restrict)
+  
+  toSafeId      String        // الخزينة المصروف إليها
+  toSafe        Safe          @relation("CommissionPayoutToSafe", fields: [toSafeId], references: [id], onDelete: Restrict)
+  
+  description   String        // وصف العملية
+  createdAt     DateTime      @default(now())
+  createdBy     String        // من قام بالصرف
+  
+  @@map("commission_payouts")
+}
+
+// أنواع العمولات
+enum CommissionType {
+  FIRST_CONTACT  // تواصل أول
+  SECOND_CONTACT // تواصل ثاني
+}
+
+// حالات العمولات
+enum CommissionStatus {
+  PENDING // لم يتم الصرف
+  PAID    // تم الصرف
+}
+
+// جلسات المتدربين لتتبع الوقت والنشاط
+model TraineeSession {
+  id            String   @id @default(cuid())
+  traineeAuthId String   // معرف حساب المتدرب
+  traineeAuth   TraineeAuth @relation(fields: [traineeAuthId], references: [id], onDelete: Cascade)
+  
+  // معلومات الجلسة
+  sessionToken  String   @unique // رمز الجلسة الفريد
+  loginAt       DateTime @default(now()) // وقت تسجيل الدخول
+  logoutAt      DateTime? // وقت تسجيل الخروج (null إذا كانت الجلسة نشطة)
+  duration      Int?     // مدة الجلسة بالثواني
+  isActive      Boolean  @default(true) // هل الجلسة نشطة
+  
+  // معلومات إضافية
+  ipAddress     String?  // عنوان IP
+  userAgent     String?  // متصفح المستخدم
+  device        String?  // نوع الجهاز
+  
+  // النشاطات خلال الجلسة
+  activities    TraineeActivity[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("trainee_sessions")
+}
+
+// أنشطة المتدربين المفصلة
+model TraineeActivity {
+  id            String   @id @default(cuid())
+  sessionId     String   // معرف الجلسة
+  session       TraineeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  // نوع النشاط
+  activityType  ActivityType
+  
+  // تفاصيل النشاط
+  page          String?  // الصفحة المزارة
+  action        String?  // العمل المنجز
+  duration      Int?     // مدة قضاء الوقت في هذا النشاط (بالثواني)
+  metadata      Json?    // معلومات إضافية (JSON)
+  
+  timestamp     DateTime @default(now())
+  
+  @@map("trainee_activities")
+}
+
+// أنواع الأنشطة
+enum ActivityType {
+  PAGE_VIEW     // زيارة صفحة
+  DOWNLOAD      // تحميل ملف
+  VIDEO_WATCH   // مشاهدة فيديو
+  QUIZ_ATTEMPT  // محاولة اختبار
+  ASSIGNMENT_SUBMIT // تقديم مهمة
+  DISCUSSION_POST   // مشاركة في النقاش
+  OTHER         // نشاط آخر
+}
+
+// إحصائيات المتدربين المجمعة (للاستعلام السريع)
+model TraineeStats {
+  id                String   @id @default(cuid())
+  traineeAuthId     String   @unique // معرف حساب المتدرب
+  traineeAuth       TraineeAuth @relation(fields: [traineeAuthId], references: [id], onDelete: Cascade)
+  
+  // إحصائيات الجلسات
+  totalSessions     Int      @default(0)  // إجمالي عدد الجلسات
+  totalTimeSpent    Int      @default(0)  // إجمالي الوقت بالثواني
+  averageSessionTime Int     @default(0)  // متوسط مدة الجلسة
+  longestSession    Int      @default(0)  // أطول جلسة
+  
+  // إحصائيات النشاط
+  totalPageViews    Int      @default(0)  // إجمالي زيارات الصفحات
+  totalDownloads    Int      @default(0)  // إجمالي التحميلات
+  totalVideoWatches Int      @default(0)  // إجمالي مشاهدة الفيديوهات
+  
+  // إحصائيات الحضور
+  firstLogin        DateTime? // أول تسجيل دخول
+  lastLogin         DateTime? // آخر تسجيل دخول
+  lastActivity      DateTime? // آخر نشاط
+  
+  // إحصائيات الفترات
+  thisWeekSessions  Int      @default(0)  // جلسات هذا الأسبوع
+  thisMonthSessions Int      @default(0)  // جلسات هذا الشهر
+  
+  updatedAt         DateTime @updatedAt
+  
+  @@map("trainee_stats")
+}
+
+// === نظام الحملات والقوالب ===
+
+// نظام قوالب الرسائل
+model MessageTemplate {
+  id          String   @id @default(cuid())
+  name        String   // اسم القالب
+  content     String   @db.Text // محتوى الرسالة
+  description String?  // وصف القالب
+  category    String   @default("general") // فئة القالب (welcome, payment, general, etc.)
+  variables   Json?    // متغيرات القالب المدعومة
+  isActive    Boolean  @default(true)
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // علاقة مع الحملات
+  campaigns   WhatsAppCampaign[]
+  
+  @@map("message_templates")
+}
+
+// نظام الحملات الجماعية
+// جدول حفظ جلسات الواتساب في قاعدة البيانات
+model WhatsAppSession {
+  id        String   @id @default(cuid())
+  key       String   @unique // مفتاح الملف (مثل: creds.json, app-state-sync-key-xxx)
+  data      String   @db.LongText // محتوى الملف (JSON)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@map("whatsapp_sessions")
+}
+
+model WhatsAppCampaign {
+  id               String   @id @default(cuid())
+  name             String   // اسم الحملة
+  description      String?  // وصف الحملة
+  templateId       String?  // معرف القالب (اختياري)
+  template         MessageTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  message          String   @db.Text // الرسالة النهائية
+  
+  // إعدادات الإرسال
+  delayBetweenMessages Int     @default(5) // التأخير بالثواني
+  targetType           String  // نوع الهدف: "all", "program", "custom"
+  targetProgramId      Int?    // معرف البرنامج إذا كان الهدف برنامج محدد
+  targetTraineeIds     Json?   // معرفات المتدربين المحددين
+  
+  // حالة الحملة
+  status           String   @default("draft") // draft, running, paused, completed, failed
+  totalTargets     Int      @default(0) // إجمالي المستهدفين
+  sentCount        Int      @default(0) // عدد المرسل
+  failedCount      Int      @default(0) // عدد الفاشل
+  
+  // معلومات التوقيت
+  scheduledAt      DateTime? // موعد الإرسال المجدول
+  startedAt        DateTime? // وقت بدء الإرسال
+  completedAt      DateTime? // وقت انتهاء الإرسال
+  estimatedDuration Int?     // المدة المتوقعة بالثواني
+  
+  // معلومات المستخدم
+  createdBy        String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // علاقة مع تفاصيل الإرسال
+  campaignRecipients CampaignRecipient[]
+  
+  @@map("whatsapp_campaigns")
+}
+
+// تفاصيل إرسال الحملة لكل متدرب
+model CampaignRecipient {
+  id           String   @id @default(cuid())
+  campaignId   String
+  campaign     WhatsAppCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  traineeId    Int
+  trainee      Trainee @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // حالة الإرسال
+  status       String   @default("pending") // pending, sent, failed, skipped
+  phoneNumber  String   // رقم الهاتف المستخدم
+  message      String   @db.Text // الرسالة المرسلة
+  
+  // توقيتات الإرسال
+  scheduledAt  DateTime? // الوقت المجدول للإرسال
+  sentAt       DateTime? // وقت الإرسال الفعلي
+  failedAt     DateTime? // وقت الفشل إن وجد
+  
+  // تفاصيل الخطأ
+  errorMessage String?  // رسالة الخطأ إن وجدت
+  retryCount   Int      @default(0) // عدد محاولات الإعادة
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@unique([campaignId, traineeId])
+  @@map("campaign_recipients")
+}
+
+// === نظام توزيع المتدربين على القاعات ===
+
+// التوزيع الأساسي
+// نوع التوزيع
+enum DistributionType {
+  THEORY    // قاعات النظري
+  PRACTICAL // قاعات العملي
+}
+
+model TraineeDistribution {
+  id              String           @id @default(cuid())
+  programId       Int              // البرنامج التدريبي
+  program         TrainingProgram  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  type            DistributionType // نوع التوزيع (نظري أو عملي)
+  numberOfRooms   Int              // عدد القاعات
+  academicYear    String           // العام الدراسي
+  classroomId     Int?             // الفصل الدراسي (اختياري - null يعني توزيعة عامة للبرنامج)
+  classroom       Classroom?       @relation(fields: [classroomId], references: [id], onDelete: SetNull)
+  
+  // معلومات الإنشاء
+  createdBy       String           // من أنشأ التوزيع
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  // العلاقات
+  rooms           DistributionRoom[] // القاعات والمتدربين المخصصين لها
+  
+  @@unique([programId, type, classroomId]) // توزيعة واحدة لكل نوع لكل فصل دراسي في كل برنامج
+  @@map("trainee_distributions")
+}
+
+// القاعات وتوزيع المتدربين عليها
+model DistributionRoom {
+  id              String              @id @default(cuid())
+  distributionId  String              // التوزيع الأساسي
+  distribution    TraineeDistribution @relation(fields: [distributionId], references: [id], onDelete: Cascade)
+  roomName        String              // اسم القاعة (مثل: القاعة 1، المعمل أ)
+  roomNumber      Int                 // رقم القاعة للترتيب
+  capacity        Int?                // السعة (اختياري)
+  
+  // العلاقات
+  assignments     DistributionAssignment[] // المتدربين المخصصين لهذه القاعة
+  scheduleSlots   ScheduleSlot[]      // مواعيد الجدول الدراسي لهذه المجموعة
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  @@map("distribution_rooms")
+}
+
+// تخصيص المتدربين للقاعات
+model DistributionAssignment {
+  id              String           @id @default(cuid())
+  roomId          String           // القاعة
+  room            DistributionRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  traineeId       Int              // المتدرب
+  trainee         Trainee          @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  orderNumber     Int              // رقم الترتيب داخل القاعة
+  notes           String?          // ملاحظات خاصة بالمتدرب
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  @@unique([roomId, traineeId]) // متدرب واحد لكل قاعة في نفس التوزيع
+  @@map("distribution_assignments")
+}
+
+// === نظام رصد الحضور والغياب ===
+
+// سجل الحضور
+model Attendance {
+  id              String            @id @default(cuid())
+  
+  // المحاضرة (الجلسة)
+  sessionId       Int
+  session         ScheduledSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  // المتدرب
+  traineeId       Int
+  trainee         Trainee           @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // حالة الحضور
+  status          AttendanceStatus  @default(ABSENT)
+  
+  // ملاحظات
+  notes           String?           @db.Text
+  
+  // معلومات التسجيل
+  recordedBy      String            // من سجل الحضور (userId)
+  recordedByUser  User              @relation(fields: [recordedBy], references: [id], map: "attendance_recordedBy_fkey")
+  recordedAt      DateTime          @default(now())
+  
+  // معلومات التعديل
+  updatedBy       String?           // من عدل السجل
+  updatedByUser   User?             @relation("AttendanceUpdates", fields: [updatedBy], references: [id], map: "attendance_updatedByUser_fkey")
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@unique([sessionId, traineeId]) // سجل واحد لكل متدرب في كل محاضرة
+  @@index([traineeId])
+  @@index([sessionId])
+  @@index([status])
+  @@map("attendance")
+}
+
+// كود تسجيل الحضور (6 أرقام أو QR)
+model AttendanceCode {
+  id              String            @id @default(cuid())
+  
+  // المحاضرة (الجلسة)
+  sessionId       Int
+  session         ScheduledSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  // الكود المكون من 6 أرقام
+  code            String            @db.VarChar(6)
+  
+  // صلاحية الكود
+  isActive        Boolean           @default(true)
+  expiresAt       DateTime?         // تاريخ انتهاء الصلاحية (اختياري)
+  
+  // من أنشأ الكود
+  createdBy       String
+  createdByUser   User              @relation(fields: [createdBy], references: [id])
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@unique([sessionId])             // كود واحد لكل محاضرة
+  @@index([code])
+  @@map("attendance_codes")
+}
+
+// ================== نظام الاختبارات المصغرة ==================
+
+// الاختبار المصغر
+model Quiz {
+  id                  Int               @id @default(autoincrement())
+  
+  // المادة التدريبية
+  trainingContentId   Int
+  trainingContent     TrainingContent   @relation(fields: [trainingContentId], references: [id], onDelete: Cascade)
+  
+  // معلومات الاختبار
+  title               String            // عنوان الاختبار
+  description         String?           @db.Text // وصف الاختبار
+  instructions        String?           @db.Text // تعليمات الاختبار
+  
+  // إعدادات التوقيت
+  startDate           DateTime          // تاريخ ووقت بداية الاختبار
+  endDate             DateTime          // تاريخ ووقت نهاية الاختبار
+  duration            Int               // مدة الاختبار بالدقائق
+  
+  // إعدادات الاختبار
+  passingScore        Float             @default(50) // درجة النجاح (نسبة مئوية)
+  maxAttempts         Int               @default(1) // عدد المحاولات المسموح بها
+  shuffleQuestions    Boolean           @default(true) // خلط ترتيب الأسئلة
+  shuffleAnswers      Boolean           @default(true) // خلط ترتيب الإجابات
+  showResults         Boolean           @default(true) // عرض النتائج للمتدرب بعد الانتهاء
+  showCorrectAnswers  Boolean           @default(false) // عرض الإجابات الصحيحة
+  
+  // الحالة
+  isActive            Boolean           @default(true)
+  isPublished         Boolean           @default(false) // هل تم نشر الاختبار
+  
+  // العلاقات
+  questions           QuizQuestion[]    // أسئلة الاختبار
+  attempts            QuizAttempt[]     // محاولات المتدربين
+  
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  
+  @@index([trainingContentId])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([isActive])
+  @@index([isPublished])
+  @@map("quizzes")
+}
+
+// علاقة الاختبار بالأسئلة من بنك الأسئلة
+model QuizQuestion {
+  id          Int       @id @default(autoincrement())
+  
+  // الاختبار
+  quizId      Int
+  quiz        Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  
+  // السؤال من بنك الأسئلة
+  questionId  Int
+  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  // الترتيب والدرجات
+  order       Int       @default(0) // ترتيب السؤال في الاختبار
+  points      Float     @default(1) // الدرجة المخصصة لهذا السؤال
+  
+  createdAt   DateTime  @default(now())
+  
+  @@unique([quizId, questionId]) // لا يمكن تكرار نفس السؤال في نفس الاختبار
+  @@index([quizId])
+  @@index([questionId])
+  @@map("quiz_questions")
+}
+
+// محاولات المتدربين في الاختبارات
+model QuizAttempt {
+  id              String          @id @default(cuid())
+  
+  // الاختبار
+  quizId          Int
+  quiz            Quiz            @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  
+  // المتدرب
+  traineeId       Int
+  trainee         Trainee         @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // معلومات المحاولة
+  attemptNumber   Int             @default(1) // رقم المحاولة
+  startedAt       DateTime        @default(now()) // وقت البداية
+  submittedAt     DateTime?       // وقت التسليم
+  duration        Int?            // المدة الفعلية بالثواني
+  
+  // النتيجة
+  score           Float?          // الدرجة المحصلة
+  totalPoints     Float?          // إجمالي الدرجات
+  percentage      Float?          // النسبة المئوية
+  passed          Boolean?        // هل نجح في الاختبار
+  
+  // الحالة
+  status          QuizAttemptStatus @default(IN_PROGRESS)
+  
+  // البيانات التقنية
+  ipAddress       String?         // عنوان IP
+  userAgent       String?         @db.Text // معلومات المتصفح
+  
+  // العلاقات
+  answers         QuizAnswer[]    // إجابات المتدرب
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@unique([quizId, traineeId, attemptNumber])
+  @@index([quizId])
+  @@index([traineeId])
+  @@index([status])
+  @@map("quiz_attempts")
+}
+
+// إجابات المتدربين على أسئلة الاختبار
+model QuizAnswer {
+  id              String        @id @default(cuid())
+  
+  // المحاولة
+  attemptId       String
+  attempt         QuizAttempt   @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  
+  // السؤال
+  questionId      Int
+  question        Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  // الإجابة
+  selectedAnswer  String?       @db.Text // الإجابة المختارة (JSON للأسئلة متعددة الاختيارات)
+  textAnswer      String?       @db.Text // الإجابة النصية
+  
+  // التصحيح
+  isCorrect       Boolean?      // هل الإجابة صحيحة
+  points          Float?        // النقاط المحصلة
+  feedback        String?       @db.Text // ملاحظات على الإجابة
+  
+  // التوقيت
+  answeredAt      DateTime      @default(now())
+  timeSpent       Int?          // الوقت المستغرق في الإجابة بالثواني
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+  @@index([questionId])
+  @@map("quiz_answers")
+}
+
+// حالة محاولة الاختبار
+enum QuizAttemptStatus {
+  IN_PROGRESS   // جاري الإجراء
+  SUBMITTED     // تم التسليم
+  EXPIRED       // انتهى الوقت
+  CANCELLED     // ملغاة
+}
+
+// ===================================
+// نظام الأدوات الدراسية
+// ===================================
+
+// الأدوات الدراسية (الكتب، الأدوات، المستلزمات)
+model StudyMaterial {
+  id              String                  @id @default(cuid())
+  name            String                  // اسم الأداة/المستلزم
+  nameEn          String?                 // الاسم بالإنجليزية
+  description     String?                 @db.Text // وصف الأداة
+  
+  // الربط بالبرنامج
+  programId       Int                     // البرنامج التدريبي المخصص له
+  program         TrainingProgram         @relation(fields: [programId], references: [id], onDelete: Cascade)
+  
+  // الربط بالرسوم (اختياري - للحفاظ على البيانات القديمة)
+  linkedFeeId     Int?                    // الرسم المطلوب سداده للتسليم (null = مجاني)
+  linkedFee       TraineeFee?             @relation(fields: [linkedFeeId], references: [id], onDelete: SetNull)
+  
+  // الكمية والمعلومات
+  quantity        Int                     @default(0) // الكمية المتاحة
+  isActive        Boolean                 @default(true) // حالة النشاط
+  
+  // معلومات الإنشاء
+  createdBy       String                  // من قام بإنشاء العنصر
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  
+  // العلاقات
+  deliveries      StudyMaterialDelivery[] // سجلات التسليم
+  responsibleUsers StudyMaterialResponsible[] // المسؤولون عن تسليم هذه الأداة
+  
+  @@index([programId])
+  @@index([linkedFeeId])
+  @@index([isActive])
+  @@map("study_materials")
+}
+
+// جدول ربط الأدوات الدراسية بالمسؤولين عن تسليمها
+model StudyMaterialResponsible {
+  id                String          @id @default(cuid())
+  
+  // الأداة الدراسية
+  studyMaterialId   String
+  studyMaterial     StudyMaterial   @relation(fields: [studyMaterialId], references: [id], onDelete: Cascade)
+  
+  // الموظف المسؤول
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // معلومات إضافية
+  assignedAt        DateTime        @default(now()) // تاريخ التعيين
+  assignedBy        String?         // من قام بالتعيين
+  notes             String?         @db.Text // ملاحظات
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  @@unique([studyMaterialId, userId]) // موظف واحد لكل أداة (لا تكرار)
+  @@index([studyMaterialId])
+  @@index([userId])
+  @@map("study_material_responsible")
+}
+
+// سجل تسليم الأدوات الدراسية
+model StudyMaterialDelivery {
+  id                String          @id @default(cuid())
+  
+  // الأداة الدراسية
+  studyMaterialId   String
+  studyMaterial     StudyMaterial   @relation(fields: [studyMaterialId], references: [id], onDelete: Cascade)
+  
+  // المتدرب
+  traineeId         Int
+  trainee           Trainee         @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // معلومات التسليم
+  deliveredBy       String?         // من قام بالتسليم (User ID)
+  deliveryDate      DateTime?       // تاريخ التسليم الفعلي
+  status            DeliveryStatus  @default(PENDING) // حالة التسليم
+  
+  // معلومات إضافية
+  quantity          Int             @default(1) // الكمية المسلمة
+  notes             String?         @db.Text // ملاحظات
+  
+  // معلومات الإرجاع (إذا كانت الأداة قابلة للإرجاع)
+  returnDate        DateTime?       // تاريخ الإرجاع
+  returnedBy        String?         // من استلم الإرجاع
+  returnNotes       String?         @db.Text // ملاحظات الإرجاع
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  @@unique([studyMaterialId, traineeId]) // لا يمكن تكرار تسليم نفس الأداة لنفس المتدرب
+  @@index([studyMaterialId])
+  @@index([traineeId])
+  @@index([status])
+  @@index([deliveryDate])
+  @@map("study_material_deliveries")
+}
+
+// حالة التسليم
+enum DeliveryStatus {
+  PENDING
+  DELIVERED
+  RETURNED
+  LOST
+}
+
+// ===================================
+// نظام طلبات تأجيل السداد
+// ===================================
+
+enum DeferralRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ===================================
+// نظام رسائل التذكير التلقائية للرسوم
+// ===================================
+
+// نوع توقيت الإرسال
+enum ReminderTriggerType {
+  PAYMENT_START      // عند بداية موعد السداد
+  PAYMENT_END        // عند نهاية موعد السداد
+  GRACE_START        // عند بداية فترة السماح
+  GRACE_END          // عند نهاية فترة السماح (الموعد النهائي)
+  CUSTOM_DATE        // تاريخ مخصص
+  DAYS_BEFORE_END    // X أيام قبل النهاية
+  DAYS_AFTER_START   // X أيام بعد البداية
+}
+
+// حالة الإرسال
+enum ReminderDeliveryStatus {
+  PENDING    // في الانتظار
+  SCHEDULED  // مجدول للإرسال
+  SENDING    // قيد الإرسال حالياً
+  SENT       // تم الإرسال بنجاح
+  FAILED     // فشل الإرسال
+  SKIPPED    // تم التخطي (المتدرب دفع)
+}
+
+// قالب الرسالة التذكيرية
+model PaymentReminderTemplate {
+  id                String   @id @default(cuid())
+  name              String   // اسم مميز للرسالة
+  message           String   @db.Text // محتوى الرسالة (مع متغيرات {{variable}})
+  description       String?  // وصف اختياري
+  
+  // ربط بالرسم
+  feeId             Int
+  fee               TraineeFee @relation(fields: [feeId], references: [id], onDelete: Cascade)
+  
+  // نوع التوقيت
+  triggerType       ReminderTriggerType
+  
+  // للتواريخ المخصصة
+  customTriggerDate DateTime? // يُستخدم فقط عند triggerType = CUSTOM_DATE
+  daysOffset        Int?      // عدد الأيام (للأنواع DAYS_BEFORE/AFTER)
+  
+  // إعدادات الإرسال
+  delayBetweenMessages Int @default(30) // التأخير بين الرسائل (ثوانٍ، min: 30)
+  isActive          Boolean  @default(true) // تفعيل/تعطيل الرسالة
+  
+  // معلومات الإنشاء
+  createdBy         String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // العلاقات
+  deliveries        PaymentReminderDelivery[] // سجلات الإرسال
+  
+  @@index([feeId])
+  @@index([triggerType])
+  @@index([isActive])
+  @@index([customTriggerDate])
+  @@map("payment_reminder_templates")
+}
+
+// سجل إرسال الرسائل التذكيرية
+model PaymentReminderDelivery {
+  id                String   @id @default(cuid())
+  
+  // الرسالة التذكيرية
+  templateId        String
+  template          PaymentReminderTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  
+  // المتدرب المستهدف
+  traineeId         Int
+  trainee           Trainee  @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // معلومات الإرسال
+  phoneNumber       String   // رقم الهاتف المستخدم
+  message           String   @db.Text // الرسالة المعالجة (بعد استبدال المتغيرات)
+  status            ReminderDeliveryStatus @default(PENDING)
+  
+  // التوقيتات
+  scheduledAt       DateTime // متى كان من المفترض إرساله
+  sentAt            DateTime? // متى تم الإرسال فعلياً
+  failedAt          DateTime? // متى فشل
+  
+  // معلومات الفشل
+  errorMessage      String?  @db.Text
+  retryCount        Int      @default(0) // عدد محاولات الإعادة
+  
+  // معلومات السياق (وقت الإرسال)
+  paymentStatus     String   // PENDING/PARTIALLY_PAID وقت الجدولة
+  paidAmount        Float    // المبلغ المدفوع وقت الجدولة
+  remainingAmount   Float    // المبلغ المتبقي وقت الجدولة
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([templateId, traineeId])
+  @@index([templateId])
+  @@index([traineeId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([sentAt])
+  @@map("payment_reminder_deliveries")
+}
+
+// طلبات تأجيل سداد الرسوم
+model PaymentDeferralRequest {
+  id                String                @id @default(cuid())
+  
+  // المتدرب
+  traineeId         Int
+  trainee           Trainee               @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // الرسم المطلوب تأجيله
+  feeId             Int
+  fee               TraineeFee            @relation(fields: [feeId], references: [id], onDelete: Cascade)
+  
+  // تفاصيل الطلب
+  reason            String                @db.Text // سبب طلب التأجيل
+  requestedExtensionDays Int             // عدد الأيام المطلوب تأجيلها
+  requestedDeadline DateTime?            // الموعد المطلوب (محسوب أو مدخل)
+  
+  // حالة الطلب
+  status            DeferralRequestStatus @default(PENDING)
+  
+  // رد الإدارة
+  reviewedBy        String?               // من راجع الطلب (User ID)
+  reviewer          User?                 @relation(fields: [reviewedBy], references: [id])
+  reviewedAt        DateTime?             // تاريخ المراجعة
+  adminResponse     String?               @db.Text // رد الإدارة (سبب القبول أو الرفض)
+  adminNotes        String?               @db.Text // ملاحظات إدارية إضافية
+  
+  // إذا تم القبول، يتم إنشاء استثناء تلقائياً
+  createdExceptionId String?              // معرف الاستثناء المُنشأ
+  
+  // التواريخ
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  
+  @@index([traineeId])
+  @@index([feeId])
+  @@index([status])
+  @@map("payment_deferral_requests")
+}
+
+// ===================================
+// نظام الإجراءات العقابية للمتدربين
+// ===================================
+
+// أنواع الإجراءات العقابية
+enum DisciplinaryActionType {
+  WARNING
+  GUARDIAN_SUMMON
+  REPORT_FILING
+  TEMPORARY_SUSPENSION
+  PERMANENT_EXPULSION
+}
+
+// حالة الإجراء العقابي
+enum DisciplinaryActionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+// سجل الإجراءات العقابية
+model DisciplinaryAction {
+  id                String                  @id @default(cuid())
+  
+  // المتدرب المعني
+  traineeId         Int
+  trainee           Trainee                 @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // نوع الإجراء
+  actionType        DisciplinaryActionType
+  
+  // سبب الإجراء
+  reason            String                  @db.Text // السبب التفصيلي
+  
+  // التواريخ (للفصل المؤقت)
+  startDate         DateTime?               // تاريخ بداية الفصل (للمؤقت)
+  endDate           DateTime?               // تاريخ نهاية الفصل (للمؤقت)
+  
+  // الحالة
+  status            DisciplinaryActionStatus @default(ACTIVE)
+  
+  // معلومات إضافية
+  notes             String?                 @db.Text // ملاحظات إدارية
+  reportFile        String?                 // ملف المحضر (إذا كان حفظ محضر)
+  reportFileCloudinaryId String?            // معرف الملف في Cloudinary
+  guardianNotified  Boolean                 @default(false) // هل تم إبلاغ ولي الأمر
+  guardianNotificationDate DateTime?        // تاريخ إبلاغ ولي الأمر
+  
+  // معلومات الإنشاء
+  createdBy         String                  // المستخدم الذي اتخذ الإجراء
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  
+  // معلومات الإلغاء/الإكمال
+  completedAt       DateTime?               // تاريخ إكمال الإجراء
+  completedBy       String?                 // من أكمل الإجراء
+  cancelledAt       DateTime?               // تاريخ الإلغاء
+  cancelledBy       String?                 // من ألغى الإجراء
+  cancellationReason String?                @db.Text // سبب الإلغاء
+  
+  @@index([traineeId])
+  @@index([actionType])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@map("disciplinary_actions")
+}
+
+// ===================================
+// نظام إدارة المواقع الجغرافية
+// ===================================
+
+// الدول
+model Country {
+  id          String        @id @default(cuid())
+  code        String        @unique // كود الدولة (مثل EG, SA, AE)
+  nameAr      String        // الاسم بالعربية
+  nameEn      String?       // الاسم بالإنجليزية
+  isActive    Boolean       @default(true) // حالة النشاط
+  order       Int           @default(0) // الترتيب في القائمة
+  
+  // العلاقات
+  governorates Governorate[] // المحافظات/المناطق
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  @@index([code])
+  @@index([isActive])
+  @@map("countries")
+}
+
+// المحافظات/المناطق
+model Governorate {
+  id          String   @id @default(cuid())
+  countryId   String   // الدولة
+  country     Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  
+  code        String   // كود المحافظة (مثل cairo, riyadh)
+  nameAr      String   // الاسم بالعربية
+  nameEn      String?  // الاسم بالإنجليزية
+  isActive    Boolean  @default(true) // حالة النشاط
+  order       Int      @default(0) // الترتيب في القائمة
+  
+  // العلاقات
+  cities      City[]   // المدن
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([countryId, code]) // كود فريد لكل محافظة في كل دولة
+  @@index([countryId])
+  @@index([isActive])
+  @@map("governorates")
+}
+
+// المدن
+model City {
+  id            String       @id @default(cuid())
+  governorateId String       // المحافظة
+  governorate   Governorate  @relation(fields: [governorateId], references: [id], onDelete: Cascade)
+  
+  code          String       // كود المدينة (مثل mansoura, jeddah)
+  nameAr        String       // الاسم بالعربية
+  nameEn        String?      // الاسم بالإنجليزية
+  isActive      Boolean      @default(true) // حالة النشاط
+  order         Int          @default(0) // الترتيب في القائمة
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  
+  @@unique([governorateId, code]) // كود فريد لكل مدينة في كل محافظة
+  @@index([governorateId])
+  @@index([isActive])
+  @@map("cities")
+}
+
+// ===================================
+// نظام الطلبات المجانية للمتدربين
+// ===================================
+
+// أنواع الطلبات
+enum RequestType {
+  EXAM_POSTPONE    // تأجيل اختبار
+  SICK_LEAVE       // إجازة مرضية
+  ENROLLMENT_PROOF // طلب إثبات قيد
+  CERTIFICATE      // طلب إفادة
+}
+
+// أنواع الاختبارات (للتأجيل)
+enum ExamType {
+  MIDTERM  // ميد تيرم
+  FINAL    // نهائي
+}
+
+// حالة الطلب (إعادة استخدام DeferralRequestStatus)
+// PENDING, APPROVED, REJECTED
+
+// طلبات المتدربين المجانية
+model TraineeRequest {
+  id              String                @id @default(cuid())
+  
+  // المتدرب
+  traineeId       Int
+  trainee         Trainee               @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // نوع الطلب
+  type            RequestType
+  
+  // السبب المشترك
+  reason          String                @db.Text // سبب الطلب (إجباري)
+  
+  // مرفق (للإجازة المرضية)
+  attachmentUrl   String?               // رابط المرفق (صورة، مستند)
+  attachmentCloudinaryId String?        // معرف المرفق في Cloudinary
+  
+  // بيانات خاصة بنوع الطلب
+  examType        ExamType?             // نوع الاختبار (MIDTERM/FINAL) - لتأجيل اختبار
+  examDate        DateTime?             // تاريخ الاختبار الأصلي - لتأجيل اختبار
+  
+  // الحالة
+  status          DeferralRequestStatus @default(PENDING) // إعادة استخدام enum موجود
+  
+  // رد الإدارة
+  reviewedBy      String?               // من راجع الطلب (User ID)
+  reviewer        User?                 @relation(fields: [reviewedBy], references: [id])
+  reviewedAt      DateTime?             // تاريخ المراجعة
+  adminResponse   String?               @db.Text // رد الإدارة (سبب القبول أو الرفض)
+  adminNotes      String?               @db.Text // ملاحظات إدارية داخلية
+  
+  // التواريخ
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  
+  @@index([traineeId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("trainee_requests")
+}
+
+// ===================================
+// نظام الاختبارات الورقية (Paper Exams)
+// ===================================
+
+// نوع ربط الاختبار بالدرجات
+enum PaperExamGradeType {
+  YEAR_WORK     // أعمال السنة
+  PRACTICAL     // العملي
+  WRITTEN       // التحريري
+  FINAL_EXAM    // الميد تيرم
+}
+
+// حالة الاختبار الورقي
+enum PaperExamStatus {
+  DRAFT         // مسودة
+  PUBLISHED     // منشور
+  IN_PROGRESS   // قيد التنفيذ
+  COMPLETED     // مكتمل
+  ARCHIVED      // مؤرشف
+}
+
+// حالة ورقة الإجابة
+enum AnswerSheetStatus {
+  NOT_SUBMITTED   // لم تُسلم بعد
+  SUBMITTED       // تم التسليم
+  GRADED          // تم التصحيح
+  VERIFIED        // تم المراجعة
+}
+
+// الاختبار الورقي الرئيسي
+// =======================
+// نظام إعدادات المطورين
+// =======================
+
+model DeveloperSettings {
+  id              String   @id @default(cuid())
+  key             String   @unique // مفتاح الإعداد (مثل: MISTRAL_API_KEY)
+  value           String   @db.Text // القيمة (مشفرة)
+  description     String?  @db.Text // وصف الإعداد
+  category        String   @default("general") // التصنيف
+  isEncrypted     Boolean  @default(true) // هل القيمة مشفرة؟
+  isActive        Boolean  @default(true) // هل الإعداد مفعل؟
+  
+  updatedBy       String?  // من قام بآخر تحديث (user email)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("developer_settings")
+}
+
+model PaperExam {
+  id                  Int                 @id @default(autoincrement())
+  
+  // المادة التدريبية
+  trainingContentId   Int
+  trainingContent     TrainingContent     @relation(fields: [trainingContentId], references: [id], onDelete: Cascade)
+  
+  // معلومات الاختبار
+  title               String              // عنوان الاختبار
+  description         String?             @db.Text // وصف الاختبار
+  instructions        String?             @db.Text // تعليمات للطلاب
+  
+  // التوقيت
+  examDate            DateTime            // تاريخ الاختبار
+  duration            Int                 // مدة الاختبار بالدقائق
+  
+  // ربط بالدرجات
+  gradeType           PaperExamGradeType  // نوع الدرجة المرتبط
+  totalMarks          Float               // إجمالي الدرجات للاختبار
+  passingScore        Float               @default(50) // درجة النجاح (نسبة مئوية)
+  
+  // الحالة
+  status              PaperExamStatus     @default(DRAFT)
+  isPublished         Boolean             @default(false)
+  
+  // معلومات إضافية
+  academicYear        String              // العام الدراسي
+  semester            Semester?           // الفصل الدراسي
+  notes               String?             @db.Text // ملاحظات إدارية
+  
+  // العلاقات
+  models              PaperExamModel[]    // نماذج الأسئلة
+  answerSheets        PaperAnswerSheet[]  // أوراق الإجابة
+  batchSessions       BatchGradingSession[] // عمليات التصحيح المتعدد
+  
+  // معلومات الإنشاء
+  createdBy           String              // من أنشأ الاختبار
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  
+  @@index([trainingContentId])
+  @@index([status])
+  @@index([examDate])
+  @@index([gradeType])
+  @@map("paper_exams")
+}
+
+// نموذج الأسئلة (يمكن أن يكون هناك عدة نماذج لنفس الاختبار)
+model PaperExamModel {
+  id                  Int                     @id @default(autoincrement())
+  
+  // الاختبار
+  paperExamId         Int
+  paperExam           PaperExam               @relation(fields: [paperExamId], references: [id], onDelete: Cascade)
+  
+  // معلومات النموذج
+  modelCode           String                  // رمز النموذج (A, B, C, etc.)
+  modelName           String                  // اسم النموذج (نموذج أ، نموذج ب)
+  
+  // إعدادات
+  shuffleQuestions    Boolean                 @default(false) // هل تم خلط الأسئلة
+  shuffleOptions      Boolean                 @default(false) // هل تم خلط الخيارات
+  
+  // طريقة التوزيع المستخدمة عند إنشاء النموذج
+  distributionMethod  DistributionMethod      @default(UNSPECIFIED)
+  
+  // ملف Word المُصدّر
+  wordFileUrl         String?                 // رابط ملف Word المُحمّل
+  wordFileCloudinaryId String?                // معرف ملف Word في Cloudinary
+  
+  // العلاقات
+  questions           PaperExamQuestion[]     // الأسئلة في هذا النموذج
+  answerSheets        PaperAnswerSheet[]      // أوراق الإجابة المرتبطة بهذا النموذج
+  
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+  
+  @@unique([paperExamId, modelCode]) // رمز فريد لكل نموذج في كل اختبار
+  @@index([paperExamId])
+  @@map("paper_exam_models")
+}
+
+// الأسئلة في نموذج الاختبار
+model PaperExamQuestion {
+  id              Int               @id @default(autoincrement())
+  
+  // النموذج
+  modelId         Int
+  model           PaperExamModel    @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  
+  // السؤال من بنك الأسئلة
+  questionId      Int
+  question        Question          @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  // ترتيب السؤال في النموذج
+  orderInModel    Int               // ترتيب السؤال في هذا النموذج
+  
+  // الدرجة المخصصة
+  points          Float             @default(1)
+  
+  // ترتيب الخيارات (إذا تم الخلط)
+  optionsOrder    Json?             // ترتيب الخيارات [1,3,2,4] مثلاً
+  
+  createdAt       DateTime          @default(now())
+  
+  @@unique([modelId, questionId])
+  @@index([modelId])
+  @@index([questionId])
+  @@map("paper_exam_questions")
+}
+
+// ورقة الإجابة (لكل متدرب)
+model PaperAnswerSheet {
+  id                  String              @id @default(cuid())
+  
+  // الاختبار
+  paperExamId         Int
+  paperExam           PaperExam           @relation(fields: [paperExamId], references: [id], onDelete: Cascade)
+  
+  // النموذج المخصص
+  modelId             Int
+  model               PaperExamModel      @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  
+  // المتدرب
+  traineeId           Int
+  trainee             Trainee             @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // معرّف فريد لورقة الإجابة (للمسح الضوئي)
+  sheetCode           String              @unique // كود فريد (مثل: PE001-M001-T001)
+  qrCodeData          String              @db.Text // بيانات QR Code (نص طويل)
+  
+  // حالة الورقة
+  status              AnswerSheetStatus   @default(NOT_SUBMITTED)
+  
+  // معلومات التسليم
+  submittedAt         DateTime?           // تاريخ التسليم
+  submittedBy         String?             // من استلم الورقة
+  
+  // معلومات التصحيح
+  gradedAt            DateTime?           // تاريخ التصحيح
+  gradedBy            String?             // من صحح الورقة
+  
+  // النتيجة
+  score               Float?              // الدرجة المحصلة
+  totalPoints         Float?              // إجمالي الدرجات
+  percentage          Float?              // النسبة المئوية
+  passed              Boolean?            // نجح/رسب
+  
+  // معلومات المسح الضوئي
+  scannedImageUrl     String?             @db.LongText // رابط صورة الورقة الممسوحة (base64 أو URL)
+  scannedImageCloudinaryId String?        // معرف الصورة في Cloudinary
+  scannedAt           DateTime?           // تاريخ المسح
+  scannedBy           String?             // من قام بالمسح
+  
+  // بيانات التصحيح الآلي
+  ocrData             Json?               // بيانات OMR الممسوحة
+  autoGradingErrors   Json?               // أخطاء التصحيح الآلي
+  
+  // ملاحظات
+  notes               String?             @db.Text // ملاحظات عامة
+  
+  // العلاقات
+  answers             PaperAnswerSheetAnswer[] // الإجابات
+  batchResults        BatchGradingResult[]     // نتائج التصحيح المتعدد
+  
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  
+  @@unique([paperExamId, traineeId]) // ورقة واحدة لكل متدرب في كل اختبار
+  @@index([paperExamId])
+  @@index([modelId])
+  @@index([traineeId])
+  @@index([status])
+  @@index([sheetCode])
+  @@map("paper_answer_sheets")
+}
+
+// إجابات المتدرب على ورقة الإجابة
+model PaperAnswerSheetAnswer {
+  id              String              @id @default(cuid())
+  
+  // ورقة الإجابة
+  answerSheetId   String
+  answerSheet     PaperAnswerSheet    @relation(fields: [answerSheetId], references: [id], onDelete: Cascade)
+  
+  // السؤال
+  questionId      Int
+  question        Question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  // الإجابة المختارة (من الدوائر)
+  selectedOptionId Int?               // معرف الخيار المختار
+  
+  // التصحيح
+  isCorrect       Boolean?            // صحيح/خطأ
+  points          Float?              // النقاط المحصلة
+  
+  // معلومات OCR
+  bubbleDetected  Boolean             @default(false) // هل تم اكتشاف دائرة ممتلئة
+  confidence      Float?              // نسبة الثقة في القراءة (0-1)
+  
+  // التصحيح اليدوي
+  manualOverride  Boolean             @default(false) // هل تم التصحيح اليدوي
+  manualSelectedOptionId Int?         // الإجابة المصححة يدوياً
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  @@unique([answerSheetId, questionId])
+  @@index([answerSheetId])
+  @@index([questionId])
+  @@map("paper_answer_sheet_answers")
+}
+// ═══════════════════════════════════════════════════════════════
+// إدارة إعلان الدرجات للفصول الدراسية
+// ═══════════════════════════════════════════════════════════════
+
+model GradeReleaseSettings {
+  id                  String              @id @default(cuid())
+  
+  // البرنامج التدريبي
+  programId           Int
+  program             TrainingProgram     @relation(fields: [programId], references: [id], onDelete: Cascade)
+  
+  // الفصل الدراسي
+  semester            Semester
+  
+  // السنة الأكاديمية
+  academicYear        String              // مثال: "2024-2025"
+  
+  // حالة الإعلان
+  isReleased          Boolean             @default(false) // هل تم إعلان الدرجات
+  releasedAt          DateTime?           // تاريخ الإعلان
+  releasedBy          String?             // من قام بالإعلان
+  
+  // ربط بالرسوم (اختياري)
+  requirePayment      Boolean             @default(false) // هل يتطلب سداد رسم
+  linkedFeeType       String?             // نوع الرسم المطلوب (مثل: رسوم الفصل الدراسي)
+  
+  // ملاحظات
+  notes               String?             @db.Text
+  
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  
+  @@unique([programId, semester, academicYear]) // إعداد واحد لكل فصل في كل برنامج
+  @@index([programId])
+  @@index([semester])
+  @@index([isReleased])
+  @@map("grade_release_settings")
+}
+
+// عمليات التصحيح المتعدد (Batch Grading)
+model BatchGradingSession {
+  id              String                    @id @default(cuid())
+  
+  // الاختبار
+  paperExamId     Int
+  paperExam       PaperExam                 @relation(fields: [paperExamId], references: [id], onDelete: Cascade)
+  
+  // معلومات الملف
+  fileName        String                    // اسم ملف PDF
+  filePath        String?                   // مسار الملف على السيرفر
+  totalPages      Int                       // عدد الصفحات الكلي
+  
+  // الحالة
+  status          BatchGradingStatus        @default(PROCESSING)
+  currentIndex    Int                       @default(0) // الصفحة الحالية
+  
+  // الإحصائيات
+  completedCount      Int                       @default(0)
+  skippedCount        Int                       @default(0)
+  alreadyGradedCount  Int                       @default(0) // عدد المصححة سابقاً
+  failedCount         Int                       @default(0)
+  
+  // التوقيت
+  startTime       DateTime                  @default(now())
+  endTime         DateTime?
+  lastUpdate      DateTime                  @updatedAt
+  
+  // العلاقات
+  results         BatchGradingResult[]
+  skipped         BatchGradingSkipped[]
+  alreadyGraded   BatchGradingAlreadyGraded[]
+  failures        BatchGradingFailure[]
+  
+  createdBy       String                    // من بدأ العملية
+  
+  @@index([paperExamId])
+  @@index([status])
+  @@map("batch_grading_sessions")
+}
+
+// نتائج التصحيح الناجحة
+model BatchGradingResult {
+  id                  String              @id @default(cuid())
+  
+  // الجلسة
+  sessionId           String
+  session             BatchGradingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  // ورقة الإجابة
+  sheetId             String
+  sheet               PaperAnswerSheet    @relation(fields: [sheetId], references: [id], onDelete: Cascade)
+  
+  // معلومات الصفحة
+  pageNumber          Int                 // رقم الصفحة في PDF
+  
+  // معلومات الطالب
+  studentName         String
+  nationalId          String
+  
+  // النتيجة
+  score               Float
+  totalQuestions      Int
+  answeredQuestions   Int                 // الأسئلة المجابة
+  correctAnswers      Int
+  wrongAnswers        Int
+  
+  // تفاصيل الإجابات (JSON)
+  answersDetail       Json                // تفاصيل كل سؤال {questionNumber, answer, isCorrect}
+  
+  timestamp           DateTime            @default(now())
+  
+  @@index([sessionId])
+  @@index([sheetId])
+  @@map("batch_grading_results")
+}
+
+// الأوراق المتجاهلة
+model BatchGradingSkipped {
+  id          String              @id @default(cuid())
+  
+  // الجلسة
+  sessionId   String
+  session     BatchGradingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  pageNumber  Int                 // رقم الصفحة
+  reason      String              // سبب التجاهل
+  nationalId  String?             // الرقم القومي إن وجد
+  
+  timestamp   DateTime            @default(now())
+  
+  @@index([sessionId])
+  @@map("batch_grading_skipped")
+}
+
+// الأوراق المصححة سابقاً
+model BatchGradingAlreadyGraded {
+  id          String              @id @default(cuid())
+  
+  // الجلسة
+  sessionId   String
+  session     BatchGradingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  // معلومات الورقة
+  pageNumber  Int                 // رقم الصفحة
+  nationalId  String              // الرقم القومي
+  studentName String              // اسم الطالب
+  previousScore Float?            // الدرجة السابقة
+  
+  timestamp   DateTime            @default(now())
+  
+  @@index([sessionId])
+  @@map("batch_grading_already_graded")
+}
+
+// حالات الفشل
+model BatchGradingFailure {
+  id          String              @id @default(cuid())
+  
+  // الجلسة
+  sessionId   String
+  session     BatchGradingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  pageNumber  Int                 // رقم الصفحة
+  error       String              @db.Text // رسالة الخطأ
+  nationalId  String?             // الرقم القومي إن وجد
+  
+  timestamp   DateTime            @default(now())
+  
+  @@index([sessionId])
+  @@map("batch_grading_failures")
+}
+
+enum BatchGradingStatus {
+  PROCESSING
+  PAUSED
+  COMPLETED
+  FAILED
+}
+
+// ===================================
+// نظام الشكاوي والاقتراحات
+// ===================================
+
+enum ComplaintType {
+  COMPLAINT   // شكوى
+  SUGGESTION  // اقتراح
+}
+
+enum ComplaintStatus {
+  PENDING     // قيد المراجعة
+  IN_PROGRESS // جاري المعالجة
+  RESOLVED    // تم الحل
+  CLOSED      // مغلق
+}
+
+model ComplaintSuggestion {
+  id              String            @id @default(cuid())
+  
+  // المتدرب
+  traineeId       Int
+  trainee         Trainee           @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // نوع الطلب
+  type            ComplaintType
+  
+  // العنوان والتفاصيل
+  subject         String            // عنوان الشكوى/الاقتراح
+  description     String            @db.Text // التفاصيل
+  
+  // مرفق (صورة)
+  attachmentUrl   String?           // رابط الصورة
+  attachmentCloudinaryId String?    // معرف الصورة في Cloudinary
+  
+  // الحالة
+  status          ComplaintStatus   @default(PENDING)
+  
+  // رد الإدارة
+  reviewedBy      String?           // من راجع الطلب (User ID)
+  reviewer        User?             @relation(fields: [reviewedBy], references: [id])
+  reviewedAt      DateTime?         // تاريخ المراجعة
+  adminResponse   String?           @db.Text // رد الإدارة
+  
+  // التواريخ
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@index([traineeId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("complaints_suggestions")
+}
+
+// ==================== نظام تظلمات الدرجات ====================
+
+enum GradeAppealStatus {
+  PENDING     // قيد المراجعة
+  ACCEPTED    // مقبول
+  REJECTED    // مرفوض
+}
+
+model GradeAppeal {
+  id              String             @id @default(cuid())
+  
+  // المتدرب
+  traineeId       Int
+  trainee         Trainee            @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // الحالة
+  status          GradeAppealStatus  @default(PENDING)
+  
+  // ملاحظات المتدرب
+  traineeNotes    String?            @db.Text
+  
+  // رد الإدارة
+  reviewedBy      String?
+  reviewer        User?              @relation("GradeAppealReviewer", fields: [reviewedBy], references: [id])
+  reviewedAt      DateTime?
+  adminResponse   String?            @db.Text
+  
+  // التواريخ
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  
+  // المواد المتظلم منها
+  subjects        GradeAppealSubject[]
+  
+  @@index([traineeId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("grade_appeals")
+}
+
+model GradeAppealSubject {
+  id              String        @id @default(cuid())
+  
+  appealId        String
+  appeal          GradeAppeal   @relation(fields: [appealId], references: [id], onDelete: Cascade)
+  
+  // المادة
+  contentId       Int
+  content         TrainingContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  
+  // الدرجة الحالية وقت التظلم
+  currentScore    Float
+  maxScore        Float
+  percentage      Float
+
+  // حالة المراجعة لكل مادة على حدة
+  status          GradeAppealStatus @default(PENDING)
+
+  // بيانات آخر إعادة مراجعة (تصحيح)
+  lastReviewedAt  DateTime?     // تاريخ آخر إعادة مراجعة
+  lastReviewedBy  String?       // معرف المراجع
+  lastReviewNote  String?       @db.Text // ملاحظة آخر مراجعة
+  
+  @@index([appealId])
+  @@index([contentId])
+  @@map("grade_appeal_subjects")
+}
+
+// إعدادات رسوم التظلمات لكل برنامج
+model GradeAppealFeeConfig {
+  id              String          @id @default(cuid())
+  programId       Int             @unique
+  program         TrainingProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  feeId           Int
+  fee             TraineeFee      @relation(fields: [feeId], references: [id], onDelete: Cascade)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@map("grade_appeal_fee_configs")
+}
+
+// ==================== نظام الاستبيانات ==
+
+model Survey {
+  id          String   @id @default(cuid())
+  title       String   // عنوان الاستبيان
+  description String?  @db.Text // وصف الاستبيان
+  isActive    Boolean  @default(true) // هل الاستبيان فعّال
+  allPrograms Boolean  @default(false) // لجميع البرامج التدريبية
+  startDate   DateTime // تاريخ بداية الاستبيان
+  endDate     DateTime // تاريخ نهاية الاستبيان
+  
+  // العلاقة مع المنشئ
+  createdById String  // من أنشأ الاستبيان (User ID)
+  createdBy   User    @relation("SurveyCreator", fields: [createdById], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // العلاقات
+  questions  SurveyQuestion[] // أسئلة الاستبيان
+  programs   SurveyProgram[]  // البرامج المستهدفة
+  responses  SurveyResponse[] // إجابات المتدربين
+  
+  @@index([isActive])
+  @@index([startDate])
+  @@index([endDate])
+  @@map("surveys")
+}
+
+model SurveyProgram {
+  id        String          @id @default(cuid())
+  surveyId  String
+  survey    Survey          @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  programId Int
+  program   TrainingProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  
+  @@unique([surveyId, programId])
+  @@map("survey_programs")
+}
+
+model SurveyQuestion {
+  id        String   @id @default(cuid())
+  surveyId  String
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  text      String   @db.Text // نص السؤال
+  sortOrder Int      @default(0) // ترتيب السؤال
+  
+  // العلاقات
+  options SurveyQuestionOption[] // خيارات الإجابة
+  answers SurveyAnswer[]         // إجابات المتدربين على هذا السؤال
+  
+  @@index([surveyId])
+  @@map("survey_questions")
+}
+
+model SurveyQuestionOption {
+  id         String         @id @default(cuid())
+  questionId String
+  question   SurveyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text       String         // نص الخيار
+  sortOrder  Int            @default(0) // ترتيب الخيار
+  
+  // العلاقات
+  answers SurveyAnswer[] // الإجابات التي اختارت هذا الخيار
+  
+  @@index([questionId])
+  @@map("survey_question_options")
+}
+
+model SurveyResponse {
+  id        String   @id @default(cuid())
+  surveyId  String
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  traineeId Int
+  trainee   Trainee  @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  // العلاقات
+  answers SurveyAnswer[] // إجابات المتدرب
+  
+  @@unique([surveyId, traineeId]) // كل متدرب يجيب مرة واحدة فقط
+  @@index([surveyId])
+  @@index([traineeId])
+  @@map("survey_responses")
+}
+
+model SurveyAnswer {
+  id         String              @id @default(cuid())
+  responseId String
+  response   SurveyResponse      @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  questionId String
+  question   SurveyQuestion      @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  optionId   String
+  option     SurveyQuestionOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  
+  @@unique([responseId, questionId]) // إجابة واحدة لكل سؤال
+  @@index([responseId])
+  @@index([questionId])
+  @@map("survey_answers")
+}
+
+// ==================== نظام النسخ الاحتياطي ====================
+
+model BackupLog {
+  id        Int      @id @default(autoincrement())
+  filename  String
+  size      BigInt   @default(0)
+  status    String   @default("in_progress") // completed, failed, in_progress
+  type      String   @default("full") // full, schema_only, data_only
+  createdBy String
+  user      User     @relation("UserBackups", fields: [createdBy], references: [id], onDelete: Cascade)
+  notes     String?  @db.Text
+  error     String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([createdBy])
+  @@index([createdAt])
+  @@map("backup_logs")
+}
+
+model BackupSettings {
+  id              Int      @id @default(autoincrement())
+  autoBackup      Boolean  @default(false)
+  frequency       String   @default("daily") // daily, weekly, monthly
+  maxBackups      Int      @default(7)
+  lastBackupAt    DateTime?
+  nextBackupAt    DateTime?
+  updatedBy       Int?
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+
+  @@map("backup_settings")
+}
+
+// ==================== قيود الدور الثاني ====================
+
+// تتبع تطبيق القيود المالية على طلاب الدور الثاني
+model SecondRoundFeeApplication {
+  id          Int      @id @default(autoincrement())
+  
+  // المتدرب
+  traineeId   Int
+  trainee     Trainee  @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  
+  // المادة الراسب فيها
+  contentId   Int      // TrainingContent id
+  
+  // القيد المالي المطبق
+  feeId       Int
+  fee         TraineeFee @relation(fields: [feeId], references: [id])
+  
+  // معلومات التطبيق
+  amount      Float    // المبلغ المطبق
+  appliedById String
+  appliedBy   User     @relation("SecondRoundFeeAppliedBy", fields: [appliedById], references: [id])
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([traineeId, contentId, feeId]) // منع التكرار: قيد واحد لكل مادة لكل متدرب
+  @@index([traineeId])
+  @@index([feeId])
+  @@index([contentId])
+  @@map("second_round_fee_applications")
+}
+
+// ════════════════════════════════════════════
+// نظام حضور وغياب الموظفين (Staff Attendance)
+// ════════════════════════════════════════════
+
+enum StaffAttendanceStatus {
+  PRESENT           // حاضر
+  ABSENT_UNEXCUSED  // غائب بدون إذن
+  ABSENT_EXCUSED    // غائب بإذن (قديم - للتوافق)
+  LEAVE             // إذن
+  DAY_OFF           // يوم عطلة
+  HOLIDAY           // إجازة رسمية
+}
+
+enum StaffLeaveType {
+  PERSONAL    // شخصي
+  SICK        // مرضي
+  EMERGENCY   // طارئ
+  ANNUAL      // سنوي
+  OTHER       // أخرى
+}
+
+enum StaffLeaveStatus {
+  PENDING     // قيد المراجعة
+  APPROVED    // موافق عليه
+  REJECTED    // مرفوض
+}
+
+model StaffAttendanceSettings {
+  id                    String    @id @default(cuid())
+  workHoursPerDay       Float     @default(8)
+  workStartTime         String    @default("09:00")
+  workEndTime           String    @default("17:00")
+  lateThresholdMinutes  Int       @default(15)
+  earlyLeaveThreshold   Int       @default(30)
+  weeklyOffDays         Json      @default("[\"FRIDAY\"]")
+  timezone              String    @default("Africa/Cairo")
+  requireLocation       Boolean   @default(false)
+  requireCheckInLocation  Boolean @default(false)
+  requireCheckOutLocation Boolean @default(false)
+  locationLatitude      Float?    
+  locationLongitude     Float?    
+  locationRadius        Int       @default(200)
+  isActive              Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("staff_attendance_settings")
+}
+
+model StaffAttendanceZone {
+  id          String    @id @default(cuid())
+  name        String
+  latitude    Float
+  longitude   Float
+  radius      Int       @default(200)
+  isActive    Boolean   @default(true)
+  isGlobal    Boolean   @default(true)  // عام للجميع أم مخصص
+  color       String    @default("#6366F1")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  enrollments StaffEnrollmentZone[]
+
+  @@map("staff_attendance_zones")
+}
+
+// جدول الربط: مناطق مخصصة لموظفين محددين
+model StaffEnrollmentZone {
+  id           String                    @id @default(cuid())
+  enrollmentId String
+  enrollment   StaffAttendanceEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  zoneId       String
+  zone         StaffAttendanceZone       @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  createdAt    DateTime                  @default(now())
+
+  @@unique([enrollmentId, zoneId])
+  @@index([enrollmentId])
+  @@index([zoneId])
+  @@map("staff_enrollment_zones")
+}
+
+model StaffAttendanceEnrollment {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  user        User      @relation("StaffAttendanceEnrollment", fields: [userId], references: [id], onDelete: Cascade)
+  isActive    Boolean   @default(true)
+  enrolledBy  String
+  enrolledByUser User   @relation("StaffAttendanceEnroller", fields: [enrolledBy], references: [id])
+  notes       String?   @db.Text
+
+  // جدول مخصص: أيام العمل وساعات العمل لكل موظف (null = يستخدم الإعدادات العامة)
+  customWorkDays                    Json?     // مثال: ["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY"]
+  customWorkStartTime               String?   // مثال: "09:00"
+  customWorkEndTime                 String?   // مثال: "17:00"
+  customWorkHoursPerDay             Float?    // مثال: 8
+  customLateThresholdMinutes        Int?      // مثال: 15
+  customEarlyLeaveThresholdMinutes  Int?      // مثال: 30
+  customDaySchedules                Json?     // جدول مخصص لكل يوم: { "Sunday": { "start": "09:00", "end": "17:00" }, ... }
+
+  // هل يُسمح للموظف بتسجيل الحضور من النقاط العامة أيضاً؟
+  allowGlobalZones                  Boolean   @default(true)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  zones       StaffEnrollmentZone[]
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("staff_attendance_enrollments")
+}
+
+model StaffAttendanceLog {
+  id              String                  @id @default(cuid())
+  userId          String
+  user            User                    @relation("StaffAttendanceLogs", fields: [userId], references: [id], onDelete: Cascade)
+  date            DateTime                @db.Date
+  status          StaffAttendanceStatus   @default(PRESENT)
+  checkInTime     DateTime?
+  checkOutTime    DateTime?
+  workedMinutes   Int?
+  requiredMinutes Int?
+  overtimeMinutes Int?                    @default(0)
+  checkInLatitude   Float?
+  checkInLongitude  Float?
+  checkInAddress    String?               @db.Text
+  checkInZoneName   String?
+  checkOutLatitude  Float?
+  checkOutLongitude Float?
+  checkOutAddress   String?               @db.Text
+  isLate          Boolean               @default(false)
+  isEarlyLeave    Boolean               @default(false)
+  notes           String?               @db.Text
+  recordedBy      String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+  @@index([status])
+  @@map("staff_attendance_logs")
+}
+
+model StaffLeaveRequest {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation("StaffLeaveRequests", fields: [userId], references: [id], onDelete: Cascade)
+  startDate       DateTime  @db.Date
+  endDate         DateTime  @db.Date
+  reason          String    @db.Text
+  leaveType       StaffLeaveType @default(PERSONAL)
+  status          StaffLeaveStatus @default(PENDING)
+  reviewedBy      String?
+  reviewedByUser  User?     @relation("StaffLeaveReviewer", fields: [reviewedBy], references: [id])
+  reviewedAt      DateTime?
+  reviewNotes     String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@map("staff_leave_requests")
+}
+
+model StaffHoliday {
+  id          String    @id @default(cuid())
+  name        String
+  date        DateTime  @db.Date
+  endDate     DateTime? @db.Date
+  isRecurring Boolean   @default(false)
+  notes       String?   @db.Text
+  createdBy   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([date])
+  @@map("staff_holidays")
+}

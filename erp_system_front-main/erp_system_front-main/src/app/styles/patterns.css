@@ -1,0 +1,48 @@
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-news-gradient {
+  background: linear-gradient(to bottom,
+    rgba(10, 38, 71, 1) 0%,
+    rgba(18, 18, 18, 1) 100%
+  );
+}
+
+.bg-glow {
+  position: relative;
+}
+
+.bg-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(211, 84, 0, 0.15),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.image-glow {
+  position: relative;
+}
+
+.image-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    90deg,
+    rgba(211, 84, 0, 0.1),
+    transparent 20%,
+    transparent 80%,
+    rgba(211, 84, 0, 0.1)
+  );
+  pointer-events: none;
+}

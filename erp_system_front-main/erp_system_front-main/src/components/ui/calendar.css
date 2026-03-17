@@ -1,0 +1,28 @@
+/* React Day Picker v9 - shadcn Emerald Theme */
+.rdp-root {
+  --rdp-accent-color: #059669;
+  --rdp-accent-background-color: #ecfdf5;
+}
+
+/* Hide default RDP chevron SVG when using custom Lucide icons */
+.rdp-root .rdp-chevron {
+  display: none;
+}
+
+/* Month grid spacing */
+.rdp-root .rdp-month_grid {
+  border-collapse: separate;
+  border-spacing: 2px;
+}
+
+/* Focus ring */
+.rdp-root .rdp-day_button:focus-visible {
+  outline: 2px solid #059669;
+  outline-offset: -2px;
+  border-radius: 0.5rem;
+}
+
+/* Smooth transitions */
+.rdp-root .rdp-day_button {
+  transition: all 150ms ease;
+}

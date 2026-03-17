@@ -1,0 +1,17 @@
+{
+  "phases": {
+    "setup": {
+      "nixPkgs": ["nodejs_20", "npm-9_x"],
+      "aptPkgs": ["bash", "coreutils", "curl"]
+    },
+    "install": {
+      "cmds": ["npm ci --legacy-peer-deps"]
+    },
+    "build": {
+      "cmds": ["npm run build"]
+    }
+  },
+  "start": {
+    "cmd": "npm start"
+  }
+}

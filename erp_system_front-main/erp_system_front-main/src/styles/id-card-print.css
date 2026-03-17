@@ -1,0 +1,257 @@
+/* تحسينات خاصة بطباعة الكارنيهات */
+
+/* ضمان أن الصور تحترم الأحجام المحددة عند الطباعة */
+@media print {
+  .id-card-image.trainee-photo {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    object-fit: fill !important;
+    object-position: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    display: block !important;
+    /* ضمان ظهور الحدود في الطباعة */
+    border-color: inherit !important;
+    border-width: inherit !important;
+    border-style: inherit !important;
+    box-sizing: border-box !important;
+  }
+
+  .id-card-image.logo-image {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    object-fit: fill !important;
+    object-position: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    display: block !important;
+    /* ضمان ظهور الحدود في الطباعة */
+    border-color: inherit !important;
+    border-width: inherit !important;
+    border-style: inherit !important;
+    box-sizing: border-box !important;
+  }
+
+  .id-card-image.qr-code {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    object-fit: contain !important; /* المحافظة على contain للQR Code */
+    object-position: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    display: block !important;
+  }
+  /* ضمان أن حاويات الصور لا تتوسع أو تنكمش */
+  .id-card-image-container {
+    overflow: hidden !important;
+    display: block !important;
+    box-sizing: border-box !important;
+  }
+
+  /* إزالة أي تأثيرات قد تؤثر على الطباعة - إلا border-radius للأشكال */
+  .id-card-element {
+    box-shadow: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  
+  /* الحفاظ على border-radius للصور فقط */
+  .id-card-element:not(.id-card-image) {
+    border-radius: 0 !important;
+  }
+
+  /* ضمان دقة الألوان والخلفيات */
+  .id-card-preview {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* تحسينات لجميع الوضعيات */
+.id-card-optimized-image {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+/* ضمان تطبيق الأشكال في جميع الحالات */
+.image-shape-circle {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+}
+
+.image-shape-rounded {
+  overflow: hidden !important;
+  border-radius: inherit !important;
+}
+
+.image-shape-square {
+  border-radius: 0 !important;
+}
+
+/* قواعد عامة للحاويات */
+div[style*="border-radius"] {
+  overflow: hidden !important;
+}
+
+div[style*="border-radius: 50%"] {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+}
+
+/* تأكد من أن الصور لا تتشوه */
+.maintain-aspect-ratio {
+  object-fit: fill;
+  object-position: center;
+}
+
+/* فئة مساعدة لضمان الملء الكامل */
+.fill-container {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: fill !important;
+  object-position: center !important;
+}
+
+/* إزالة أي مساحات إضافية حول الصور */
+.no-spacing {
+  margin: 0 !important;
+  padding: 0 !important;
+  outline: none !important;
+  /* لا نلغي الحدود هنا لأنها قد تكون مطلوبة */
+}
+
+/* ضمان ظهور الحدود في جميع الحالات */
+.id-card-image-with-border {
+  border: inherit !important;
+  box-sizing: border-box !important;
+}
+
+/* تحسينات خاصة بالحدود */
+@media screen, print {
+  .id-card-image.trainee-photo[style*="border"],
+  .id-card-image.logo-image[style*="border"] {
+    border: inherit !important;
+    box-sizing: border-box !important;
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* دعم أشكال الصور في الطباعة */
+@media screen, print {
+  .id-card-image.trainee-photo,
+  .id-card-image.logo-image {
+    /* الحفاظ على border-radius للأشكال */
+    border-radius: inherit !important;
+    overflow: hidden !important;
+  }
+  
+  /* أشكال خاصة للصور */
+  .id-card-image.image-shape-circle {
+    border-radius: 50% !important;
+    overflow: hidden !important;
+  }
+  
+  .id-card-image.image-shape-rounded {
+    border-radius: inherit !important;
+    overflow: hidden !important;
+  }
+  
+  .id-card-image.image-shape-square {
+    border-radius: 0 !important;
+  }
+  
+  /* ضمان أن الحاويات تحترم الأشكال */
+  .id-card-image-container {
+    border-radius: inherit !important;
+    overflow: hidden !important;
+  }
+  
+  /* إصلاح خاص للحواف الناعمة */
+  div[style*="border-radius"] {
+    border-radius: inherit !important;
+    overflow: hidden !important;
+  }
+  
+  /* ضمان تطبيق الأشكال على الحاويات */
+  div[style*="border-radius: 50%"] {
+    border-radius: 50% !important;
+    overflow: hidden !important;
+  }
+  
+  div[style*="border-radius: 0"] {
+    border-radius: 0 !important;
+  }
+  
+  /* إصلاح خاص للصور داخل الحاويات */
+  div[style*="border-radius"] img {
+    border-radius: inherit !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  
+  /* قواعد أكثر تحديداً للحواف الناعمة */
+  div[style*="border-radius: 10px"] {
+    border-radius: 10px !important;
+    overflow: hidden !important;
+  }
+  
+  div[style*="border-radius: 15px"] {
+    border-radius: 15px !important;
+    overflow: hidden !important;
+  }
+  
+  div[style*="border-radius: 20px"] {
+    border-radius: 20px !important;
+    overflow: hidden !important;
+  }
+  
+  div[style*="border-radius: 25px"] {
+    border-radius: 25px !important;
+    overflow: hidden !important;
+  }
+  
+  div[style*="border-radius: 30px"] {
+    border-radius: 30px !important;
+    overflow: hidden !important;
+  }
+  
+  div[style*="border-radius: 35px"] {
+    border-radius: 35px !important;
+    overflow: hidden !important;
+  }
+  
+  div[style*="border-radius: 40px"] {
+    border-radius: 40px !important;
+    overflow: hidden !important;
+  }
+  
+  div[style*="border-radius: 45px"] {
+    border-radius: 45px !important;
+    overflow: hidden !important;
+  }
+  
+  div[style*="border-radius: 50px"] {
+    border-radius: 50px !important;
+    overflow: hidden !important;
+  }
+  
+  /* إجبار تطبيق الشكل */
+  .id-card-preview div[style*="border-radius"] {
+    border-radius: inherit !important;
+    overflow: hidden !important;
+  }
+}

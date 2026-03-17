@@ -1,0 +1,16 @@
+[phases.setup]
+nixPkgs = ["nodejs_20", "npm-9_x"]
+aptPkgs = ["bash", "coreutils"]
+onlyIncludeFiles = ["package.json", "package-lock.json", "src", "public", "next.config.js", "next.config.ts", "tsconfig.json", "tailwind.config.js", "tailwind.config.ts", "postcss.config.mjs", "components.json"]
+
+[phases.install]
+cmds = ["npm ci --legacy-peer-deps"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"
+
+[staticAssets]
+cacheControl = "public, max-age=31536000, immutable"

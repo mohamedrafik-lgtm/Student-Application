@@ -1,0 +1,15 @@
+# تجاهل جميع الملفات المرفوعة
+*
+
+# السماح بالمجلدات الفرعية
+!lectures/
+!trainees/
+!logos/
+!idcards/
+!news/
+!documents/
+
+# السماح بملفات .gitignore
+!.gitignore
+!**/.gitignore
+
