@@ -38,6 +38,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigateToRegisterAttendance, onNavigateToAcademicResults,
 }) => {
   const [studentPhotoUrl, setStudentPhotoUrl] = useState<string | undefined>(userInfo?.photoUrl);
+  const [programName, setProgramName] = useState<string>('');
+  const [financialSummary, setFinancialSummary] = useState({ totalAmount: 0, paidAmount: 0, remainingAmount: 0 });
   const [gradeAppeals, setGradeAppeals] = useState<GradeAppeal[]>([]);
   const [accessCheck, setAccessCheck] = useState<AccessCheckResponse | null>(null);
   const [attendanceSummary, setAttendanceSummary] = useState<AttendanceSummary | null>(null);
@@ -56,7 +58,37 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
       const profile = await AuthService.getProfile(userInfo.accessToken);
       if (profile?.trainee?.photoUrl) setStudentPhotoUrl(profile.trainee.photoUrl);
       const trainee = profile?.trainee;
-      if (trainee && Array.isArray(trainee.documents)) setDocuments(trainee.documents);
+      if (trainee) {
+        if (Array.isArray(trainee.documents)) {
+          setDocuments(trainee.documents);
+        }
+
+        if (trainee.program?.nameAr) {
+          setProgramName(trainee.program.nameAr);
+        }
+
+        if (Array.isArray(trainee.traineePayments)) {
+          const totalAmount = trainee.traineePayments.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0);
+          const paidAmount = trainee.traineePayments.reduce((sum, payment) => {
+            const normalizedStatus = String(payment.status || '').toUpperCase();
+            const amount = Number(payment.amount) || 0;
+            const explicitPaid = Number(payment.paidAmount) || 0;
+
+            if (explicitPaid > 0) {
+              return sum + explicitPaid;
+            }
+
+            if (normalizedStatus === 'COMPLETED' || normalizedStatus === 'PAID') {
+              return sum + amount;
+            }
+
+            return sum;
+          }, 0);
+
+          const remainingAmount = Math.max(totalAmount - paidAmount, 0);
+          setFinancialSummary({ totalAmount, paidAmount, remainingAmount });
+        }
+      }
     } catch (err) { console.log('Could not load profile photo', err); }
     finally { setLoadingDocs(false); }
   }, [userInfo?.accessToken]);
@@ -109,6 +141,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           <HomeHeader
             nameAr={userInfo?.nameAr}
             photoUrl={studentPhotoUrl}
+            programName={programName}
             onProfilePress={onNavigateToProfile}
           />
         </Animated.View>
@@ -126,6 +159,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             loadingAccess={loadingAccess}
             documents={documents}
             loadingDocs={loadingDocs}
+            financialSummary={financialSummary}
             onAttendance={onNavigateToAttendance}
             onPayments={onNavigateToPayments}
             onDocuments={onNavigateToDocuments}
@@ -145,11 +179,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
         <QuickActions
           onSchedule={onNavigateToSchedule}
-          onExams={onNavigateToExams}
-          onGrades={onNavigateToGrades}
           onRequests={onNavigateToStudentRequests}
           onContents={onNavigateToTrainingContents}
           onProfile={onNavigateToProfile}
+          onPayments={onNavigateToPayments}
+          onDocuments={onNavigateToDocuments}
         />
 
         <View style={{ height: 40 }} />

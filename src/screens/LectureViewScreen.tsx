@@ -74,8 +74,6 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
   const [activeViewer, setActiveViewer] = useState<'none' | 'video' | 'pdf'>('none');
   const [videoLoadError, setVideoLoadError] = useState<string | null>(null);
   const [pdfLoadError, setPdfLoadError] = useState<string | null>(null);
-  const [videoViewerUrl, setVideoViewerUrl] = useState('');
-  const [hasTriedVideoFallback, setHasTriedVideoFallback] = useState(false);
 
   useEffect(() => {
     Animated.parallel([
@@ -137,16 +135,8 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
       return '';
     }
 
-    // Use no-cookie embed URL with autoplay disabled for better WebView compatibility.
-    return `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&controls=1&autoplay=0`;
-  };
-
-  const getYouTubeWatchInAppUrl = (url: string): string => {
-    const videoId = extractYouTubeVideoId(url);
-    if (!videoId) {
-      return '';
-    }
-    return `https://m.youtube.com/watch?v=${videoId}`;
+    // Keep playback inside a clean embedded player only.
+    return `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&controls=1&autoplay=0&fs=1`;
   };
 
   const normalizeExternalUrl = (rawUrl: string): string => {
@@ -172,12 +162,47 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
   };
 
   const getYouTubeExternalUrl = (url: string): string => {
-    const watchUrl = getYouTubeWatchInAppUrl(url);
-    if (watchUrl) {
-      return watchUrl;
+    const videoId = extractYouTubeVideoId(url);
+    if (videoId) {
+      return `https://youtu.be/${videoId}`;
     }
     return normalizeExternalUrl(url);
   };
+
+  const getYouTubeEmbedHtml = (embedUrl: string): string => `
+    <!doctype html>
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+        <style>
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+          }
+          .player {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+          }
+        </style>
+      </head>
+      <body>
+        <iframe
+          class="player"
+          src="${embedUrl}"
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allowfullscreen
+          frameborder="0"
+        ></iframe>
+      </body>
+    </html>
+  `;
 
   const getPdfUrl = (pdfFile: string): string => {
     if (pdfFile.startsWith('http')) {
@@ -205,13 +230,7 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
   const pdfUrl = lectureDetails?.pdfFile ? getPdfUrl(lectureDetails.pdfFile) : '';
   const pdfInAppUrl = pdfUrl ? getPdfInAppUrl(pdfUrl) : '';
   const youtubeInAppUrl = lectureDetails?.youtubeUrl ? getYouTubeInAppUrl(lectureDetails.youtubeUrl) : '';
-  const youtubeWatchInAppUrl = lectureDetails?.youtubeUrl ? getYouTubeWatchInAppUrl(lectureDetails.youtubeUrl) : '';
   const youtubeExternalUrl = lectureDetails?.youtubeUrl ? getYouTubeExternalUrl(lectureDetails.youtubeUrl) : '';
-
-  useEffect(() => {
-    setVideoViewerUrl(youtubeInAppUrl);
-    setHasTriedVideoFallback(false);
-  }, [youtubeInAppUrl]);
 
   const openExternalUrl = async (url: string, typeLabel: string) => {
     const resolvedUrl = normalizeExternalUrl(url);
@@ -297,7 +316,7 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
 
         {SafeWebView && youtubeInAppUrl ? (
           <SafeWebView
-            source={{ uri: videoViewerUrl || youtubeInAppUrl }}
+            source={{ html: getYouTubeEmbedHtml(youtubeInAppUrl), baseUrl: 'https://www.youtube-nocookie.com' }}
             style={s.videoWebView}
             javaScriptEnabled
             domStorageEnabled
@@ -305,42 +324,29 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
             allowsInlineMediaPlayback
             mediaPlaybackRequiresUserAction={false}
             setSupportMultipleWindows={false}
-            originWhitelist={["https://*", "http://*"]}
+            originWhitelist={['*']}
             startInLoadingState
             onShouldStartLoadWithRequest={(request: any) => {
               const url = request?.url || '';
+              if (
+                url.startsWith('about:blank') ||
+                url.startsWith('data:') ||
+                url.includes('youtube-nocookie.com/embed/') ||
+                url.includes('youtube.com/embed/')
+              ) {
+                return true;
+              }
               if (url.startsWith('intent:') || url.startsWith('vnd.youtube')) {
                 return false;
               }
-              return true;
+              openExternalUrl(url, 'الفيديو');
+              return false;
             }}
             onHttpError={() => {
               setVideoLoadError('تعذر تحميل الفيديو داخل التطبيق.');
             }}
             onError={() => {
               setVideoLoadError('حدث خطأ أثناء تحميل الفيديو داخل التطبيق.');
-            }}
-            injectedJavaScript={`
-              (function () {
-                try {
-                  var t = (document && document.body && document.body.innerText) ? document.body.innerText : '';
-                  if (t && t.indexOf('Error 153') !== -1) {
-                    window.ReactNativeWebView && window.ReactNativeWebView.postMessage('YT_ERROR_153');
-                  }
-                } catch (e) {}
-                true;
-              })();
-            `}
-            onMessage={(event: any) => {
-              if (event?.nativeEvent?.data === 'YT_ERROR_153') {
-                if (!hasTriedVideoFallback && youtubeWatchInAppUrl) {
-                  setHasTriedVideoFallback(true);
-                  setVideoLoadError('تم التحويل تلقائيا لصيغة تشغيل بديلة داخل التطبيق...');
-                  setVideoViewerUrl(youtubeWatchInAppUrl);
-                } else {
-                  setVideoLoadError('يوتيوب رفض العرض داخل العارض الحالي (Error 153).');
-                }
-              }
             }}
             onRenderProcessGone={() => {
               setVideoLoadError('تم إيقاف عارض الفيديو تلقائياً بسبب ضغط الذاكرة.');
@@ -507,8 +513,6 @@ const LectureViewScreen: React.FC<LectureViewScreenProps> = ({
                     onPress={() => {
                       setVideoLoadError(null);
                       if (VIDEO_EMBEDDED_VIEWER_ENABLED) {
-                        setVideoViewerUrl(youtubeInAppUrl);
-                        setHasTriedVideoFallback(false);
                         setActiveViewer('video');
                       } else {
                         openInAppOrExternalUrl(youtubeExternalUrl, 'الفيديو');

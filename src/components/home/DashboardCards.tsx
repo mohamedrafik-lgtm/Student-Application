@@ -16,10 +16,17 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   [DocumentType.OTHER]: 'أخرى',
 };
 const REQUIRED_DOC_TYPES = [
-  DocumentType.NATIONAL_ID, DocumentType.BIRTH_CERTIFICATE,
-  DocumentType.QUALIFICATION_CERTIFICATE, DocumentType.MILITARY_SERVICE,
-  DocumentType.MEDICAL_CERTIFICATE, DocumentType.PHOTOS,
+  DocumentType.PHOTOS,
+  DocumentType.NATIONAL_ID,
+  DocumentType.QUALIFICATION_CERTIFICATE,
+  DocumentType.BIRTH_CERTIFICATE,
 ];
+
+interface FinancialSummary {
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+}
 
 interface Props {
   attendanceSummary: AttendanceSummary | null;
@@ -27,6 +34,7 @@ interface Props {
   loadingAccess: boolean;
   documents: TraineeDocument[];
   loadingDocs: boolean;
+  financialSummary: FinancialSummary;
   onAttendance?: () => void;
   onPayments?: () => void;
   onDocuments?: () => void;
@@ -36,6 +44,7 @@ interface Props {
 const DashboardCards: React.FC<Props> = ({
   attendanceSummary, loadingAttendance, loadingAccess,
   documents, loadingDocs,
+  financialSummary,
   onAttendance, onPayments, onDocuments, onRegisterAttendance,
 }) => (
   <View style={s.section}>
@@ -79,13 +88,13 @@ const DashboardCards: React.FC<Props> = ({
           <ActivityIndicator size="small" color={Colors.primary} style={{ marginTop: 12 }} />
         ) : (
           <View style={{ paddingVertical: 4 }}>
-            <View style={s.finRow}><Text style={s.finLabel}>الإجمالي</Text><Text style={s.finAmount}>8000 ج.م</Text></View>
+            <View style={s.finRow}><Text style={s.finLabel}>المدفوع</Text><Text style={s.finAmount}>{financialSummary.paidAmount} ج.م</Text></View>
             <View style={s.finDivider} />
             <View style={s.finRow}>
-              <View style={[s.statusPill, { backgroundColor: Colors.successLight }]}>
-                <Text style={[s.statusPillText, { color: Colors.success }]}>المتبقي</Text>
+              <View style={[s.statusPill, { backgroundColor: financialSummary.remainingAmount === 0 ? Colors.successLight : Colors.warningLight }]}>
+                <Text style={[s.statusPillText, { color: financialSummary.remainingAmount === 0 ? Colors.success : Colors.warning }]}>المتبقي</Text>
               </View>
-              <Text style={[s.finAmount, { color: Colors.error }]}>4400 ج.م</Text>
+              <Text style={[s.finAmount, { color: financialSummary.remainingAmount === 0 ? Colors.success : Colors.error }]}>{financialSummary.remainingAmount} ج.م</Text>
             </View>
           </View>
         )}
@@ -106,13 +115,22 @@ const DashboardCards: React.FC<Props> = ({
           <ActivityIndicator size="small" color={Colors.info} style={{ marginTop: 10 }} />
         ) : (
           <View style={{ paddingVertical: 4 }}>
+            {(() => {
+              const uploadedRequired = REQUIRED_DOC_TYPES.filter(docType =>
+                documents.some(d => d.documentType === docType)
+              ).length;
+              const completionPercent = Math.min(Math.round((uploadedRequired / REQUIRED_DOC_TYPES.length) * 100), 100);
+              const docsReady = uploadedRequired >= REQUIRED_DOC_TYPES.length;
+
+              return (
+                <>
             <Text style={s.docsCount}>
-              {documents.length} من {REQUIRED_DOC_TYPES.length} وثائق مطلوبة
+              {uploadedRequired} من {REQUIRED_DOC_TYPES.length} وثائق مطلوبة
             </Text>
             <View style={s.progressBg}>
-              <View style={[s.progressFill, { width: `${Math.min(Math.round((documents.length / REQUIRED_DOC_TYPES.length) * 100), 100)}%` }]} />
+              <View style={[s.progressFill, { width: `${completionPercent}%` }]} />
             </View>
-            {documents.slice(0, 2).map((doc) => (
+            {documents.slice(0, 2).map(doc => (
               <View key={doc.id} style={s.docItem}>
                 <View style={[s.docDot, { backgroundColor: doc.isVerified ? Colors.success : Colors.warning }]} />
                 <Text style={s.docText} numberOfLines={1}>
@@ -120,7 +138,13 @@ const DashboardCards: React.FC<Props> = ({
                 </Text>
               </View>
             ))}
+            <Text style={[s.docStatus, { color: docsReady ? Colors.success : Colors.warning }]}>
+              {docsReady ? '✓ تم رفع جميع الوثائق' : '⚠️ يجب إكمال رفع الوثائق'}
+            </Text>
             <TouchableOpacity onPress={onDocuments}><Text style={s.docLink}>عرض جميع الوثائق ←</Text></TouchableOpacity>
+                </>
+              );
+            })()}
           </View>
         )}
       </TouchableOpacity>
@@ -178,6 +202,7 @@ const s = StyleSheet.create({
   docItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 3 },
   docDot: { width: 6, height: 6, borderRadius: 3, marginLeft: 4 },
   docText: { fontSize: 10, color: Colors.textLight },
+  docStatus: { fontSize: 10, fontWeight: '700', textAlign: 'right', marginTop: 6 },
   docLink: { fontSize: 11, color: Colors.primary, fontWeight: '600', textAlign: 'right', marginTop: 4 },
   regCard: { borderWidth: 1, borderColor: Colors.successBorder },
   regTitle: { fontSize: 14, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right' },
