@@ -11,10 +11,11 @@ interface Props {
   onProfile?: () => void;
   onPayments?: () => void;
   onDocuments?: () => void;
+  onDistributions?: () => void;
 }
 
 const QuickActions: React.FC<Props> = ({
-  onSchedule, onRequests, onContents, onProfile, onPayments, onDocuments,
+  onSchedule, onRequests, onContents, onProfile, onPayments, onDocuments, onDistributions,
 }) => {
   return (
     <View style={s.section}>
@@ -32,6 +33,17 @@ const QuickActions: React.FC<Props> = ({
           <Icon name={AppIcons.content} size={22} color={Colors.primaryDark} />
         </View>
         <Text style={s.wideActionText}>المحتوى التعليمي</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[s.wideAction, { marginTop: 10 }]}
+        onPress={onDistributions}
+        activeOpacity={0.8}
+      >
+        <View style={[s.wideIconWrap, { backgroundColor: Colors.primarySoft }]}>
+          <Icon name={AppIcons.distributions} size={22} color={Colors.primaryDark} />
+        </View>
+        <Text style={s.wideActionText}>التوزيعات</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={s.secondaryWideAction} onPress={onSchedule} activeOpacity={0.8}>

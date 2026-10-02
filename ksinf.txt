@@ -1,0 +1,27 @@
+Picked up _JAVA_OPTIONS: -Xmx10000M
+Alias name: upload-key
+Creation date: Feb 24, 2026
+Entry type: PrivateKeyEntry
+Certificate chain length: 1
+Certificate[1]:
+Owner: CN=StudentApp, OU=Mobile, O=StudentApp, L=Riyadh, ST=Riyadh, C=SA
+Issuer: CN=StudentApp, OU=Mobile, O=StudentApp, L=Riyadh, ST=Riyadh, C=SA
+Serial number: 1d4c9514c0441eba
+Valid from: Tue Feb 24 05:36:47 EET 2026 until: Sat Jul 12 06:36:47 EEST 2053
+Certificate fingerprints:
+	 SHA1: FE:66:E7:F5:09:24:FA:6F:0A:64:5B:5A:F1:CC:23:4C:08:7D:C8:7B
+	 SHA256: 62:8C:B6:02:52:49:98:70:8D:32:92:AD:32:BA:1A:67:7A:39:BE:92:2D:F4:A1:49:4F:78:7F:3F:F0:28:06:2E
+Signature algorithm name: SHA384withRSA
+Subject Public Key Algorithm: 2048-bit RSA key
+Version: 3
+
+Extensions: 
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 55 F0 D0 A3 38 70 58 74   F4 56 31 A7 43 30 34 9A  U...8pXt.V1.C04.
+0010: B4 0B 4E 82                                        ..N.
+]
+]
+

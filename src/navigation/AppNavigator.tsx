@@ -35,6 +35,7 @@ import AcademicResultsScreen from '../screens/AcademicResultsScreen';
 import GradeAppealsScreen from '../screens/GradeAppealsScreen';
 import SurveyScreen from '../screens/SurveyScreen';
 import AssignmentsScreen from '../screens/AssignmentsScreen';
+import DistributionsScreen from '../screens/DistributionsScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
 import { BranchType } from '../types/auth';
@@ -50,7 +51,7 @@ interface UserInfo {
   traineeId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates' | 'register-attendance' | 'academic-results' | 'grade-appeals' | 'survey' | 'assignments';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates' | 'register-attendance' | 'academic-results' | 'grade-appeals' | 'survey' | 'assignments' | 'distributions';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -288,6 +289,14 @@ const AppNavigator: React.FC = () => {
     setCurrentScreen('home');
   };
 
+  const handleNavigateToDistributions = () => {
+    setCurrentScreen('distributions');
+  };
+
+  const handleBackFromDistributions = () => {
+    setCurrentScreen('home');
+  };
+
   const handleNavigateToTrainingContents = () => {
     setCurrentScreen('training-contents');
   };
@@ -430,6 +439,14 @@ const AppNavigator: React.FC = () => {
           <AssignmentsScreen
             accessToken={userInfo.accessToken}
             onBack={handleBackFromAssignments}
+          />
+        );
+        break;
+      case 'distributions':
+        screenElement = (
+          <DistributionsScreen
+            accessToken={userInfo.accessToken}
+            onBack={handleBackFromDistributions}
           />
         );
         break;
@@ -623,6 +640,7 @@ const AppNavigator: React.FC = () => {
             onNavigateToStudentRequests={handleNavigateToRequestsHub}
             onNavigateToRegisterAttendance={handleNavigateToRegisterAttendance}
             onNavigateToAcademicResults={handleNavigateToAcademicResults}
+            onNavigateToDistributions={handleNavigateToDistributions}
           />
         );
         break;

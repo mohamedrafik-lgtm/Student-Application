@@ -16,8 +16,8 @@ export const BRANCH_CONFIG = {
     cityAr: 'المنصورة',
     icon: 'office-building',
     color: '#3B82F6',
-    description: 'Mansoura Branch - Main Campus',
-    descriptionAr: 'فرع المنصورة - المقر الرئيسي'
+    description: 'Mansoura Branch',
+    descriptionAr: 'فرع المنصورة'
   },
   ZAGAZIG: {
     id: BranchType.ZAGAZIG,
@@ -28,8 +28,20 @@ export const BRANCH_CONFIG = {
     cityAr: 'الزقازيق',
     icon: 'domain',
     color: '#10B981',
-    description: 'Zagazig Branch - Secondary Campus',
-    descriptionAr: 'فرع الزقازيق - المقر الفرعي'
+    description: 'Zagazig Branch',
+    descriptionAr: 'فرع الزقازيق'
+  },
+  CAIRO: {
+    id: BranchType.CAIRO,
+    name: 'Cairo',
+    nameAr: 'القاهرة',
+    apiUrl: 'https://caapi.tiba29.com',
+    city: 'Cairo',
+    cityAr: 'القاهرة',
+    icon: 'city-variant-outline',
+    color: '#8B5CF6',
+    description: 'Cairo Branch',
+    descriptionAr: 'فرع القاهرة'
   }
 };
 
@@ -77,6 +89,8 @@ export const API_CONFIG = {
     TRAINEE_PORTAL_GRADES: '/api/trainee-portal/my-grades',
     TRAINEE_PORTAL_APPEALS: '/api/trainee-portal/appeals',
     ACCESS_CHECK: '/api/trainee-platform/access-check',
+    DISTRIBUTIONS: '/api/trainee-platform/distributions',
+    JOIN_DISTRIBUTION_ROOM: '/api/trainee-platform/distributions/rooms', // + /{roomId}/join
     VERIFY_ATTENDANCE_CODE: '/api/trainee-auth/verify-attendance-code',
     TRAINEE_GRADES: '/api/grades/trainee', // + /{traineeId}
     MY_SURVEYS: '/api/surveys/my-surveys',

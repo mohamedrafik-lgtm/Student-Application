@@ -29,13 +29,14 @@ interface HomeScreenProps {
   onNavigateToStudentRequests?: () => void;
   onNavigateToRegisterAttendance?: () => void;
   onNavigateToAcademicResults?: () => void;
+  onNavigateToDistributions?: () => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
   userInfo, onNavigateToSchedule, onNavigateToExams, onNavigateToGrades,
   onNavigateToAttendance, onNavigateToProfile, onNavigateToDocuments,
   onNavigateToPayments, onNavigateToTrainingContents, onNavigateToStudentRequests,
-  onNavigateToRegisterAttendance, onNavigateToAcademicResults,
+  onNavigateToRegisterAttendance, onNavigateToAcademicResults, onNavigateToDistributions,
 }) => {
   const [studentPhotoUrl, setStudentPhotoUrl] = useState<string | undefined>(userInfo?.photoUrl);
   const [programName, setProgramName] = useState<string>('');
@@ -48,49 +49,58 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const [loadingAccess, setLoadingAccess] = useState(true);
   const [documents, setDocuments] = useState<TraineeDocument[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(true);
+  const [loadingFinancials, setLoadingFinancials] = useState(true);
 
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
 
-  const loadStudentPhoto = useCallback(async () => {
+  // جلب بيانات البروفايل كاملة: الصورة + اسم البرنامج + الوثائق + الأرقام المالية.
+  // ملاحظة: لا يجوز ربط هذا الاستدعاء بوجود الصورة، لأن الحسابات المالية
+  // تعتمد عليه أيضاً وكانت تُترك أصفاراً عند وجود صورة للمتدرب.
+  const loadProfileData = useCallback(async () => {
     try {
       if (!userInfo?.accessToken) return;
       const profile = await AuthService.getProfile(userInfo.accessToken);
-      if (profile?.trainee?.photoUrl) setStudentPhotoUrl(profile.trainee.photoUrl);
       const trainee = profile?.trainee;
-      if (trainee) {
-        if (Array.isArray(trainee.documents)) {
-          setDocuments(trainee.documents);
-        }
+      if (!trainee) return;
 
-        if (trainee.program?.nameAr) {
-          setProgramName(trainee.program.nameAr);
-        }
+      if (trainee.photoUrl) setStudentPhotoUrl(trainee.photoUrl);
 
-        if (Array.isArray(trainee.traineePayments)) {
-          const totalAmount = trainee.traineePayments.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0);
-          const paidAmount = trainee.traineePayments.reduce((sum, payment) => {
-            const normalizedStatus = String(payment.status || '').toUpperCase();
-            const amount = Number(payment.amount) || 0;
-            const explicitPaid = Number(payment.paidAmount) || 0;
-
-            if (explicitPaid > 0) {
-              return sum + explicitPaid;
-            }
-
-            if (normalizedStatus === 'COMPLETED' || normalizedStatus === 'PAID') {
-              return sum + amount;
-            }
-
-            return sum;
-          }, 0);
-
-          const remainingAmount = Math.max(totalAmount - paidAmount, 0);
-          setFinancialSummary({ totalAmount, paidAmount, remainingAmount });
-        }
+      if (Array.isArray(trainee.documents)) {
+        setDocuments(trainee.documents);
       }
-    } catch (err) { console.log('Could not load profile photo', err); }
-    finally { setLoadingDocs(false); }
+
+      if (trainee.program?.nameAr) {
+        setProgramName(trainee.program.nameAr);
+      }
+
+      if (Array.isArray(trainee.traineePayments)) {
+        // نفس منطق صفحة المدفوعات ونسخة الويب:
+        // الإجمالي = مجموع amounts، المدفوع = مجموع paidAmount، المتبقي = الفرق.
+        const totalAmount = trainee.traineePayments.reduce(
+          (sum, payment) => sum + (Number(payment.amount) || 0), 0);
+
+        const paidAmount = trainee.traineePayments.reduce((sum, payment) => {
+          const explicitPaid = Number(payment.paidAmount) || 0;
+          if (explicitPaid > 0) return sum + explicitPaid;
+
+          // احتياط: الدفعات القديمة التي لا تحمل paidAmount — نعتبرها مسددة بالكامل
+          const normalizedStatus = String(payment.status || '').toUpperCase();
+          if (
+            normalizedStatus === 'PAID' ||
+            normalizedStatus === 'COMPLETED' ||
+            normalizedStatus === 'PARTIALLY_PAID'
+          ) {
+            return sum + (Number(payment.amount) || 0);
+          }
+          return sum;
+        }, 0);
+
+        const remainingAmount = Math.max(totalAmount - paidAmount, 0);
+        setFinancialSummary({ totalAmount, paidAmount, remainingAmount });
+      }
+    } catch (err) { console.log('Could not load profile data', err); }
+    finally { setLoadingDocs(false); setLoadingFinancials(false); }
   }, [userInfo?.accessToken]);
 
   const loadGradeAppeals = useCallback(async () => {
@@ -125,11 +135,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
       Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
     ]).start();
-    if (!userInfo?.photoUrl) loadStudentPhoto();
+    loadProfileData();
     loadGradeAppeals();
     loadAccessCheck();
     loadAttendance();
-  }, [fadeAnim, slideAnim, loadStudentPhoto, loadGradeAppeals, loadAccessCheck, loadAttendance, userInfo?.photoUrl]);
+  }, [fadeAnim, slideAnim, loadProfileData, loadGradeAppeals, loadAccessCheck, loadAttendance]);
 
   const hasGradeResults = gradeAppeals.length > 0;
 
@@ -157,6 +167,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             attendanceSummary={attendanceSummary}
             loadingAttendance={loadingAttendance}
             loadingAccess={loadingAccess}
+            loadingFinancials={loadingFinancials}
             documents={documents}
             loadingDocs={loadingDocs}
             financialSummary={financialSummary}
@@ -184,6 +195,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           onProfile={onNavigateToProfile}
           onPayments={onNavigateToPayments}
           onDocuments={onNavigateToDocuments}
+          onDistributions={onNavigateToDistributions}
         />
 
         <View style={{ height: 40 }} />

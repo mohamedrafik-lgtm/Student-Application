@@ -1,0 +1,8 @@
+Picked up _JAVA_OPTIONS: -Xmx10000M
+Keystore type: PKCS12
+Keystore provider: SUN
+
+Your keystore contains 1 entry
+
+upload-key, Feb 24, 2026, PrivateKeyEntry, 
+Certificate fingerprint (SHA-256): 62:8C:B6:02:52:49:98:70:8D:32:92:AD:32:BA:1A:67:7A:39:BE:92:2D:F4:A1:49:4F:78:7F:3F:F0:28:06:2E

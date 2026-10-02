@@ -33,6 +33,7 @@ export type TopNavTab =
   | 'payment-due-dates'
   | 'profile'
   | 'training-contents'
+  | 'distributions'
   | 'requests-hub'
   | 'survey'
   | 'assignments';
@@ -48,6 +49,7 @@ const TABS: { id: TopNavTab; label: string }[] = [
   { id: 'home', label: 'الرئيسية' },
   { id: 'schedule', label: 'الجدول' },
   { id: 'training-contents', label: 'المحتوى التدريبي' },
+  { id: 'distributions', label: 'توزيعات التدريب' },
   { id: 'academic-results', label: 'النتائج الدراسية' },
   { id: 'grade-appeals', label: 'تظلمات الدرجات' },
   { id: 'exams', label: 'الاختبارات' },

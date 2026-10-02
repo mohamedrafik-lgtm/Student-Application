@@ -1,0 +1,132 @@
+METRO STARTED 2026-10-02  4:33:22.76
+
+Welcome to React Native v0.81
+Starting dev server on http://localhost:8081
+
+
+                        ▒▒▓▓▓▓▒▒
+                     ▒▓▓▓▒▒░░▒▒▓▓▓▒
+                  ▒▓▓▓▓░░░▒▒▒▒░░░▓▓▓▓▒
+                 ▓▓▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▓▓
+                 ▓▓░░░░░▒▓▓▓▓▓▓▒░░░░░▓▓
+                 ▓▓░░▓▓▒░░░▒▒░░░▒▓▒░░▓▓
+                 ▓▓░░▓▓▓▓▓▒▒▒▒▓▓▓▓▒░░▓▓
+                 ▓▓░░▓▓▓▓▓▓▓▓▓▓▓▓▓▒░░▓▓
+                 ▓▓▒░░▒▒▓▓▓▓▓▓▓▓▒░░░▒▓▓
+                  ▒▓▓▓▒░░░▒▓▓▒░░░▒▓▓▓▒
+                     ▒▓▓▓▒░░░░▒▓▓▓▒
+                        ▒▒▓▓▓▓▒▒
+
+
+ WARN  the transform cache was reset.
+                Welcome to Metro v0.83.1
+              Fast - Scalable - Integrated
+
+
+ INFO  Dev server ready. Press Ctrl+C to exit.
+ INFO  Interactive mode is not supported in this environment
+ INFO  Connection established to app='com.tibastudent' on device='sdk_gphone64_x86_64 - 16 - API 36'.
+transform[stderr]: [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+transform[stderr]: [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+transform[stderr]: [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+transform[stderr]: [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+transform[stderr]: [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+transform[stderr]: [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+transform[stderr]: [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ BUNDLE  ./index.js ▓▓░░░░░░░░░░░░░░ 16.0% (25/170)
+transform[stderr]: [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ BUNDLE  ./index.js ▓▓▓▓▓░░░░░░░░░░░ 31.4% (207/371)
+ BUNDLE  ./index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 85.1% (559/606)
+ BUNDLE  ./index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 86.3% (832/906)
+ BUNDLE  ./index.js 
+ INFO  [1m[7m💡 JavaScript logs have moved![22m They can now be viewed in React Native DevTools. Tip: Type [1mj[22m in the terminal to open (requires Google Chrome or Microsoft Edge).[27m
+ INFO  Connection closed to device='sdk_gphone64_x86_64 - 16 - API 36' for app='com.tibastudent' with code='1006' and reason=''.
+ INFO  Connection established to app='com.tibastudent' on device='sdk_gphone64_x86_64 - 16 - API 36'.
+ BUNDLE  ./index.js 
+ BUNDLE  ./index.js ░░░░░░░░░░░░░░░░ 0.0% (0/1)
+ BUNDLE  ./index.js 
+ ERROR  SyntaxError: E:\Projects\erp\Student-Application\src\screens\DistributionsScreen.tsx: 'import' and 'export' may only appear at the top level. (240:0)
+
+  238 | };
+  239 |
+> 240 | export default DistributionsScreen;
+      | ^
+  241 | /* ══════════════════════════ DistributionCard ══════════════════════════ */
+  242 | interface CardProps {
+  243 |   dist: AvailableDistribution;
+ ERROR  SyntaxError: E:\Projects\erp\Student-Application\src\screens\DistributionsScreen.tsx: 'import' and 'export' may only appear at the top level. (240:0)
+
+  238 | };
+  239 |
+> 240 | export default DistributionsScreen;
+      | ^
+  241 | /* ══════════════════════════ DistributionCard ══════════════════════════ */
+  242 | interface CardProps {
+  243 |   dist: AvailableDistribution;
+ ERROR  SyntaxError: E:\Projects\erp\Student-Application\src\screens\DistributionsScreen.tsx: 'import' and 'export' may only appear at the top level. (240:0)
+
+  238 | };
+  239 |
+> 240 | export default DistributionsScreen;
+      | ^
+  241 | /* ══════════════════════════ DistributionCard ══════════════════════════ */
+  242 | interface CardProps {
+  243 |   dist: AvailableDistribution;
+ ERROR  SyntaxError: E:\Projects\erp\Student-Application\src\screens\DistributionsScreen.tsx: 'import' and 'export' may only appear at the top level. (240:0)
+
+  238 | };
+  239 |
+> 240 | export default DistributionsScreen;
+      | ^
+  241 | /* ══════════════════════════ DistributionCard ══════════════════════════ */
+  242 | interface CardProps {
+  243 |   dist: AvailableDistribution;
+ ERROR  SyntaxError: E:\Projects\erp\Student-Application\src\screens\DistributionsScreen.tsx: 'import' and 'export' may only appear at the top level. (240:0)
+
+  238 | };
+  239 |
+> 240 | export default DistributionsScreen;
+      | ^
+  241 | /* ══════════════════════════ DistributionCard ══════════════════════════ */
+  242 | interface CardProps {
+  243 |   dist: AvailableDistribution;
+ ERROR  SyntaxError: E:\Projects\erp\Student-Application\src\screens\DistributionsScreen.tsx: 'import' and 'export' may only appear at the top level. (240:0)
+
+  238 | };
+  239 |
+> 240 | export default DistributionsScreen;
+      | ^
+  241 | /* ══════════════════════════ DistributionCard ══════════════════════════ */
+  242 | interface CardProps {
+  243 |   dist: AvailableDistribution;
+ ERROR  SyntaxError: E:\Projects\erp\Student-Application\src\screens\DistributionsScreen.tsx: 'import' and 'export' may only appear at the top level. (240:0)
+
+  238 | };
+  239 |
+> 240 | export default DistributionsScreen;
+      | ^
+  241 | /* ══════════════════════════ DistributionCard ══════════════════════════ */
+  242 | interface CardProps {
+  243 |   dist: AvailableDistribution;
+ ERROR  SyntaxError: E:\Projects\erp\Student-Application\src\screens\DistributionsScreen.tsx: 'return' outside of function. (381:37)
+
+  379 |   );
+  380 | };
+> 381 |   if (getOccupancyRatio(room) > 0.8) return Colors.accent;
+      |                                      ^
+  382 |   return Colors.primary;
+  383 | };
+  384 |
+ INFO  Connection closed to device='sdk_gphone64_x86_64 - 16 - API 36' for app='com.tibastudent' with code='1006' and reason=''.
+ INFO  Connection established to app='com.tibastudent' on device='sdk_gphone64_x86_64 - 16 - API 36'.
+ BUNDLE  ./index.js 
+ BUNDLE  ./index.js ░░░░░░░░░░░░░░░░ 0.0% (0/1)
+ INFO  Connection closed to device='sdk_gphone64_x86_64 - 16 - API 36' for app='com.tibastudent' with code='1006' and reason=''.
+ INFO  Connection established to app='com.tibastudent' on device='sdk_gphone64_x86_64 - 16 - API 36'.
+ BUNDLE  ./index.js 
+ INFO  Connection closed to device='sdk_gphone64_x86_64 - 16 - API 36' for app='com.tibastudent' with code='1006' and reason=''.
+ INFO  Connection established to app='com.tibastudent' on device='sdk_gphone64_x86_64 - 16 - API 36'.
+ BUNDLE  ./index.js 
+ INFO  Connection closed to device='sdk_gphone64_x86_64 - 16 - API 36' for app='com.tibastudent' with code='1006' and reason=''.
+
+METRO EXITED 2026-10-02  7:43:30.64

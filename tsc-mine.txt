@@ -1,0 +1,2 @@
+FINDSTR: Cannot open erp_system\ /C:\web
+FINDSTR: Cannot open frontend\ 

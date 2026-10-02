@@ -615,7 +615,8 @@ export interface ScheduleState {
 // أنواع الفروع المتاحة
 export enum BranchType {
   MANSOURA = 'MANSOURA',  // المنصورة
-  ZAGAZIG = 'ZAGAZIG'     // الزقازيق
+  ZAGAZIG = 'ZAGAZIG',    // الزقازيق
+  CAIRO = 'CAIRO'         // القاهرة
 }
 
 // معلومات الفرع

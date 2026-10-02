@@ -110,6 +110,12 @@ export const AppIcons = {
   eye: 'eye-outline',
   eyeOff: 'eye-off-outline',
 
+  // Distributions
+  distributions: 'account-group-outline',
+  distributionsFilled: 'account-group',
+  room: 'google-classroom',
+  capacity: 'account-multiple-outline',
+
   // Requests
   appeal: 'scale-balance',
   request: 'file-send-outline',

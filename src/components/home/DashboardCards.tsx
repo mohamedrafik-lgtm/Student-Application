@@ -32,6 +32,7 @@ interface Props {
   attendanceSummary: AttendanceSummary | null;
   loadingAttendance: boolean;
   loadingAccess: boolean;
+  loadingFinancials?: boolean;
   documents: TraineeDocument[];
   loadingDocs: boolean;
   financialSummary: FinancialSummary;
@@ -42,7 +43,7 @@ interface Props {
 }
 
 const DashboardCards: React.FC<Props> = ({
-  attendanceSummary, loadingAttendance, loadingAccess,
+  attendanceSummary, loadingAttendance, loadingAccess, loadingFinancials,
   documents, loadingDocs,
   financialSummary,
   onAttendance, onPayments, onDocuments, onRegisterAttendance,
@@ -84,7 +85,7 @@ const DashboardCards: React.FC<Props> = ({
           </View>
           <Text style={s.cardTitle}>الحالة المالية</Text>
         </View>
-        {loadingAccess ? (
+        {(loadingFinancials ?? loadingAccess) ? (
           <ActivityIndicator size="small" color={Colors.primary} style={{ marginTop: 12 }} />
         ) : (
           <View style={{ paddingVertical: 4 }}>
