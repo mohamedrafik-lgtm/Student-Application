@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 4,
     position: 'relative',
-    borderRadius: 12,
+    borderRadius: 16,
     minWidth: 60,
     maxWidth: 90,
   },
@@ -143,4 +143,3 @@ const styles = StyleSheet.create({
 });
 
 export default BottomNavigationBar;
-

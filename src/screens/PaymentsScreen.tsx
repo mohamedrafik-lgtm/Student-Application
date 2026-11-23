@@ -13,6 +13,7 @@ import { Colors } from '../styles/colors';
 import Icon, { AppIcons } from '../components/shared/Icon';
 import { AuthService } from '../services/authService';
 import { FeeType, TraineePayment } from '../types/auth';
+import { CacheDurations, CacheService } from '../utils/cache';
 
 interface PaymentsScreenProps {
   accessToken: string;
@@ -47,6 +48,12 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
   }, []);
 
   const loadPayments = async () => {
+    const cachedProfile = await CacheService.get<any>('profile', accessToken);
+    if (cachedProfile) {
+      setPayments(cachedProfile?.trainee?.traineePayments || []);
+      setIsLoading(false);
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -54,6 +61,7 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
       // Same endpoint used in web trainee dashboard: /api/trainee-auth/profile
       const profileData = await AuthService.getProfile(accessToken);
       setPayments(profileData?.trainee?.traineePayments || []);
+      await CacheService.set('profile', accessToken, profileData, CacheDurations.long);
     } catch (err) {
       const apiError = err as any;
       let errorMessage = 'حدث خطأ أثناء تحميل البيانات المالية';

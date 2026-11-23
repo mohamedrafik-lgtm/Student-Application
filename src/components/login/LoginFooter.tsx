@@ -40,20 +40,21 @@ const LoginFooter: React.FC<Props> = ({ onNavigateToSignup }) => (
 const s = StyleSheet.create({
   orRow: {
     flexDirection: 'row', alignItems: 'center',
-    marginVertical: 20, gap: 10,
+    marginVertical: 16, gap: 10,
   },
   orLine: { flex: 1, height: 1, backgroundColor: Colors.borderMedium },
   orText: { fontSize: 13, color: Colors.textHint, fontWeight: '600' },
   signupBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: Colors.primary,
-    borderRadius: 16, paddingVertical: 15,
+    borderWidth: 1, borderColor: Colors.primary200,
+    borderRadius: 14, paddingVertical: 16,
+    backgroundColor: Colors.primary50,
   },
   signupBtnText: { fontSize: 16, fontWeight: '700', color: Colors.primary },
   noteBox: {
     flexDirection: 'row-reverse', alignItems: 'flex-start',
     backgroundColor: Colors.backgroundSoft, borderWidth: 1,
-    borderColor: Colors.successBorder, borderRadius: 12,
+    borderColor: Colors.primary100, borderRadius: 14,
     padding: 14, marginTop: 20, gap: 8,
   },
   noteText: {

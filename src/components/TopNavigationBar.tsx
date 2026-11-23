@@ -20,6 +20,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../styles/colors';
+import Icon, { AppIcons } from './shared/Icon';
 
 export type TopNavTab =
   | 'home'
@@ -50,27 +51,26 @@ interface TopNavigationBarProps {
   onNavigateToProfile?: () => void;
 }
 
-const TABS: { id: TopNavTab; label: string }[] = [
-  { id: 'home', label: 'الرئيسية' },
-  { id: 'schedule', label: 'الجدول' },
-  { id: 'training-contents', label: 'المحتوى التدريبي' },
-  { id: 'distributions', label: 'توزيعات التدريب' },
-  { id: 'academic-results', label: 'النتائج الدراسية' },
-  { id: 'grade-appeals', label: 'تظلمات الدرجات' },
-  { id: 'exams', label: 'الاختبارات' },
-  { id: 'register-attendance', label: 'تسجيل الحضور' },
-  { id: 'requests-hub', label: 'الطلبات' },
-  { id: 'survey', label: 'الاستبيان' },
-  { id: 'assignments', label: 'المهام والتكليفات' },
-  { id: 'documents', label: 'الوثائق' },
-  { id: 'payments', label: 'المدفوعات والرسوم' },
-  { id: 'payment-due-dates', label: 'مواعيد السداد' },
-  { id: 'profile', label: 'الملف' },
-  { id: 'distributions', label: 'توزيعات التدريب' },
-  { id: 'study-materials', label: 'الأدوات الدراسية' },
-  { id: 'complaints', label: 'الشكاوى والاقتراحات' },
-  { id: 'id-card', label: 'كارنيه المتدرب' },
-  { id: 'notifications', label: 'الإشعارات' },
+const TABS: { id: TopNavTab; label: string; icon: string }[] = [
+  { id: 'home', label: 'الرئيسية', icon: AppIcons.home },
+  { id: 'schedule', label: 'الجدول', icon: AppIcons.schedule },
+  { id: 'training-contents', label: 'المحتوى التدريبي', icon: AppIcons.content },
+  { id: 'academic-results', label: 'النتائج الدراسية', icon: AppIcons.grades },
+  { id: 'grade-appeals', label: 'تظلمات الدرجات', icon: AppIcons.appeal },
+  { id: 'exams', label: 'الاختبارات', icon: AppIcons.exam },
+  { id: 'register-attendance', label: 'تسجيل الحضور', icon: AppIcons.attendance },
+  { id: 'requests-hub', label: 'الطلبات', icon: AppIcons.requests },
+  { id: 'survey', label: 'الاستبيان', icon: 'clipboard-text-outline' },
+  { id: 'assignments', label: 'المهام والتكليفات', icon: 'clipboard-check-outline' },
+  { id: 'documents', label: 'الوثائق', icon: AppIcons.document },
+  { id: 'payments', label: 'المدفوعات والرسوم', icon: AppIcons.payments },
+  { id: 'payment-due-dates', label: 'مواعيد السداد', icon: 'calendar-clock' },
+  { id: 'profile', label: 'الملف', icon: AppIcons.profile },
+  { id: 'distributions', label: 'توزيعات التدريب', icon: 'account-group-outline' },
+  { id: 'study-materials', label: 'الأدوات الدراسية', icon: 'toolbox-outline' },
+  { id: 'complaints', label: 'الشكاوى والاقتراحات', icon: 'message-alert-outline' },
+  { id: 'id-card', label: 'كارنيه المتدرب', icon: 'card-account-details-outline' },
+  { id: 'notifications', label: 'الإشعارات', icon: 'bell-outline' },
 ];
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -268,6 +268,13 @@ const TopNavigationBar: React.FC<TopNavigationBarProps> = ({
                   onPress={() => handleSelect(tab.id)}
                   activeOpacity={0.7}
                 >
+                  <View style={[styles.menuItemIconContainer, isActive && styles.menuItemIconContainerActive]}>
+                    <Icon
+                      name={tab.icon}
+                      size={19}
+                      color={isActive ? Colors.white : Colors.primary}
+                    />
+                  </View>
                   <Text style={[
                     styles.menuItemLabel,
                     isActive && styles.menuItemLabelActive
@@ -285,6 +292,9 @@ const TopNavigationBar: React.FC<TopNavigationBarProps> = ({
               onPress={handleLogout}
               activeOpacity={0.7}
             >
+              <View style={styles.logoutMenuItemIconContainer}>
+                <Icon name="logout" size={18} color={Colors.white} />
+              </View>
               <Text style={styles.logoutMenuItemLabel}>
                 تسجيل الخروج
               </Text>
@@ -313,8 +323,10 @@ const styles = StyleSheet.create({
   },
   mainBar: {
     backgroundColor: Colors.primaryDark,
-    paddingHorizontal: 16,
-    paddingVertical: 13,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 22,
   },
   mainBarContent: {
     flexDirection: 'row',
@@ -322,10 +334,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   menuToggleButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    width: 44,
+    height: 44,
+    borderRadius: 15,
+    backgroundColor: 'rgba(34,211,238,0.16)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -337,8 +349,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 15,
   },
   currentTabLabel: {
     fontSize: 15,
@@ -351,8 +363,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(129,140,248,0.24)',
+    borderRadius: 15,
     gap: 4,
   },
   profileText: {
@@ -393,6 +405,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 18,
     backgroundColor: Colors.primaryDark,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   drawerTitle: {
     fontSize: 20,
@@ -412,7 +426,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   drawerContent: {
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 14,
   },
   menuItem: {
@@ -420,9 +434,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 13,
     paddingHorizontal: 14,
-    borderRadius: 14,
+    borderRadius: 16,
     marginVertical: 3,
-    backgroundColor: Colors.backgroundSoft,
+    backgroundColor: Colors.backgroundAlt,
   },
   menuItemActive: {
     backgroundColor: Colors.primarySoft,

@@ -7,7 +7,7 @@ export const theme = {
       backgroundColor: Colors.white,
       activeColor: Colors.primary,
       inactiveColor: Colors.textSecondary,
-      borderRadius: 12,
+      borderRadius: 22,
       shadow: {
         shadowColor: "#000",
         shadowOffset: {
@@ -28,10 +28,10 @@ export const theme = {
     xl: 32,
   },
   borderRadius: {
-    sm: 4,
-    md: 8,
-    lg: 12,
-    xl: 16,
+    sm: 8,
+    md: 14,
+    lg: 18,
+    xl: 24,
   },
   typography: {
     heading1: {

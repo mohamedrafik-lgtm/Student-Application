@@ -31,18 +31,18 @@ const AIAssistantSection: React.FC = () => (
 
 const s = StyleSheet.create({
   card: {
-    marginHorizontal: 16, marginTop: 14, backgroundColor: Colors.white,
-    borderRadius: 20, padding: 18,
+    marginHorizontal: 16, marginTop: 16, backgroundColor: Colors.primaryDark,
+    borderRadius: 24, padding: 20,
     shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.07, shadowRadius: 12, elevation: 3,
     borderWidth: 1, borderColor: Colors.borderLight,
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 6 },
-  title: { fontSize: 16, fontWeight: '800', color: Colors.textPrimary, marginLeft: 8 },
+  title: { fontSize: 16, fontWeight: '800', color: Colors.white, marginLeft: 8 },
   badge: { backgroundColor: Colors.backgroundSoft, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10 },
   badgeText: { fontSize: 11, color: Colors.primary, fontWeight: '600' },
-  subtitle: { fontSize: 12, color: Colors.primary, fontWeight: '600', textAlign: 'right', marginBottom: 6 },
-  desc: { fontSize: 11, color: Colors.textLight, textAlign: 'right', lineHeight: 18, marginBottom: 14 },
+  subtitle: { fontSize: 12, color: '#C4B5FD', fontWeight: '700', textAlign: 'right', marginBottom: 6 },
+  desc: { fontSize: 12, color: 'rgba(255,255,255,0.72)', textAlign: 'right', lineHeight: 20, marginBottom: 14 },
   btnsRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
   btn: {
     flexDirection: 'row', alignItems: 'center',

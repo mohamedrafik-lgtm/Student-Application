@@ -1,26 +1,26 @@
-// Design System — Color Tokens (White + Green Theme)
+// Design System — Modern violet/cyan trainee platform
 // Single Responsibility: Only color definitions
 
 export const Colors = {
   // ── Primary (Emerald Green) ──
-  primary: '#059669',
-  primaryLight: '#10B981',
-  primaryDark: '#047857',
-  primarySoft: 'rgba(5, 150, 105, 0.08)',
-  primaryGlow: 'rgba(5, 150, 105, 0.16)',
-  primary50: '#ECFDF5',
-  primary100: '#D1FAE5',
-  primary200: '#A7F3D0',
-  primary500: '#10B981',
-  primary600: '#059669',
-  primary700: '#047857',
-  primary800: '#065F46',
+  primary: '#4F46E5',
+  primaryLight: '#818CF8',
+  primaryDark: '#312E81',
+  primarySoft: 'rgba(79, 70, 229, 0.09)',
+  primaryGlow: 'rgba(79, 70, 229, 0.18)',
+  primary50: '#EEF2FF',
+  primary100: '#E0E7FF',
+  primary200: '#C7D2FE',
+  primary500: '#6366F1',
+  primary600: '#4F46E5',
+  primary700: '#4338CA',
+  primary800: '#3730A3',
 
   // ── Secondary (Teal) ──
-  secondary: '#0D9488',
-  secondaryLight: '#14B8A6',
-  secondaryDark: '#0F766E',
-  secondarySoft: 'rgba(13, 148, 136, 0.08)',
+  secondary: '#0891B2',
+  secondaryLight: '#22D3EE',
+  secondaryDark: '#0E7490',
+  secondarySoft: 'rgba(8, 145, 178, 0.08)',
 
   // ── Accent (Amber) ──
   accent: '#F59E0B',
@@ -30,10 +30,10 @@ export const Colors = {
 
   // ── Backgrounds ──
   white: '#FFFFFF',
-  background: '#F0FDF4',
-  backgroundAlt: '#F8FAF9',
-  backgroundDark: '#064E3B',
-  backgroundSoft: '#ECFDF5',
+  background: '#F4F6FC',
+  backgroundAlt: '#F8FAFC',
+  backgroundDark: '#111827',
+  backgroundSoft: '#EEF2FF',
   surface: '#FFFFFF',
   cardBackground: '#FFFFFF',
 
@@ -67,12 +67,12 @@ export const Colors = {
   borderLight: '#F3F4F6',
   borderMedium: '#E5E7EB',
   borderDark: '#D1D5DB',
-  borderPrimary: '#059669',
+  borderPrimary: '#4F46E5',
   borderError: '#DC2626',
 
   // ── Input ──
   inputBorder: '#E5E7EB',
-  inputBorderFocused: '#059669',
+  inputBorderFocused: '#4F46E5',
   inputBorderError: '#DC2626',
   inputBackground: '#FFFFFF',
   inputPlaceholder: '#9CA3AF',
@@ -82,15 +82,15 @@ export const Colors = {
   shadow: 'rgba(0,0,0,0.04)',
   shadowMedium: 'rgba(0,0,0,0.08)',
   shadowDark: 'rgba(0,0,0,0.12)',
-  shadowPrimary: 'rgba(5, 150, 105, 0.15)',
+  shadowPrimary: 'rgba(79, 70, 229, 0.18)',
   shadowSuccess: 'rgba(5, 150, 105, 0.12)',
   shadowError: 'rgba(220, 38, 38, 0.12)',
 
   // ── Gradients ──
-  gradientPrimary: ['#059669', '#0D9488'] as readonly string[],
+  gradientPrimary: ['#4F46E5', '#7C3AED'] as readonly string[],
   gradientSecondary: ['#F59E0B', '#EF4444'] as readonly string[],
-  gradientBackground: ['#F0FDF4', '#ECFDF5'] as readonly string[],
-  gradientCard: ['#FFFFFF', '#F0FDF4'] as readonly string[],
+  gradientBackground: ['#F4F6FC', '#EEF2FF'] as readonly string[],
+  gradientCard: ['#FFFFFF', '#F8FAFC'] as readonly string[],
 
   // ── Glass ──
   glass: 'rgba(255,255,255,0.95)',

@@ -35,6 +35,7 @@ import {
   DAY_OF_WEEK_INFO,
   AttendanceError,
 } from '../types/attendance';
+import { CacheDurations, CacheService } from '../utils/cache';
 
 const { width } = Dimensions.get('window');
 
@@ -80,6 +81,21 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
   }, []);
 
   const loadAttendance = async () => {
+    const cached = await CacheService.get<AttendanceResponse>('attendance', accessToken);
+    if (cached) {
+      setAttendanceData(cached);
+      setIsLoading(false);
+      attendanceService.getAttendanceRecords(accessToken)
+        .then(async response => {
+          if (response.success && response.data) {
+            setAttendanceData(response.data);
+            await CacheService.set('attendance', accessToken, response.data, CacheDurations.medium);
+          }
+        })
+        .catch(() => {});
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -91,6 +107,7 @@ const AttendanceScreen: React.FC<AttendanceScreenProps> = ({
 
       if (response.success && response.data) {
         setAttendanceData(response.data);
+        await CacheService.set('attendance', accessToken, response.data, CacheDurations.medium);
       } else if (response.success === false) {
         const errorMessage = response.message || 'فشل في تحميل سجلات الحضور';
         setError(errorMessage);

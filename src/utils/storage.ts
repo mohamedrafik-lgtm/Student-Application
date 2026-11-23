@@ -1,5 +1,6 @@
 // Persistent storage wrapper using @react-native-async-storage/async-storage
 import RNAsyncStorage from '@react-native-async-storage/async-storage';
+import { CacheService } from './cache';
 
 const KEYS = {
   BRANCH: 'app_selected_branch',
@@ -39,11 +40,13 @@ export const Storage = {
   },
   async clearSession(): Promise<void> {
     await RNAsyncStorage.removeItem(KEYS.SESSION);
+    await CacheService.clearAll();
   },
 
   // ── Clear all ──
   async clearAll(): Promise<void> {
     await RNAsyncStorage.multiRemove([KEYS.BRANCH, KEYS.SESSION]);
+    await CacheService.clearAll();
   },
 
   // ── Generic ──

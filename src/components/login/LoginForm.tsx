@@ -97,9 +97,9 @@ const s = StyleSheet.create({
   reqStar: { color: Colors.error, fontSize: 15 },
   inputRow: {
     flexDirection: 'row-reverse', alignItems: 'center',
-    backgroundColor: Colors.backgroundSoft,
-    borderWidth: 1.5, borderColor: Colors.borderMedium,
-    borderRadius: 14, paddingHorizontal: 14, minHeight: 56,
+    backgroundColor: Colors.white,
+    borderWidth: 1.5, borderColor: Colors.primary100,
+    borderRadius: 16, paddingHorizontal: 14, minHeight: 58,
   },
   inputRowError: {
     borderColor: Colors.error, backgroundColor: Colors.errorLight,
@@ -116,7 +116,7 @@ const s = StyleSheet.create({
   forgotText: { fontSize: 13, color: Colors.primary, fontWeight: '600' },
   loginBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: Colors.primary, borderRadius: 16, paddingVertical: 17,
+    backgroundColor: Colors.primary, borderRadius: 18, paddingVertical: 17,
     shadowColor: Colors.shadowPrimary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 1, shadowRadius: 12, elevation: 6,

@@ -1,4 +1,4 @@
-// Shared ScreenHeader — premium emerald header used across all screens
+// Shared ScreenHeader — modern indigo/cyan header
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon, { AppIcons } from './Icon';
@@ -49,8 +49,11 @@ const ScreenHeader: React.FC<Props> = ({ title, subtitle, onBack, rightElement, 
 const s = StyleSheet.create({
   header: {
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 18,
+    paddingTop: 18,
+    paddingBottom: 20,
+    marginHorizontal: 10,
+    marginTop: 8,
+    borderRadius: 20,
     overflow: 'hidden',
   },
   decorCircle1: {
@@ -58,7 +61,7 @@ const s = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(34,211,238,0.16)',
     top: -40,
     left: -20,
   },
@@ -67,7 +70,7 @@ const s = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(129,140,248,0.20)',
     bottom: -30,
     right: 20,
   },
@@ -100,4 +103,3 @@ const s = StyleSheet.create({
 });
 
 export default ScreenHeader;
-

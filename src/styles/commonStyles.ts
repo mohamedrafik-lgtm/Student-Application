@@ -8,7 +8,7 @@ const { width } = Dimensions.get('window');
 // ── Unified Design Tokens (aligned with Colors.ts — Emerald Green theme) ──
 export const WebColors = {
   // Backgrounds
-  screenBg: '#F0FDF4',
+  screenBg: '#F4F6FC',
   cardBg: '#FFFFFF',
   headerBg: '#FFFFFF',
 
@@ -19,9 +19,9 @@ export const WebColors = {
   hint: '#9CA3AF',
 
   // Primary — ALWAYS emerald green
-  primary: '#059669',
-  primarySoft: '#ECFDF5',
-  primaryLight: '#10B981',
+  primary: '#4F46E5',
+  primarySoft: '#EEF2FF',
+  primaryLight: '#818CF8',
 
   // Status
   success: '#059669',

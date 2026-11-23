@@ -28,10 +28,10 @@ const SectionTitle: React.FC<Props> = ({ title, icon, badge, badgeColor = Colors
 const s = StyleSheet.create({
   row: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end',
-    marginBottom: 12, gap: 8,
+    marginBottom: 14, gap: 10,
   },
   titleArea: { flex: 1, alignItems: 'flex-end' },
-  title: { fontSize: 16, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right' },
+  title: { fontSize: 18, fontWeight: '900', color: Colors.textPrimary, textAlign: 'right' },
   badge: {
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
   },

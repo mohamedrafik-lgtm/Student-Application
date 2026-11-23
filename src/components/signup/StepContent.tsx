@@ -69,7 +69,7 @@ const StepContent: React.FC<Props> = ({
 
 const s = StyleSheet.create({
   card: {
-    backgroundColor: Colors.white, borderRadius: 20, padding: 22,
+    backgroundColor: Colors.white, borderRadius: 16, padding: 20,
     marginBottom: 28,
     shadowColor: Colors.shadow, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1, shadowRadius: 12, elevation: 4,

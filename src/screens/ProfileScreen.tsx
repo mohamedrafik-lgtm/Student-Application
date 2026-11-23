@@ -18,6 +18,7 @@ import CustomButton from '../components/CustomButton';
 import ScreenHeader from '../components/shared/ScreenHeader';
 import { Colors } from '../styles/colors';
 import { API_CONFIG } from '../services/apiConfig';
+import { CacheDurations, CacheService } from '../utils/cache';
 
 interface ProfileScreenProps {
   accessToken: string;
@@ -57,11 +58,25 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   }, [profile, fadeAnim, slideAnim]);
 
   const loadProfile = async () => {
+    const cached = await CacheService.get<TraineeProfile>('profile', accessToken);
+    if (cached) {
+      setProfile(cached);
+      setIsLoading(false);
+      AuthService.getProfile(accessToken)
+        .then(fresh => {
+          setProfile(fresh);
+          CacheService.set('profile', accessToken, fresh, CacheDurations.long);
+        })
+        .catch(() => {});
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
       const profileData = await AuthService.getProfile(accessToken);
       setProfile(profileData);
+      await CacheService.set('profile', accessToken, profileData, CacheDurations.long);
     } catch (e) {
       const apiError = e as TraineeProfileError;
       let errorMessage = 'حدث خطأ أثناء تحميل بيانات البروفايل';

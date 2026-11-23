@@ -26,8 +26,10 @@ const StatusBadge: React.FC<Props> = ({
 
 const s = StyleSheet.create({
   badge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    borderRadius: 20, alignSelf: 'flex-start',
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    borderRadius: 8, alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: 'rgba(79,70,229,0.10)',
   },
   sm: { paddingHorizontal: 10, paddingVertical: 4 },
   md: { paddingHorizontal: 12, paddingVertical: 6 },

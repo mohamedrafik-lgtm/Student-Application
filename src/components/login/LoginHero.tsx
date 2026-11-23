@@ -24,20 +24,22 @@ const LoginHero: React.FC<Props> = ({ opacity }) => (
 const s = StyleSheet.create({
   heroBg: {
     backgroundColor: Colors.primaryDark,
-    paddingTop: 55,
-    paddingBottom: 75,
+    paddingTop: 38,
+    paddingBottom: 58,
     alignItems: 'center',
     overflow: 'hidden',
+    borderBottomLeftRadius: 34,
+    borderBottomRightRadius: 34,
   },
   blob1: {
     position: 'absolute', top: -50, right: -60,
     width: 200, height: 200, borderRadius: 100,
-    backgroundColor: 'rgba(16, 185, 129, 0.18)',
+    backgroundColor: 'rgba(129, 140, 248, 0.24)',
   },
   blob2: {
     position: 'absolute', top: 30, left: -70,
     width: 160, height: 160, borderRadius: 80,
-    backgroundColor: 'rgba(13, 148, 136, 0.15)',
+    backgroundColor: 'rgba(34, 211, 238, 0.16)',
   },
   blob3: {
     position: 'absolute', bottom: -40, right: width * 0.25,

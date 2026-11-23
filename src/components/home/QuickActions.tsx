@@ -66,12 +66,12 @@ const QuickActionCard = ({ icon, label, onPress }: { icon: string; label: string
 );
 
 const s = StyleSheet.create({
-  section: { marginHorizontal: 16, marginTop: 14 },
-  title: { fontSize: 15, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right', marginBottom: 12 },
+  section: { marginHorizontal: 16, marginTop: 16 },
+  title: { fontSize: 18, fontWeight: '900', color: Colors.textPrimary, textAlign: 'right', marginBottom: 12 },
   grid2x2: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   item: {
     width: '48.5%',
-    backgroundColor: Colors.white, borderRadius: 18, paddingVertical: 16,
+    backgroundColor: Colors.white, borderRadius: 16, paddingVertical: 18,
     alignItems: 'center', marginBottom: 10,
     shadowColor: Colors.shadow, shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 1, shadowRadius: 6, elevation: 1,
@@ -80,7 +80,7 @@ const s = StyleSheet.create({
   iconCircle: {
     width: 46, height: 46, borderRadius: 14,
     alignItems: 'center', justifyContent: 'center', marginBottom: 8,
-    backgroundColor: Colors.backgroundAlt,
+    backgroundColor: Colors.primary50,
   },
   label: { fontSize: 12, color: Colors.textPrimary, fontWeight: '700' },
   wideAction: {

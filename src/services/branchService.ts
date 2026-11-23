@@ -4,6 +4,7 @@
 // 3. Dependency Inversion: Depends on abstractions (interfaces) not concretions
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CacheService } from '../utils/cache';
 import { 
   BranchType, 
   BranchInfo, 
@@ -76,6 +77,7 @@ export class BranchService {
       await AsyncStorage.removeItem(STORAGE_KEYS.SELECTED_BRANCH);
       await AsyncStorage.removeItem(STORAGE_KEYS.BRANCH_SELECTION_TIME);
       await AsyncStorage.removeItem(STORAGE_KEYS.LAST_BRANCH_VALIDATION);
+      await CacheService.clearAll();
       
       // إعادة تعيين BASE_URL
       API_CONFIG.BASE_URL = '';

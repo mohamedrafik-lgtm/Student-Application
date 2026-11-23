@@ -11,8 +11,9 @@ const Logo: React.FC<LogoProps> = ({ size = 'medium', showText = true }) => {
   const dim = size === 'small' ? 64 : size === 'large' ? 110 : 88;
   return (
     <View style={s.container}>
-      <View style={[s.ring, { width: dim + 24, height: dim + 24, borderRadius: (dim + 24) / 2 }]}>
-        <View style={[s.circle, { width: dim, height: dim, borderRadius: dim / 2 }]}>
+      <View style={[s.mark, { width: dim + 18, height: dim + 18, borderRadius: 28 }]}>
+        <View style={s.corner} />
+        <View style={[s.circle, { width: dim, height: dim, borderRadius: 22 }]}>
           <Image
             source={require('../../img/502585454_122235753458244801_413190920156398012_n-removebg-preview.png')}
             style={{ width: dim * 0.72, height: dim * 0.72 }}
@@ -32,11 +33,23 @@ const Logo: React.FC<LogoProps> = ({ size = 'medium', showText = true }) => {
 
 const s = StyleSheet.create({
   container: { alignItems: 'center' },
-  ring: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
+  mark: {
+    backgroundColor: 'rgba(255,255,255,0.10)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    overflow: 'hidden',
+  },
+  corner: {
+    position: 'absolute',
+    width: 44,
+    height: 44,
+    right: -16,
+    top: -16,
+    borderRadius: 22,
+    backgroundColor: 'rgba(34,211,238,0.18)',
   },
   circle: {
     backgroundColor: '#FFFFFF',

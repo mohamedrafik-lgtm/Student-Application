@@ -25,6 +25,7 @@ import {
 import WeeklyScheduleView from '../components/WeeklyScheduleView';
 import DailySchedule from '../components/DailySchedule';
 import ScheduleSlotDetails from '../components/ScheduleSlotDetails';
+import { CacheDurations, CacheService } from '../utils/cache';
 
 interface ScheduleScreenProps {
   accessToken: string;
@@ -55,7 +56,50 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const buildWeeklySchedule = (response: MyScheduleResponse): WeeklySchedule => {
+    const weeklySchedule: WeeklySchedule = {
+      [DayOfWeek.SUNDAY]: [],
+      [DayOfWeek.MONDAY]: [],
+      [DayOfWeek.TUESDAY]: [],
+      [DayOfWeek.WEDNESDAY]: [],
+      [DayOfWeek.THURSDAY]: [],
+      [DayOfWeek.FRIDAY]: [],
+      [DayOfWeek.SATURDAY]: [],
+    };
+
+    if (response.schedule && typeof response.schedule === 'object' && !Array.isArray(response.schedule)) {
+      const scheduleObj = response.schedule as Record<string, ScheduleSlot[]>;
+      for (const [dayKey, slots] of Object.entries(scheduleObj)) {
+        const dayOfWeek = dayKey as DayOfWeek;
+        if (weeklySchedule[dayOfWeek] !== undefined && Array.isArray(slots)) {
+          weeklySchedule[dayOfWeek] = slots.map(slot =>
+            convertScheduleSlot(slot, dayOfWeek, response),
+          );
+        }
+      }
+    }
+    return weeklySchedule;
+  };
+
   const loadSchedule = async () => {
+    const cached = await CacheService.get<MyScheduleResponse>('schedule', accessToken);
+    if (cached) {
+      setMyScheduleData(cached);
+      if (cached.classroom) setCurrentClassroomId(cached.classroom.id);
+      const cachedSchedule = buildWeeklySchedule(cached);
+      setSchedule(cachedSchedule);
+      setIsLoading(false);
+      authService.getMySchedule(accessToken)
+        .then(async fresh => {
+          setMyScheduleData(fresh);
+          if (fresh.classroom) setCurrentClassroomId(fresh.classroom.id);
+          setSchedule(buildWeeklySchedule(fresh));
+          await CacheService.set('schedule', accessToken, fresh, CacheDurations.medium);
+        })
+        .catch(() => {});
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -106,6 +150,7 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
       }
 
       setSchedule(weeklySchedule);
+      await CacheService.set('schedule', accessToken, response, CacheDurations.medium);
     } catch (err) {
       console.error('❌ Failed to load schedule:', err);
       const apiError = err as ScheduleError;
@@ -121,6 +166,7 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
   const convertScheduleSlot = (
     slot: ScheduleSlot,
     dayOfWeek: DayOfWeek,
+    scheduleResponse?: MyScheduleResponse,
   ): ScheduleSession => {
     return {
       id: slot.id,
@@ -145,7 +191,7 @@ const ScheduleScreen: React.FC<ScheduleScreenProps> = ({
       },
       classroom: {
         id: currentClassroomId || 0,
-        name: myScheduleData?.classroom?.name || '',
+        name: scheduleResponse?.classroom?.name || myScheduleData?.classroom?.name || '',
       },
       distributionRoom: slot.distributionRoom || null,
       _count: {sessions: 0},

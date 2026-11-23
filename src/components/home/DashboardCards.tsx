@@ -172,21 +172,21 @@ const DashboardCards: React.FC<Props> = ({
 );
 
 const s = StyleSheet.create({
-  section: { paddingHorizontal: 16, marginTop: 14 },
+  section: { paddingHorizontal: 16, marginTop: 16 },
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   card: {
-    flex: 1, backgroundColor: Colors.white, borderRadius: 18, padding: 14,
+    flex: 1, backgroundColor: Colors.white, borderRadius: 16, padding: 16,
     marginHorizontal: 4,
     shadowColor: Colors.shadow, shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1, shadowRadius: 8, elevation: 2,
     borderWidth: 1, borderColor: Colors.borderLight,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 10 },
-  iconCircle: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
+  iconCircle: { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
   cardTitle: { fontSize: 13, fontWeight: '700', color: Colors.textPrimary, textAlign: 'right' },
   centerContent: { alignItems: 'center', paddingVertical: 6 },
   attCircle: {
-    width: 62, height: 62, borderRadius: 31, borderWidth: 4,
+    width: 66, height: 66, borderRadius: 33, borderWidth: 5,
     borderColor: Colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 6,
   },
   attPercent: { fontSize: 16, fontWeight: '800', color: Colors.primary },
@@ -205,7 +205,7 @@ const s = StyleSheet.create({
   docText: { fontSize: 10, color: Colors.textLight },
   docStatus: { fontSize: 10, fontWeight: '700', textAlign: 'right', marginTop: 6 },
   docLink: { fontSize: 11, color: Colors.primary, fontWeight: '600', textAlign: 'right', marginTop: 4 },
-  regCard: { borderWidth: 1, borderColor: Colors.successBorder },
+  regCard: { borderWidth: 1, borderColor: Colors.primary200, backgroundColor: Colors.primary50 },
   regTitle: { fontSize: 14, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right' },
   regBadge: {
     fontSize: 10, color: Colors.primary, fontWeight: '700',
@@ -219,7 +219,7 @@ const s = StyleSheet.create({
   },
   startBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: Colors.primary, paddingVertical: 8, borderRadius: 10, gap: 6,
+    backgroundColor: Colors.primary, paddingVertical: 10, borderRadius: 12, gap: 6,
   },
   startBtnText: { color: Colors.white, fontSize: 12, fontWeight: '700' },
 });

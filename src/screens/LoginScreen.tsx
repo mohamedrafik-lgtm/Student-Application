@@ -308,7 +308,7 @@ const s = StyleSheet.create({
   scrollContent: { flexGrow: 1 },
   card: {
     backgroundColor: Colors.white,
-    borderTopLeftRadius: 32, borderTopRightRadius: 32,
+    borderTopLeftRadius: 28, borderTopRightRadius: 28,
     paddingHorizontal: 24, paddingTop: 28, paddingBottom: 40,
     minHeight: height * 0.62,
     shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: -4 },

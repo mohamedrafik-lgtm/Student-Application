@@ -1,4 +1,4 @@
-// Shared Card — premium white card with emerald-aligned shadow
+// Shared Card — modern indigo-aligned shadow
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { Colors } from '../../styles/colors';
@@ -20,7 +20,8 @@ const Card: React.FC<Props> = ({ children, style, noPadding, accent }) => (
 const s = StyleSheet.create({
   card: {
     backgroundColor: Colors.white,
-    borderRadius: 20,
+    borderRadius: 16,
+    borderCurve: 'continuous',
     borderWidth: 1,
     borderColor: Colors.borderLight,
     shadowColor: Colors.primaryDark,
@@ -51,4 +52,3 @@ const s = StyleSheet.create({
 });
 
 export default Card;
-

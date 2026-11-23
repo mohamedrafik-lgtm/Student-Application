@@ -22,6 +22,7 @@ import {
   Grades,
   MaxMarks,
 } from '../types/grades';
+import { CacheDurations, CacheService } from '../utils/cache';
 
 interface GradesScreenProps {
   accessToken: string;
@@ -43,6 +44,21 @@ const GradesScreen: React.FC<GradesScreenProps> = ({accessToken, onBack}) => {
   }, []);
 
   const loadGrades = async () => {
+    const cached = await CacheService.get<GradesResponse>('grades', accessToken);
+    if (cached) {
+      setGradesData(cached);
+      setIsLoading(false);
+      gradesService.getMyGrades(accessToken)
+        .then(async (fresh: MyGradesResponse) => {
+          if (fresh.success) {
+            setGradesData(fresh.data);
+            await CacheService.set('grades', accessToken, fresh.data, CacheDurations.medium);
+          }
+        })
+        .catch(() => {});
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -50,6 +66,7 @@ const GradesScreen: React.FC<GradesScreenProps> = ({accessToken, onBack}) => {
         await gradesService.getMyGrades(accessToken);
       if (response.success) {
         setGradesData(response.data);
+        await CacheService.set('grades', accessToken, response.data, CacheDurations.medium);
       } else {
         setError(response.message || 'فشل في تحميل الدرجات');
       }

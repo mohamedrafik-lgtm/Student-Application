@@ -9,6 +9,7 @@ import {
   HomeHeader, NotificationBanner, DashboardCards,
   QuickActions, VideoSection, AIAssistantSection, AppealsSection,
 } from '../components/home';
+import { CacheDurations, CacheService } from '../utils/cache';
 
 interface HomeScreenProps {
   userInfo?: {
@@ -54,13 +55,32 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
 
-  // جلب بيانات البروفايل كاملة: الصورة + اسم البرنامج + الوثائق + الأرقام المالية.
-  // ملاحظة: لا يجوز ربط هذا الاستدعاء بوجود الصورة، لأن الحسابات المالية
-  // تعتمد عليه أيضاً وكانت تُترك أصفاراً عند وجود صورة للمتدرب.
-  const loadProfileData = useCallback(async () => {
+  const loadStudentPhoto = useCallback(async () => {
+    const cached = await CacheService.get<any>('profile', userInfo?.accessToken || '');
+    if (cached) {
+      if (cached.trainee?.photoUrl) setStudentPhotoUrl(cached.trainee.photoUrl);
+      if (cached.trainee?.documents) setDocuments(cached.trainee.documents);
+      if (cached.trainee?.program?.nameAr) setProgramName(cached.trainee.program.nameAr);
+      if (Array.isArray(cached.trainee?.traineePayments)) {
+        const payments = cached.trainee.traineePayments;
+        const totalAmount = payments.reduce((sum: number, payment: any) => sum + (Number(payment.amount) || 0), 0);
+        const paidAmount = payments.reduce((sum: number, payment: any) => {
+          const amount = Number(payment.amount) || 0;
+          const paid = Number(payment.paidAmount) || 0;
+          if (paid > 0) return sum + paid;
+          if (['COMPLETED', 'PAID'].includes(String(payment.status || '').toUpperCase())) return sum + amount;
+          return sum;
+        }, 0);
+        setFinancialSummary({ totalAmount, paidAmount, remainingAmount: Math.max(totalAmount - paidAmount, 0) });
+      }
+      setLoadingDocs(false);
+    }
+
     try {
       if (!userInfo?.accessToken) return;
       const profile = await AuthService.getProfile(userInfo.accessToken);
+      await CacheService.set('profile', userInfo.accessToken, profile, CacheDurations.long);
+      if (profile?.trainee?.photoUrl) setStudentPhotoUrl(profile.trainee.photoUrl);
       const trainee = profile?.trainee;
       if (!trainee) return;
 
@@ -104,28 +124,49 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   }, [userInfo?.accessToken]);
 
   const loadGradeAppeals = useCallback(async () => {
+    const cached = await CacheService.get<GradeAppeal[]>('appeals', userInfo?.accessToken || '');
+    if (cached) {
+      setGradeAppeals(cached);
+      setLoadingAppeals(false);
+    }
+
     try {
       if (!userInfo?.accessToken) return;
       const appeals = await HomeService.getGradeAppeals(userInfo.accessToken);
       setGradeAppeals(appeals);
+      await CacheService.set('appeals', userInfo.accessToken, appeals, CacheDurations.medium);
     } catch (err) { console.log('Could not load grade appeals', err); }
     finally { setLoadingAppeals(false); }
   }, [userInfo?.accessToken]);
 
   const loadAccessCheck = useCallback(async () => {
+    const cached = await CacheService.get<AccessCheckResponse>('access-check', userInfo?.accessToken || '');
+    if (cached) {
+      setAccessCheck(cached);
+      setLoadingAccess(false);
+    }
+
     try {
       if (!userInfo?.accessToken) return;
       const check = await HomeService.checkAccess(userInfo.accessToken);
       setAccessCheck(check);
+      await CacheService.set('access-check', userInfo.accessToken, check, CacheDurations.short);
     } catch (err) { console.log('Could not check access', err); }
     finally { setLoadingAccess(false); }
   }, [userInfo?.accessToken]);
 
   const loadAttendance = useCallback(async () => {
+    const cached = await CacheService.get<AttendanceSummary>('attendance-summary', userInfo?.accessToken || '');
+    if (cached) {
+      setAttendanceSummary(cached);
+      setLoadingAttendance(false);
+    }
+
     try {
       if (!userInfo?.accessToken) return;
       const data = await HomeService.getAttendanceRecords(userInfo.accessToken);
       setAttendanceSummary(data.summary);
+      await CacheService.set('attendance-summary', userInfo.accessToken, data.summary, CacheDurations.medium);
     } catch (err) { console.log('Could not load attendance', err); }
     finally { setLoadingAttendance(false); }
   }, [userInfo?.accessToken]);
