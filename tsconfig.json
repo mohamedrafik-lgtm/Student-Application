@@ -1,5 +1,11 @@
 {
   "extends": "@react-native/typescript-config",
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["**/node_modules", "**/Pods", "__tests__"]
+  "exclude": [
+    "**/node_modules",
+    "**/Pods",
+    "__tests__",
+    "erp_front_prod-main",
+    "erp_backend_prod-main"
+  ]
 }

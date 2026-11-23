@@ -1,6 +1,7 @@
 // GradientBackground  premium emerald background
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { Colors } from '../styles/colors';
 
 interface Props { children: React.ReactNode; }
 

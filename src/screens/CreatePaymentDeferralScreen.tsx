@@ -10,6 +10,7 @@ import CustomButton from '../components/CustomButton';
 import { Colors } from '../styles/colors';
 import Icon, { AppIcons } from '../components/shared/Icon';
 import ScreenHeader from '../components/shared/ScreenHeader';
+import { requestsService } from '../services/requestsService';
 
 interface CreatePaymentDeferralScreenProps {
   accessToken: string;
@@ -48,11 +49,22 @@ const CreatePaymentDeferralScreen: React.FC<CreatePaymentDeferralScreenProps> = 
     if (!selectedPaymentId) { Alert.alert('خطأ', 'يرجى اختيار الرسم المطلوب تأجيله'); return; }
     if (!extensionDays || isNaN(Number(extensionDays))) { Alert.alert('خطأ', 'يرجى إدخال عدد الأيام'); return; }
     const days = Number(extensionDays);
-    if (days < 1 || days > 90) { Alert.alert('خطأ', 'عدد الأيام يجب أن يكون بين 1 و 90'); return; }
+    if (days < 1 || days > 14) { Alert.alert('خطأ', 'عدد الأيام يجب أن يكون بين 1 و 14'); return; }
     if (!reason.trim()) { Alert.alert('خطأ', 'يرجى كتابة سبب التأجيل'); return; }
     try {
       setIsLoading(true);
-      Alert.alert('قريباً', 'سيتم إضافة الاتصال بالـ API');
+      const response = await requestsService.createDeferralRequest(accessToken, {
+        feeId: Number(selectedPaymentId),
+        reason: reason.trim(),
+        requestedExtensionDays: days,
+      });
+      Alert.alert(
+        'تم إرسال الطلب',
+        response.message || 'تم إرسال طلب تأجيل السداد بنجاح',
+        [{ text: 'موافق', onPress: onBack }],
+      );
+    } catch (error: any) {
+      Alert.alert('خطأ', error.message || 'فشل في إرسال طلب التأجيل');
     } finally { setIsLoading(false); }
   };
 
@@ -98,7 +110,7 @@ const CreatePaymentDeferralScreen: React.FC<CreatePaymentDeferralScreenProps> = 
           {/* Days */}
           <Text style={[s.label, { marginTop: 20 }]}>عدد الأيام المطلوب تأجيلها *</Text>
           <CustomInput value={extensionDays} onChangeText={setExtensionDays} placeholder="14" keyboardType="numeric" />
-          <Text style={s.hint}>الحد الأقصى 90 يوم</Text>
+          <Text style={s.hint}>الحد الأقصى 14 يوماً</Text>
 
           {/* Reason */}
           <Text style={[s.label, { marginTop: 20 }]}>سبب طلب التأجيل *</Text>

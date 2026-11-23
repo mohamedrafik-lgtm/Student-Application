@@ -36,6 +36,10 @@ import GradeAppealsScreen from '../screens/GradeAppealsScreen';
 import SurveyScreen from '../screens/SurveyScreen';
 import AssignmentsScreen from '../screens/AssignmentsScreen';
 import DistributionsScreen from '../screens/DistributionsScreen';
+import StudyMaterialsScreen from '../screens/StudyMaterialsScreen';
+import ComplaintsScreen from '../screens/ComplaintsScreen';
+import IdCardScreen from '../screens/IdCardScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 import { Colors } from '../styles/colors';
 import { BranchService } from '../services/branchService';
 import { BranchType } from '../types/auth';
@@ -47,11 +51,12 @@ interface UserInfo {
   nameEn: string;
   nationalId: string;
   accessToken: string;
+  sessionToken?: string;
   classroomId?: number;
   traineeId?: number;
 }
 
-type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates' | 'register-attendance' | 'academic-results' | 'grade-appeals' | 'survey' | 'assignments' | 'distributions';
+type Screen = 'branch-selection' | 'login' | 'home' | 'profile' | 'documents' | 'payments' | 'signup' | 'schedule' | 'exams' | 'grades' | 'attendance' | 'training-contents' | 'requests-hub' | 'student-requests' | 'payment-deferral-requests' | 'create-payment-deferral' | 'exam-postponement' | 'sick-leave' | 'enrollment-proof' | 'certificate' | 'request-settings' | 'payment-due-dates' | 'register-attendance' | 'academic-results' | 'grade-appeals' | 'survey' | 'assignments' | 'distributions' | 'study-materials' | 'complaints' | 'id-card' | 'notifications';
 
 const AppNavigator: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -115,6 +120,27 @@ const AppNavigator: React.FC = () => {
     }
   }, [isAuthenticated, userInfo, paymentReminderChecked, checkUpcomingPayments]);
 
+  useEffect(() => {
+    if (!isAuthenticated || !userInfo?.accessToken || !userInfo.sessionToken) {
+      return;
+    }
+
+    const sendHeartbeat = () => {
+      AuthService.heartbeat(
+        userInfo.accessToken,
+        userInfo.sessionToken!,
+        `/mobile-app/${currentScreen}`,
+      ).catch((error) => {
+        console.log('Session heartbeat failed:', error);
+      });
+    };
+
+    sendHeartbeat();
+    const intervalId = setInterval(sendHeartbeat, 60 * 1000);
+
+    return () => clearInterval(intervalId);
+  }, [isAuthenticated, userInfo, currentScreen]);
+
   const initializeApp = async () => {
     try {
       setIsLoading(true);
@@ -133,6 +159,7 @@ const AppNavigator: React.FC = () => {
           nameEn: session.nameEn,
           nationalId: session.nationalId,
           accessToken: session.accessToken,
+          sessionToken: session.sessionToken,
           classroomId: session.classroomId,
           traineeId: session.traineeId,
         });
@@ -157,6 +184,7 @@ const AppNavigator: React.FC = () => {
       nameEn: loginData.trainee.nameEn,
       nationalId: loginData.trainee.nationalId,
       accessToken: loginData.access_token,
+      sessionToken: loginData.sessionToken,
       classroomId: loginData.trainee.classroomId || loginData.trainee.classLevel || 1,
       traineeId: loginData.trainee.id,
     };
@@ -168,6 +196,7 @@ const AppNavigator: React.FC = () => {
     // Persist session
     Storage.saveSession({
       accessToken: userData.accessToken,
+      sessionToken: userData.sessionToken,
       nameAr: userData.nameAr,
       nameEn: userData.nameEn,
       nationalId: userData.nationalId,
@@ -177,6 +206,9 @@ const AppNavigator: React.FC = () => {
   };
 
   const handleLogout = async () => {
+    if (userInfo?.sessionToken) {
+      await AuthService.logout(userInfo.accessToken, userInfo.sessionToken).catch(() => {});
+    }
     setUserInfo(null);
     setIsAuthenticated(false);
     setCurrentScreen('login');
@@ -284,6 +316,11 @@ const AppNavigator: React.FC = () => {
   const handleNavigateToAssignments = () => {
     setCurrentScreen('assignments');
   };
+
+  const handleNavigateToDistributions = () => setCurrentScreen('distributions');
+  const handleNavigateToStudyMaterials = () => setCurrentScreen('study-materials');
+  const handleNavigateToComplaints = () => setCurrentScreen('complaints');
+  const handleNavigateToIdCard = () => setCurrentScreen('id-card');
 
   const handleBackFromAssignments = () => {
     setCurrentScreen('home');
@@ -571,6 +608,21 @@ const AppNavigator: React.FC = () => {
           />
         );
         break;
+      case 'distributions':
+        screenElement = <DistributionsScreen accessToken={userInfo.accessToken} onBack={handleBackToHome} />;
+        break;
+      case 'study-materials':
+        screenElement = <StudyMaterialsScreen accessToken={userInfo.accessToken} onBack={handleBackToHome} />;
+        break;
+      case 'complaints':
+        screenElement = <ComplaintsScreen accessToken={userInfo.accessToken} onBack={handleBackToHome} />;
+        break;
+      case 'id-card':
+        screenElement = <IdCardScreen accessToken={userInfo.accessToken} onBack={handleBackToHome} />;
+        break;
+      case 'notifications':
+        screenElement = <NotificationsScreen accessToken={userInfo.accessToken} onBack={handleBackToHome} />;
+        break;
       case 'exams':
         screenElement = (
           <ExamsScreen
@@ -700,4 +752,3 @@ const styles = StyleSheet.create({
 });
 
 export default AppNavigator;
-

@@ -1,0 +1,1 @@
+ALTER TABLE `User` ADD COLUMN `securityPinHash` VARCHAR(191) NULL;

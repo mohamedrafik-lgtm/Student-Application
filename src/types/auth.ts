@@ -370,6 +370,7 @@ export interface CreatePasswordErrorResponse {
 // DTO لطلب إعادة تعيين كلمة المرور
 export interface RequestPasswordResetDto {
   nationalId: string;  // الرقم القومي
+  phone: string;      // رقم الهاتف للتحقق
 }
 
 // استجابة طلب إعادة تعيين كلمة المرور

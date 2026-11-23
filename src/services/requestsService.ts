@@ -151,6 +151,24 @@ export class RequestsService implements IRequestsService {
     return response;
   }
 
+  async createDeferralRequest(
+    accessToken: string,
+    data: {
+      feeId: number;
+      reason: string;
+      requestedExtensionDays: number;
+    },
+  ): Promise<{ success?: boolean; message?: string; [key: string]: any }> {
+    const url = `${API_CONFIG.BASE_URL}/api/deferral-requests`;
+    return RequestsService.makeRequest<any>(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(data),
+    });
+  }
+
   /**
    * إنشاء طلب متدرب جديد (تأجيل اختبار، إجازة مرضية، إلخ)
    */

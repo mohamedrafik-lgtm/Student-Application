@@ -225,6 +225,30 @@ export class AuthService {
     });
   }
 
+  static async heartbeat(accessToken: string, sessionToken: string, page = '/mobile-app'): Promise<{ ok: boolean }> {
+    const url = `${API_CONFIG.BASE_URL}/api/trainee-auth/heartbeat`;
+    return this.makeRequest<{ ok: boolean }>(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'x-session-token': sessionToken,
+      },
+      body: JSON.stringify({ page }),
+    });
+  }
+
+  static async logout(accessToken: string, sessionToken: string): Promise<{ message: string }> {
+    const url = `${API_CONFIG.BASE_URL}/api/trainee-auth/logout`;
+    return this.makeRequest<{ message: string }>(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'x-session-token': sessionToken,
+      },
+      body: JSON.stringify({}),
+    });
+  }
+
   // ===== الجداول الدراسية =====
 
   // الحصول على فترة واحدة من الجدول الدراسي مع جميع التفاصيل

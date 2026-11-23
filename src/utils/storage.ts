@@ -8,6 +8,7 @@ const KEYS = {
 
 export interface SavedSession {
   accessToken: string;
+  sessionToken?: string;
   nameAr: string;
   nameEn: string;
   nationalId: string;

@@ -183,7 +183,7 @@ export class QuizService {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({ quizId }),
+      body: JSON.stringify({ quizId, platform: 'MOBILE' }),
     });
 
     console.log('📡 Start Quiz API Response:', {
@@ -218,7 +218,7 @@ export class QuizService {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
-      body: JSON.stringify(answerData),
+      body: JSON.stringify({ ...answerData, platform: 'MOBILE' }),
     });
 
     console.log('📡 Answer Question API Response:', {
@@ -250,7 +250,7 @@ export class QuizService {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({ attemptId }),
+      body: JSON.stringify({ attemptId, platform: 'MOBILE' }),
     });
 
     console.log('📡 Submit Quiz API Response:', {
@@ -295,4 +295,3 @@ export class QuizService {
 
 // Export a default instance for easier usage
 export const quizService = new QuizService();
-

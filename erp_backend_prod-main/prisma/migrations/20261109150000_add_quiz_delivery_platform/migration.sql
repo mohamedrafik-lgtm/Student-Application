@@ -1,0 +1,2 @@
+ALTER TABLE `quizzes`
+  ADD COLUMN `deliveryPlatform` VARCHAR(10) NOT NULL DEFAULT 'WEB';

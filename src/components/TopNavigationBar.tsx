@@ -36,7 +36,12 @@ export type TopNavTab =
   | 'distributions'
   | 'requests-hub'
   | 'survey'
-  | 'assignments';
+  | 'assignments'
+  | 'distributions'
+  | 'study-materials'
+  | 'complaints'
+  | 'id-card'
+  | 'notifications';
 
 interface TopNavigationBarProps {
   currentTab: TopNavTab;
@@ -61,6 +66,11 @@ const TABS: { id: TopNavTab; label: string }[] = [
   { id: 'payments', label: 'المدفوعات والرسوم' },
   { id: 'payment-due-dates', label: 'مواعيد السداد' },
   { id: 'profile', label: 'الملف' },
+  { id: 'distributions', label: 'توزيعات التدريب' },
+  { id: 'study-materials', label: 'الأدوات الدراسية' },
+  { id: 'complaints', label: 'الشكاوى والاقتراحات' },
+  { id: 'id-card', label: 'كارنيه المتدرب' },
+  { id: 'notifications', label: 'الإشعارات' },
 ];
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -484,4 +494,3 @@ const styles = StyleSheet.create({
 });
 
 export default TopNavigationBar;
-

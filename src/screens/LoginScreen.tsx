@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, ScrollView, StyleSheet, KeyboardAvoidingView,
-  Platform, TouchableOpacity, Text, Alert, Animated, Dimensions, StatusBar,
+  Platform, TouchableOpacity, Text, TextInput, Modal, Alert, Animated, Dimensions, StatusBar,
 } from 'react-native';
 import { TraineeLoginRequest, TraineeLoginError, BranchType } from '../types/auth';
 import { AuthService } from '../services/authService';
@@ -27,6 +27,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   const [credentials, setCredentials] = useState<TraineeLoginRequest>({ nationalId: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<TraineeLoginRequest>>({});
+  const [resetVisible, setResetVisible] = useState(false);
+  const [resetStep, setResetStep] = useState<1 | 2 | 3>(1);
+  const [resetNationalId, setResetNationalId] = useState('');
+  const [resetPhone, setResetPhone] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
 
   // Animations
   const heroAnim    = useRef(new Animated.Value(0)).current;
@@ -79,7 +87,76 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     }
   };
 
-  const handleForgotPassword = () => Alert.alert('نسيت كلمة المرور', 'سيتم إضافة هذه الميزة قريباً');
+  const handleForgotPassword = () => {
+    setResetNationalId(credentials.nationalId);
+    setResetPhone('');
+    setResetCode('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setResetStep(1);
+    setResetVisible(true);
+  };
+
+  const handleRequestResetCode = async () => {
+    if (resetNationalId.length !== 14) {
+      Alert.alert('خطأ', 'يرجى إدخال الرقم القومي المكون من 14 رقماً');
+      return;
+    }
+    if (resetPhone.length !== 11) {
+      Alert.alert('خطأ', 'يرجى إدخال رقم الهاتف المكون من 11 رقماً');
+      return;
+    }
+    setResetLoading(true);
+    try {
+      await AuthService.requestPasswordReset({ nationalId: resetNationalId, phone: resetPhone });
+      setResetStep(2);
+    } catch (error: any) {
+      Alert.alert('خطأ', error.message || 'تعذر إرسال كود إعادة التعيين');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleVerifyResetCode = async () => {
+    if (resetCode.trim().length < 4) {
+      Alert.alert('خطأ', 'يرجى إدخال كود التحقق');
+      return;
+    }
+    setResetLoading(true);
+    try {
+      await AuthService.verifyResetCode({ nationalId: resetNationalId, resetCode: resetCode.trim() });
+      setResetStep(3);
+    } catch (error: any) {
+      Alert.alert('خطأ', error.message || 'الكود غير صحيح أو منتهي الصلاحية');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (newPassword.length < 6) {
+      Alert.alert('خطأ', 'كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Alert.alert('خطأ', 'كلمتا المرور غير متطابقتين');
+      return;
+    }
+    setResetLoading(true);
+    try {
+      await AuthService.resetPassword({
+        nationalId: resetNationalId,
+        resetCode: resetCode.trim(),
+        newPassword,
+      });
+      setResetVisible(false);
+      Alert.alert('تم بنجاح', 'تم تغيير كلمة المرور، يمكنك تسجيل الدخول الآن');
+    } catch (error: any) {
+      Alert.alert('خطأ', error.message || 'تعذر تغيير كلمة المرور');
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   return (
     <View style={s.root}>
@@ -129,6 +206,98 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={resetVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setResetVisible(false)}
+      >
+        <View style={s.resetOverlay}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.resetCard}>
+            <Text style={s.resetTitle}>استعادة كلمة المرور</Text>
+            <Text style={s.resetSubtitle}>
+              {resetStep === 1
+                ? 'أدخل رقمك القومي ورقم هاتفك المسجل'
+                : resetStep === 2
+                  ? 'أدخل كود التحقق المرسل عبر واتساب'
+                  : 'أدخل كلمة المرور الجديدة'}
+            </Text>
+
+            {resetStep === 1 && (
+              <>
+                <TextInput
+                  value={resetNationalId}
+                  onChangeText={setResetNationalId}
+                  keyboardType="number-pad"
+                  maxLength={14}
+                  placeholder="الرقم القومي"
+                  style={s.resetInput}
+                  placeholderTextColor={Colors.textHint}
+                />
+                <TextInput
+                  value={resetPhone}
+                  onChangeText={setResetPhone}
+                  keyboardType="phone-pad"
+                  maxLength={11}
+                  placeholder="رقم الهاتف"
+                  style={s.resetInput}
+                  placeholderTextColor={Colors.textHint}
+                />
+              </>
+            )}
+
+            {resetStep === 2 && (
+              <TextInput
+                value={resetCode}
+                onChangeText={setResetCode}
+                keyboardType="number-pad"
+                placeholder="كود التحقق"
+                style={s.resetInput}
+                placeholderTextColor={Colors.textHint}
+              />
+            )}
+
+            {resetStep === 3 && (
+              <>
+                <TextInput
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry
+                  placeholder="كلمة المرور الجديدة"
+                  style={s.resetInput}
+                  placeholderTextColor={Colors.textHint}
+                />
+                <TextInput
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry
+                  placeholder="تأكيد كلمة المرور"
+                  style={s.resetInput}
+                  placeholderTextColor={Colors.textHint}
+                />
+              </>
+            )}
+
+            <TouchableOpacity
+              style={[s.resetPrimaryButton, resetLoading && s.resetButtonDisabled]}
+              disabled={resetLoading}
+              onPress={
+                resetStep === 1
+                  ? handleRequestResetCode
+                  : resetStep === 2
+                    ? handleVerifyResetCode
+                    : handleResetPassword
+              }
+            >
+              <Text style={s.resetPrimaryText}>{resetLoading ? 'جاري التنفيذ...' : 'متابعة'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.resetCloseButton} onPress={() => setResetVisible(false)}>
+              <Text style={s.resetCloseText}>إلغاء</Text>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -155,6 +324,55 @@ const s = StyleSheet.create({
   cardTitle: { fontSize: 26, fontWeight: '800', color: Colors.textPrimary, textAlign: 'right' },
   cardSub: { fontSize: 14, color: Colors.textSecondary, textAlign: 'right', marginTop: 4 },
   divider: { height: 1, backgroundColor: Colors.borderMedium, marginVertical: 20, borderRadius: 1 },
+  resetOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(6,78,59,0.55)',
+  },
+  resetCard: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 34,
+  },
+  resetTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    textAlign: 'right',
+  },
+  resetSubtitle: {
+    marginTop: 6,
+    marginBottom: 18,
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'right',
+  },
+  resetInput: {
+    height: 52,
+    borderWidth: 1,
+    borderColor: Colors.borderMedium,
+    borderRadius: 14,
+    backgroundColor: Colors.inputBackground,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    color: Colors.textPrimary,
+    textAlign: 'right',
+  },
+  resetPrimaryButton: {
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  resetButtonDisabled: { opacity: 0.6 },
+  resetPrimaryText: { color: Colors.white, fontSize: 16, fontWeight: '800' },
+  resetCloseButton: { height: 44, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  resetCloseText: { color: Colors.textSecondary, fontSize: 15, fontWeight: '700' },
 });
 
 export default LoginScreen;

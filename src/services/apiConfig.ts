@@ -11,7 +11,7 @@ export const BRANCH_CONFIG = {
     id: BranchType.MANSOURA,
     name: 'Mansoura',
     nameAr: 'المنصورة',
-    apiUrl: 'https://mansapi.tiba29.com',
+    apiUrl: 'https://mansapi1.tiba29.com',
     city: 'Mansoura',
     cityAr: 'المنصورة',
     icon: 'office-building',
@@ -23,22 +23,22 @@ export const BRANCH_CONFIG = {
     id: BranchType.ZAGAZIG,
     name: 'Zagazig',
     nameAr: 'الزقازيق',
-    apiUrl: 'https://zagapi.tiba29.com',
+    apiUrl: 'https://zagapi1.tiba29.com',
     city: 'Zagazig',
     cityAr: 'الزقازيق',
     icon: 'domain',
     color: '#10B981',
-    description: 'Zagazig Branch',
-    descriptionAr: 'فرع الزقازيق'
+    description: 'Zagazig Branch - Secondary Campus',
+    descriptionAr: 'فرع الزقازيق - المقر الفرعي'
   },
   CAIRO: {
     id: BranchType.CAIRO,
     name: 'Cairo',
     nameAr: 'القاهرة',
-    apiUrl: 'https://caapi.tiba29.com',
+    apiUrl: 'https://caapi1.tiba29.com',
     city: 'Cairo',
     cityAr: 'القاهرة',
-    icon: 'city-variant-outline',
+    icon: 'office-building',
     color: '#8B5CF6',
     description: 'Cairo Branch',
     descriptionAr: 'فرع القاهرة'
@@ -101,6 +101,9 @@ export const API_CONFIG = {
     SUBMIT_ASSIGNMENT: '/api/assignments', // + /{assignmentId}/submit
     TRAINEE_RELEASED_GRADES: '/api/trainee-grades', // + /{traineeId}/released
     MERCY_GRADES: '/api/trainee-grades', // + /{traineeId}/mercy-grades
+    GRADE_APPEALS: '/api/grade-appeals/my-appeals',
+    GRADE_APPEALS_STATUS: '/api/grade-appeals/appeals-status',
+    CREATE_GRADE_APPEAL: '/api/grade-appeals',
   },
   
   // Request timeout in milliseconds
